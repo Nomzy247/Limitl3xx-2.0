@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and account information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "balance": { "type": "number" },
+        "balances": {
+          "type": "object",
+          "properties": {
+            "BTC": { "type": "number" },
+            "ETH": { "type": "number" },
+            "USDT": { "type": "number" }
+          }
+        },
+        "joined_date": { "type": "string", "format": "date-time" },
+        "verification_status": { "type": "string", "enum": ["pending", "verified", "rejected"] },
+        "referral_code": { "type": "string" },
+        "referred_by": { "type": "string" },
+        "referral_count": { "type": "number" },
+        "level": { "type": "number" },
+        "onboarding_completed": { "type": "boolean" }
+      },
+      "required": ["name", "email", "role", "balance"]
+    },
+    "MiningContract": {
+      "title": "Mining Contract",
+      "description": "A mining contract purchased by a user",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "type": { "type": "string", "enum": ["pool", "cloud", "crypto"] },
+        "hashpower": { "type": "string" },
+        "price": { "type": "number" },
+        "daily_return": { "type": "number" },
+        "start_date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "completed", "expired"] },
+        "next_payout": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "type", "hashpower", "price", "start_date", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Deposit, withdrawal, or purchase transaction",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal", "purchase"] },
+        "amount": { "type": "number" },
+        "method": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "completed"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "approved_at": { "type": "string", "format": "date-time" },
+        "approved_by": { "type": "string" },
+        "rejected_at": { "type": "string", "format": "date-time" },
+        "rejected_by": { "type": "string" }
+      },
+      "required": ["user_id", "type", "amount", "status", "timestamp"]
+    },
+    "SystemLog": {
+      "title": "System Log",
+      "description": "Log of system, admin, or AI activity",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "type": { "type": "string", "enum": ["ai", "admin", "system"] },
+        "action": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "action", "timestamp"]
+    },
+    "AdminSettings": {
+      "title": "Admin Settings",
+      "description": "Global system settings",
+      "type": "object",
+      "properties": {
+        "global_profit_margin": { "type": "number" },
+        "ai_enabled": { "type": "boolean" },
+        "costings": {
+          "type": "object",
+          "properties": {
+            "pool": { "type": "number" },
+            "cloud": { "type": "number" },
+            "crypto": { "type": "number" }
+          }
+        },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["global_profit_margin", "ai_enabled", "costings"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/contracts/{contractId}": {
+      "schema": "MiningContract",
+      "description": "Mining contracts"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial transactions"
+    },
+    "/logs/{logId}": {
+      "schema": "SystemLog",
+      "description": "Activity logs"
+    },
+    "/settings/global": {
+      "schema": "AdminSettings",
+      "description": "Global settings"
+    }
+  }
+}

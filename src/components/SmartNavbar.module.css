@@ -1,0 +1,193 @@
+/* SmartNavbar.module.css */
+
+.navbarContainer {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Full size defaults */
+  width: 95%;
+  max-width: 1280px;
+  height: 64px; /* Original height */
+  border-radius: 9999px; /* Fully rounded corners */
+  background-color: rgba(31, 41, 55, 0.85); /* Dark background with opacity */
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.navbarShrunken {
+  /* 3. The pill is 60% smaller than the original height. 
+     64px * 0.4 = 25.6px. We use 26px for precision. */
+  height: 26px;
+  width: auto;
+  min-width: 120px;
+  cursor: pointer;
+  padding: 0 16px;
+}
+
+.navContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 24px;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navContentShrunken {
+  padding: 0;
+  justify-content: center;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logoContainerShrunken {
+  /* 4. The logo + company name shrink */
+  transform: scale(0.5); 
+}
+
+.logoIcon {
+  color: #00f0ff;
+  width: 24px;
+  height: 24px;
+}
+
+.companyName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.companyNameAccent {
+  color: #0052ff;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.navLinksHidden {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.navLink {
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.navLink:hover {
+  color: #ffffff;
+}
+
+.navLink:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #00f0ff;
+  color: #ffffff;
+}
+
+.authButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.loginBtn {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.loginBtn:hover {
+  color: #ffffff;
+}
+
+.loginBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #00f0ff;
+  color: #ffffff;
+}
+
+.signupBtn {
+  background-color: #0052ff;
+  color: #ffffff;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(0, 82, 255, 0.3);
+}
+
+.signupBtn:hover {
+  background-color: rgba(0, 82, 255, 0.9);
+  box-shadow: 0 0 15px rgba(0, 82, 255, 0.5);
+}
+
+.signupBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #00f0ff, 0 0 15px rgba(0, 82, 255, 0.5);
+}
+
+.themeToggleBtn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.themeToggleBtn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.themeToggleBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #00f0ff;
+  color: #ffffff;
+}
+
+/* 10. Component must be responsive and mobile-friendly. */
+@media (max-width: 768px) {
+  .navLinks {
+    display: none;
+  }
+  .authButtons {
+    display: none;
+  }
+}

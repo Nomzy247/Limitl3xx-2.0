@@ -1,0 +1,163 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Firebase Auth UID)
+    // Fields:
+    //   - name: string (required)
+    //   - email: string (required, email format)
+    //   - role: string (required, 'user' or 'admin')
+    //   - balance: number (required)
+    //   - balances: map (optional)
+    //   - joined_date: timestamp (optional)
+    //   - verification_status: string (optional)
+    //
+    // Collection: contracts
+    // Document ID: auto-generated
+    // Fields:
+    //   - user_id: string (required, matches owner)
+    //   - type: string (required, enum)
+    //   - hashpower: string (required)
+    //   - price: number (required)
+    //   - daily_return: number (required)
+    //   - start_date: timestamp (required)
+    //   - status: string (required)
+    //
+    // Collection: transactions
+    // Document ID: auto-generated
+    // Fields:
+    //   - user_id: string (required, matches owner)
+    //   - type: string (required, enum)
+    //   - amount: number (required)
+    //   - status: string (required)
+    //   - timestamp: timestamp (required)
+    //
+    // Collection: logs
+    // Document ID: auto-generated
+    // Fields:
+    //   - type: string (required)
+    //   - action: string (required)
+    //   - timestamp: timestamp (required)
+    //
+    // Collection: settings
+    // Document ID: global
+    // Fields:
+    //   - global_profit_margin: number (required)
+    //   - ai_enabled: bool (required)
+    //   - costings: map (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "why.wd.ww.do@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'email', 'role', 'balance']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.role in ['user', 'admin'] &&
+             data.balance is number;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['user_id', 'type', 'amount', 'status', 'timestamp']) &&
+             data.user_id is string &&
+             data.type in ['deposit', 'withdrawal', 'purchase'] &&
+             data.amount is number && data.amount >= 0 &&
+             data.status in ['pending', 'approved', 'rejected', 'completed'] &&
+             data.timestamp is timestamp;
+    }
+
+    function isValidContract(data) {
+      return data.keys().hasAll(['user_id', 'type', 'hashpower', 'price', 'start_date', 'status']) &&
+             data.user_id is string &&
+             data.type in ['pool', 'cloud', 'crypto'] &&
+             data.hashpower is string &&
+             data.price is number && data.price >= 0 &&
+             data.start_date is timestamp &&
+             data.status in ['active', 'completed', 'expired'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // User can create their own profile as 'user' role
+      allow create: if isOwner(userId) && 
+                      isValidUser(request.resource.data) && 
+                      request.resource.data.role == 'user';
+      
+      // Admin can create any user
+      allow create: if isAdmin() && isValidUser(request.resource.data);
+
+      // User can update their own profile but NOT their role or balance (unless via transaction)
+      // Actually, balance is updated via transaction in AdminDashboard or BuyHashpower.
+      // So we must be careful.
+      allow update: if isOwner(userId) && 
+                      isValidUser(request.resource.data) &&
+                      request.resource.data.role == resource.data.role &&
+                      request.resource.data.balance == resource.data.balance;
+      
+      // Admin can update anything
+      allow update: if isAdmin() && isValidUser(request.resource.data);
+    }
+
+    match /contracts/{contractId} {
+      allow read: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
+      
+      // Users can create contracts (purchases)
+      allow create: if isAuthenticated() && 
+                      request.resource.data.user_id == request.auth.uid &&
+                      isValidContract(request.resource.data);
+      
+      allow update, delete: if isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
+      
+      // Users can create transactions (deposits/withdrawals)
+      allow create: if isAuthenticated() && 
+                      request.resource.data.user_id == request.auth.uid &&
+                      isValidTransaction(request.resource.data);
+      
+      // Admin can update status
+      allow update: if isAdmin() && isValidTransaction(request.resource.data);
+      
+      allow delete: if isAdmin();
+    }
+
+    match /logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated(); // Allow users to log certain actions if needed, or just admin
+      allow update, delete: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "PoolMining.cloud",
+  "short_name": "PoolMining",
+  "description": "Premium crypto and fintech platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e17",
+  "theme_color": "#0052ff",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/poolmining192/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/poolmining512/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
