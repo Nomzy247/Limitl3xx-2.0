@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Settings as SettingsIcon, User, Lock, Bell, Shield, Globe, Moon, Sun, Trash2, Save } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { fluidSpring } from '../components/SystemManager';
 import { toast } from 'sonner';
 
 export default function Settings() {
@@ -26,19 +27,25 @@ export default function Settings() {
           <h1 className="text-3xl font-bold">Account Settings</h1>
           <p className="text-secondary mt-1">Manage your account preferences and security settings.</p>
         </div>
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={fluidSpring}
           onClick={handleSave}
           className="px-6 py-2 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white rounded-full font-medium transition-colors flex items-center gap-2"
         >
           <Save size={18} /> Save Changes
-        </button>
+        </motion.button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-2">
           {tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
+              whileHover={{ x: 5 }}
+              whileTap={{ scale: 0.98 }}
+              transition={fluidSpring}
               onClick={() => setActiveTab(tab.id as any)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
                 activeTab === tab.id 
@@ -48,7 +55,7 @@ export default function Settings() {
             >
               <tab.icon size={20} />
               {tab.label}
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -57,6 +64,7 @@ export default function Settings() {
             key={activeTab}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={fluidSpring}
             className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl space-y-8"
           >
             {activeTab === 'profile' && (
@@ -123,18 +131,28 @@ export default function Settings() {
                       <p className="font-semibold">Two-Factor Authentication (2FA)</p>
                       <p className="text-xs text-secondary mt-1">Add an extra layer of security to your account.</p>
                     </div>
-                    <button className="px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold hover:bg-emerald-500/20 transition-colors">
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={fluidSpring}
+                      className="px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold hover:bg-emerald-500/20 transition-colors"
+                    >
                       Enable
-                    </button>
+                    </motion.button>
                   </div>
                   <div className="p-4 bg-surface rounded-2xl border border-border/50 flex items-center justify-between">
                     <div>
                       <p className="font-semibold">Login Alerts</p>
                       <p className="text-xs text-secondary mt-1">Get notified of new logins to your account.</p>
                     </div>
-                    <button className="px-4 py-2 bg-emerald-500 text-white rounded-full text-xs font-bold transition-colors">
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={fluidSpring}
+                      className="px-4 py-2 bg-emerald-500 text-white rounded-full text-xs font-bold transition-colors"
+                    >
                       Active
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
 
@@ -190,14 +208,24 @@ export default function Settings() {
                 <div className="space-y-4">
                   <h3 className="font-bold">Appearance</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <button className="p-4 rounded-2xl border-2 border-[#0052ff] bg-surface flex flex-col items-center gap-3">
+                    <motion.button 
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={fluidSpring}
+                      className="p-4 rounded-2xl border-2 border-[#0052ff] bg-surface flex flex-col items-center gap-3"
+                    >
                       <Moon size={24} className="text-[#0052ff]" />
                       <span className="font-bold text-sm">Dark Mode</span>
-                    </button>
-                    <button className="p-4 rounded-2xl border border-border/50 bg-white flex flex-col items-center gap-3">
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={fluidSpring}
+                      className="p-4 rounded-2xl border border-border/50 bg-white flex flex-col items-center gap-3"
+                    >
                       <Sun size={24} className="text-muted" />
                       <span className="font-bold text-sm text-muted">Light Mode</span>
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
 
@@ -208,9 +236,14 @@ export default function Settings() {
                       <p className="font-semibold text-rose-500">Delete Account</p>
                       <p className="text-xs text-rose-400/70 mt-1">Permanently delete your account and all your data.</p>
                     </div>
-                    <button className="px-4 py-2 bg-rose-500 text-white rounded-full text-xs font-bold hover:bg-rose-600 transition-colors flex items-center gap-2">
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={fluidSpring}
+                      className="px-4 py-2 bg-rose-500 text-white rounded-full text-xs font-bold hover:bg-rose-600 transition-colors flex items-center gap-2"
+                    >
                       <Trash2 size={14} /> Delete
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>

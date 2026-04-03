@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
-import { Hexagon, ChevronUp, MapPin, Activity, Sun, Moon, Bell, Menu, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Hexagon, ChevronUp, MapPin, Activity, Sun, Moon, Bell, Menu, X, Power } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { toast } from 'sonner';
+import { fluidSpring } from './SystemManager';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,6 +15,9 @@ export default function Navbar() {
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [status, setStatus] = useState<'offline' | 'connecting' | 'connected' | 'ongoing'>('connected');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const { user, userData } = useAuth();
   const lastScrollY = useRef(0);
   const glowTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -129,8 +134,74 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const { scrollY } = useScroll();
+  const bubbleY = useTransform(scrollY, [0, 2000], [0, -60]);
+
   const isShrunken = !isMobile && isScrollingDown && isScrolled && !isHovered && !isMobileMenuOpen;
   const isMobileShrunken = isMobile && isScrollingDown && isScrolled && !isHovered && !isMobileMenuOpen;
+
+  if (user) {
+    return (
+      <motion.div 
+        ref={profileMenuRef}
+        style={{ y: bubbleY }}
+        className="fixed top-6 right-6 z-50 flex items-center justify-end pointer-events-auto"
+      >
+        <AnimatePresence>
+          {isProfileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, width: 0, scale: 0.9, originX: 1 }}
+              animate={{ opacity: 1, width: 'auto', scale: 1 }}
+              exit={{ opacity: 0, width: 0, scale: 0.9 }}
+              transition={fluidSpring}
+              className="overflow-hidden flex items-center mr-3 bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-full shadow-2xl"
+            >
+              <div className="flex items-center gap-2 px-4 py-2 whitespace-nowrap">
+                <Link to="/dashboard" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium hover:text-[#00f0ff] transition-colors p-2">Dashboard</Link>
+                <Link to="/wallet" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium hover:text-[#00f0ff] transition-colors p-2">Wallet</Link>
+                <Link to="/profile" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium hover:text-[#00f0ff] transition-colors p-2">Settings</Link>
+                <div className="w-px h-4 bg-border/50 mx-1" />
+                <button 
+                  onClick={() => {
+                    import('../firebase').then(({ logOut }) => {
+                      logOut();
+                    });
+                  }} 
+                  className="p-2 text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1"
+                  title="Logout"
+                >
+                  <Power size={16} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+          className="w-12 h-12 rounded-full bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 shadow-2xl flex items-center justify-center overflow-hidden z-10"
+        >
+          {user.photoURL ? (
+            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-lg font-bold">{userData?.name?.charAt(0) || user.email?.charAt(0) || 'U'}</span>
+          )}
+        </motion.button>
+      </motion.div>
+    );
+  }
 
   return (
     <div className={`fixed top-0 z-50 flex px-4 pt-4 pointer-events-none transition-all duration-500 ${isMobileShrunken ? 'right-0 justify-end' : 'left-0 right-0 justify-center'}`}>
@@ -164,9 +235,7 @@ export default function Navbar() {
           scale: isGlowing ? 1.02 : 1,
         }}
         transition={{ 
-          type: 'spring', 
-          stiffness: 400, 
-          damping: 30,
+          ...fluidSpring,
           boxShadow: isScrolled ? {
             duration: 2,
             repeat: Infinity,

@@ -1,163 +1,188 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
     // ===============================================================
     // Assumed Data Model
     // ===============================================================
-    //
     // Collection: users
-    // Document ID: userId (Firebase Auth UID)
-    // Fields:
-    //   - name: string (required)
-    //   - email: string (required, email format)
-    //   - role: string (required, 'user' or 'admin')
-    //   - balance: number (required)
-    //   - balances: map (optional)
-    //   - joined_date: timestamp (optional)
-    //   - verification_status: string (optional)
+    // Document ID: {userId}
+    // Fields: name, email, role, balance, balances, joined_date, verification_status, referral_code, referred_by, referral_count, level, onboarding_completed
     //
     // Collection: contracts
-    // Document ID: auto-generated
-    // Fields:
-    //   - user_id: string (required, matches owner)
-    //   - type: string (required, enum)
-    //   - hashpower: string (required)
-    //   - price: number (required)
-    //   - daily_return: number (required)
-    //   - start_date: timestamp (required)
-    //   - status: string (required)
+    // Document ID: {contractId}
+    // Fields: user_id, type, hashpower, price, daily_return, start_date, status, next_payout
     //
     // Collection: transactions
-    // Document ID: auto-generated
-    // Fields:
-    //   - user_id: string (required, matches owner)
-    //   - type: string (required, enum)
-    //   - amount: number (required)
-    //   - status: string (required)
-    //   - timestamp: timestamp (required)
+    // Document ID: {transactionId}
+    // Fields: user_id, type, amount, method, address, status, timestamp, description, approved_at, approved_by, rejected_at, rejected_by
     //
     // Collection: logs
-    // Document ID: auto-generated
-    // Fields:
-    //   - type: string (required)
-    //   - action: string (required)
-    //   - timestamp: timestamp (required)
+    // Document ID: {logId}
+    // Fields: user_id, type, action, timestamp
     //
     // Collection: settings
     // Document ID: global
-    // Fields:
-    //   - global_profit_margin: number (required)
-    //   - ai_enabled: bool (required)
-    //   - costings: map (required)
-    //
+    // Fields: global_profit_margin, ai_enabled, costings, updated_at
     // ===============================================================
 
     // ===============================================================
     // Helper Functions
     // ===============================================================
-    
     function isAuthenticated() {
       return request.auth != null;
     }
-
+    
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
-
+    
     function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "why.wd.ww.do@gmail.com" && request.auth.token.email_verified == true));
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (request.auth.token.email == "why.wd.ww.do@gmail.com" && request.auth.token.email_verified == true) ||
+        (request.auth.token.email == "limitl3xx.007@gmail.com" && request.auth.token.email_verified == true)
+      );
     }
 
-    function isValidUser(data) {
-      return data.keys().hasAll(['name', 'email', 'role', 'balance']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
-             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
-             data.role in ['user', 'admin'] &&
-             data.balance is number;
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
     }
 
-    function isValidTransaction(data) {
-      return data.keys().hasAll(['user_id', 'type', 'amount', 'status', 'timestamp']) &&
-             data.user_id is string &&
-             data.type in ['deposit', 'withdrawal', 'purchase'] &&
-             data.amount is number && data.amount >= 0 &&
-             data.status in ['pending', 'approved', 'rejected', 'completed'] &&
-             data.timestamp is timestamp;
-    }
-
-    function isValidContract(data) {
-      return data.keys().hasAll(['user_id', 'type', 'hashpower', 'price', 'start_date', 'status']) &&
-             data.user_id is string &&
-             data.type in ['pool', 'cloud', 'crypto'] &&
-             data.hashpower is string &&
-             data.price is number && data.price >= 0 &&
-             data.start_date is timestamp &&
-             data.status in ['active', 'completed', 'expired'];
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
 
     // ===============================================================
-    // Rules
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return hasRequiredFields(['name', 'email', 'role', 'balance']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.email is string && isValidEmail(data.email) && data.email.size() < 150 &&
+             data.role in ['user', 'admin'] &&
+             data.balance is number && data.balance >= 0 &&
+             (!('balances' in data) || data.balances is map) &&
+             (!('joined_date' in data) || data.joined_date is string) &&
+             (!('verification_status' in data) || data.verification_status in ['pending', 'verified', 'rejected']) &&
+             (!('referral_code' in data) || (data.referral_code is string && data.referral_code.size() < 50)) &&
+             (!('referred_by' in data) || (data.referred_by is string && data.referred_by.size() < 50)) &&
+             (!('referral_count' in data) || (data.referral_count is number && data.referral_count >= 0)) &&
+             (!('referral_earnings' in data) || (data.referral_earnings is number && data.referral_earnings >= 0)) &&
+             (!('level' in data) || (data.level is number && data.level >= 0)) &&
+             (!('onboarding_completed' in data) || data.onboarding_completed is bool) &&
+             (!('is_blocked' in data) || data.is_blocked is bool) &&
+             (!('trade_enabled' in data) || data.trade_enabled is bool) &&
+             (!('last_login' in data) || data.last_login is string);
+    }
+
+    function isValidContract(data) {
+      return hasRequiredFields(['user_id', 'type', 'hashpower', 'price', 'start_date', 'status']) &&
+             data.user_id is string && data.user_id.size() > 0 && data.user_id.size() < 50 &&
+             data.type in ['pool', 'cloud', 'crypto'] &&
+             data.hashpower is string && data.hashpower.size() > 0 && data.hashpower.size() < 50 &&
+             data.price is number && data.price >= 0 &&
+             data.start_date is string && data.start_date.size() < 50 &&
+             data.status in ['active', 'completed', 'expired', 'pending'] &&
+             (!('daily_return' in data) || data.daily_return is number) &&
+             (!('next_payout' in data) || (data.next_payout is string && data.next_payout.size() < 50));
+    }
+
+    function isValidTransaction(data) {
+      return hasRequiredFields(['user_id', 'type', 'amount', 'status', 'timestamp']) &&
+             data.user_id is string && data.user_id.size() > 0 && data.user_id.size() < 50 &&
+             data.type in ['deposit', 'withdrawal', 'purchase'] &&
+             data.amount is number && data.amount > 0 &&
+             data.status in ['pending', 'approved', 'rejected', 'completed'] &&
+             data.timestamp is string && data.timestamp.size() < 50 &&
+             (!('method' in data) || (data.method is string && data.method.size() < 50)) &&
+             (!('address' in data) || (data.address is string && data.address.size() < 200)) &&
+             (!('description' in data) || (data.description is string && data.description.size() < 500)) &&
+             (!('approved_at' in data) || (data.approved_at is string && data.approved_at.size() < 50)) &&
+             (!('approved_by' in data) || (data.approved_by is string && data.approved_by.size() < 50)) &&
+             (!('rejected_at' in data) || (data.rejected_at is string && data.rejected_at.size() < 50)) &&
+             (!('rejected_by' in data) || (data.rejected_by is string && data.rejected_by.size() < 50));
+    }
+
+    function isValidLog(data) {
+      return hasRequiredFields(['type', 'action', 'timestamp']) &&
+             data.type in ['ai', 'admin', 'system'] &&
+             data.action is string && data.action.size() > 0 && data.action.size() < 1000 &&
+             data.timestamp is string && data.timestamp.size() < 50 &&
+             (!('user_id' in data) || (data.user_id is string && data.user_id.size() < 50));
+    }
+
+    function isValidSettings(data) {
+      return hasRequiredFields(['global_profit_margin', 'ai_enabled', 'costings']) &&
+             data.global_profit_margin is number &&
+             data.ai_enabled is bool &&
+             data.costings is map &&
+             data.costings.keys().hasAll(['pool', 'cloud', 'crypto']) &&
+             data.costings.pool is number &&
+             data.costings.cloud is number &&
+             data.costings.crypto is number &&
+             (!('updated_at' in data) || (data.updated_at is string && data.updated_at.size() < 50));
+    }
+
+    // ===============================================================
+    // Collections
     // ===============================================================
 
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      
-      // User can create their own profile as 'user' role
-      allow create: if isOwner(userId) && 
-                      isValidUser(request.resource.data) && 
-                      request.resource.data.role == 'user';
-      
-      // Admin can create any user
-      allow create: if isAdmin() && isValidUser(request.resource.data);
-
-      // User can update their own profile but NOT their role or balance (unless via transaction)
-      // Actually, balance is updated via transaction in AdminDashboard or BuyHashpower.
-      // So we must be careful.
-      allow update: if isOwner(userId) && 
-                      isValidUser(request.resource.data) &&
-                      request.resource.data.role == resource.data.role &&
-                      request.resource.data.balance == resource.data.balance;
-      
-      // Admin can update anything
-      allow update: if isAdmin() && isValidUser(request.resource.data);
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && 
+                    (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (
+        isAdmin() || 
+        (isOwner(userId) && 
+         request.resource.data.role == resource.data.role &&
+         request.resource.data.balance == resource.data.balance &&
+         (!('balances' in request.resource.data) || request.resource.data.balances == resource.data.balances) &&
+         (!('verification_status' in request.resource.data) || request.resource.data.verification_status == resource.data.verification_status) &&
+         (!('referral_count' in request.resource.data) || request.resource.data.referral_count == resource.data.referral_count) &&
+         (!('level' in request.resource.data) || request.resource.data.level == resource.data.level) &&
+         (!('is_blocked' in request.resource.data) || request.resource.data.is_blocked == resource.data.is_blocked) &&
+         (!('trade_enabled' in request.resource.data) || request.resource.data.trade_enabled == resource.data.trade_enabled)
+        )
+      );
+      allow delete: if isAdmin();
     }
 
     match /contracts/{contractId} {
-      allow read: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
-      
-      // Users can create contracts (purchases)
-      allow create: if isAuthenticated() && 
-                      request.resource.data.user_id == request.auth.uid &&
-                      isValidContract(request.resource.data);
-      
-      allow update, delete: if isAdmin();
+      allow read: if isAuthenticated() && (isOwner(resource.data.user_id) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.user_id) && isValidContract(request.resource.data) &&
+                    (request.resource.data.status == 'pending' || isAdmin());
+      allow update: if isAuthenticated() && isValidContract(request.resource.data) && (
+        isAdmin() ||
+        (isOwner(resource.data.user_id) && 
+         request.resource.data.user_id == resource.data.user_id &&
+         request.resource.data.price == resource.data.price &&
+         request.resource.data.hashpower == resource.data.hashpower &&
+         request.resource.data.type == resource.data.type
+        )
+      );
+      allow delete: if isAdmin();
     }
 
     match /transactions/{transactionId} {
-      allow read: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
-      
-      // Users can create transactions (deposits/withdrawals)
-      allow create: if isAuthenticated() && 
-                      request.resource.data.user_id == request.auth.uid &&
-                      isValidTransaction(request.resource.data);
-      
-      // Admin can update status
-      allow update: if isAdmin() && isValidTransaction(request.resource.data);
-      
+      allow read: if isAuthenticated() && (isOwner(resource.data.user_id) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.user_id) && isValidTransaction(request.resource.data) &&
+                    (request.resource.data.status == 'pending' || isAdmin());
+      allow update: if isAuthenticated() && isValidTransaction(request.resource.data) && isAdmin();
       allow delete: if isAdmin();
     }
 
     match /logs/{logId} {
       allow read: if isAdmin();
-      allow create: if isAuthenticated(); // Allow users to log certain actions if needed, or just admin
-      allow update, delete: if isAdmin();
+      allow create: if isAuthenticated() && isValidLog(request.resource.data) && (isAdmin() || request.resource.data.type == 'system');
+      allow update: if false; // Logs are immutable
+      allow delete: if isAdmin();
     }
 
-    match /settings/{settingId} {
+    match /settings/{docId} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow write: if isAdmin() && isValidSettings(request.resource.data);
     }
   }
 }

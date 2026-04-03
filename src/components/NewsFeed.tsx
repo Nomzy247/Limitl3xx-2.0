@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Newspaper } from 'lucide-react';
+import { fluidSpring } from './SystemManager';
 
 export default function NewsFeed() {
   const [news, setNews] = useState<any[]>([]);
@@ -27,6 +28,7 @@ export default function NewsFeed() {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={fluidSpring}
       className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl flex flex-col h-full"
     >
       <div className="flex justify-between items-center mb-6">

@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { UserPlus, Wallet, Activity, ArrowRight } from 'lucide-react';
 import { useIsDark } from '../hooks/useIsDark';
+import { fluidSpring } from './SystemManager';
 
 const steps = [
   {
@@ -49,7 +50,7 @@ export default function Processes() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: index * 0.2, ease: "easeOut" }}
+              transition={{ ...fluidSpring, delay: index * 0.2 }}
               whileHover={{ 
                 scale: 1.05,
               }}

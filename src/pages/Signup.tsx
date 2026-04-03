@@ -1,21 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hexagon, Mail, Lock, User, AlertCircle, Phone } from 'lucide-react';
+import { Hexagon, Mail, Lock, User, AlertCircle, Phone, Key } from 'lucide-react';
+import { toast } from 'sonner';
 import { auth, signInWithGoogle } from '../firebase';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { fluidSpring } from '../components/SystemManager';
+
+import { useMediaQuery } from '../hooks/useMediaQuery';
+
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+    grecaptcha: any;
+  }
+}
 
 export default function Signup() {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [signupMethod, setSignupMethod] = useState<'email' | 'phone'>('email');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved
+        }
+      });
+    }
+  }, []);
 
   const getPasswordStrength = (pass: string) => {
     let score = 0;
@@ -58,14 +83,34 @@ export default function Signup() {
         });
         
         setSuccess('Account created successfully! Redirecting...');
-        setTimeout(() => navigate('/'), 2000);
+        setTimeout(() => navigate(isMobile ? '/hub' : '/dashboard'), 2000);
       } else {
-        // Mock phone signup for now
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        navigate('/');
+        if (confirmationResult) {
+          // Verify OTP
+          const userCredential = await confirmationResult.confirm(otp);
+          await updateProfile(userCredential.user, {
+            displayName: name
+          });
+          setSuccess('Account created successfully! Redirecting...');
+          setTimeout(() => navigate(isMobile ? '/hub' : '/dashboard'), 2000);
+        } else {
+          // Send OTP
+          const appVerifier = window.recaptchaVerifier;
+          const result = await signInWithPhoneNumber(auth, phone, appVerifier);
+          setConfirmationResult(result);
+          toast.success('OTP sent to your phone!');
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Signup failed. Please try again.');
+      if (err.message?.includes('reCAPTCHA')) {
+        // Reset recaptcha on error
+        if (window.recaptchaVerifier) {
+          window.recaptchaVerifier.render().then((widgetId: any) => {
+            window.grecaptcha.reset(widgetId);
+          });
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +119,7 @@ export default function Signup() {
   const handleGoogleSignup = async () => {
     try {
       await signInWithGoogle();
-      navigate('/');
+      navigate(isMobile ? '/hub' : '/dashboard');
     } catch (err: any) {
       setError(err.message || 'Google signup failed.');
     }
@@ -96,6 +141,7 @@ export default function Signup() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={fluidSpring}
         className="max-w-md w-full space-y-8 bg-card p-8 rounded-3xl border border-border relative z-10 shadow-2xl"
       >
         <div className="text-center">
@@ -117,6 +163,7 @@ export default function Signup() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
+              transition={fluidSpring}
             >
               <div className="flex p-1 bg-surface rounded-xl mb-6 border border-border">
                 <button
@@ -179,79 +226,108 @@ export default function Signup() {
                         <input
                           type="tel"
                           required
+                          disabled={!!confirmationResult}
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface disabled:opacity-50"
                           placeholder="+1 (555) 000-0000"
                         />
                       </div>
                     </div>
                   )}
                   
-                  <div>
-                    <label className="block text-sm font-medium text-muted mb-1">Password</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-muted" />
+                  {signupMethod === 'email' && (
+                    <div>
+                      <label className="block text-sm font-medium text-muted mb-1">Password</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Lock className="h-5 w-5 text-muted" />
+                        </div>
+                        <input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
+                          placeholder="••••••••"
+                        />
                       </div>
-                      <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
-                        placeholder="••••••••"
-                      />
+                      
+                      {/* Password Strength Indicator */}
+                      {password && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="mt-3"
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-muted">Password strength</span>
+                            <span className={`text-xs font-medium ${strength.color.replace('bg-', 'text-')}`}>
+                              {strength.label}
+                            </span>
+                          </div>
+                          <div className="flex gap-1 h-1.5 w-full rounded-full overflow-hidden bg-surface">
+                            {[1, 2, 3, 4].map((level) => (
+                              <div 
+                                key={level} 
+                                className={`flex-1 transition-colors duration-300 ${
+                                  level <= strength.score ? strength.color : 'bg-transparent'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <div className="mt-2 space-y-1">
+                            <p className={`text-[10px] flex items-center gap-1 ${password.length >= 8 ? 'text-emerald-500' : 'text-muted'}`}>
+                              <span className="w-1 h-1 rounded-full bg-current" /> At least 8 characters
+                            </p>
+                            <p className={`text-[10px] flex items-center gap-1 ${/[A-Z]/.test(password) ? 'text-emerald-500' : 'text-muted'}`}>
+                              <span className="w-1 h-1 rounded-full bg-current" /> One uppercase letter
+                            </p>
+                            <p className={`text-[10px] flex items-center gap-1 ${/[0-9]/.test(password) ? 'text-emerald-500' : 'text-muted'}`}>
+                              <span className="w-1 h-1 rounded-full bg-current" /> One number
+                            </p>
+                            <p className={`text-[10px] flex items-center gap-1 ${/[^A-Za-z0-9]/.test(password) ? 'text-emerald-500' : 'text-muted'}`}>
+                              <span className="w-1 h-1 rounded-full bg-current" /> One special character
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
-                    
-                    {/* Password Strength Indicator */}
-                    {password && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="mt-3"
-                      >
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs text-muted">Password strength</span>
-                          <span className={`text-xs font-medium ${strength.color.replace('bg-', 'text-')}`}>
-                            {strength.label}
-                          </span>
+                  )}
+
+                  {signupMethod === 'phone' && confirmationResult && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="overflow-hidden"
+                    >
+                      <label className="block text-sm font-medium text-muted mb-1">Verification Code</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Key className="h-5 w-5 text-muted" />
                         </div>
-                        <div className="flex gap-1 h-1.5 w-full rounded-full overflow-hidden bg-surface">
-                          {[1, 2, 3, 4].map((level) => (
-                            <div 
-                              key={level} 
-                              className={`flex-1 transition-colors duration-300 ${
-                                level <= strength.score ? strength.color : 'bg-transparent'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <div className="mt-2 space-y-1">
-                          <p className={`text-[10px] flex items-center gap-1 ${password.length >= 8 ? 'text-emerald-500' : 'text-muted'}`}>
-                            <span className="w-1 h-1 rounded-full bg-current" /> At least 8 characters
-                          </p>
-                          <p className={`text-[10px] flex items-center gap-1 ${/[A-Z]/.test(password) ? 'text-emerald-500' : 'text-muted'}`}>
-                            <span className="w-1 h-1 rounded-full bg-current" /> One uppercase letter
-                          </p>
-                          <p className={`text-[10px] flex items-center gap-1 ${/[0-9]/.test(password) ? 'text-emerald-500' : 'text-muted'}`}>
-                            <span className="w-1 h-1 rounded-full bg-current" /> One number
-                          </p>
-                          <p className={`text-[10px] flex items-center gap-1 ${/[^A-Za-z0-9]/.test(password) ? 'text-emerald-500' : 'text-muted'}`}>
-                            <span className="w-1 h-1 rounded-full bg-current" /> One special character
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
+                        <input
+                          type="text"
+                          required
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface tracking-widest"
+                          placeholder="123456"
+                          maxLength={6}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
+
+                <div id="recaptcha-container"></div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
                   className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-[#0052ff] hover:bg-[#0052ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052ff] transition-all disabled:opacity-50"
                 >
-                  {isLoading ? 'Processing...' : 'Continue'}
+                  {isLoading ? 'Processing...' : (signupMethod === 'phone' && !confirmationResult ? 'Send Code' : 'Continue')}
                 </button>
                 {error && (
                   <div className="mt-4 p-3 rounded-full bg-red-500/10 border border-red-500/50 flex items-center gap-2 text-red-400 text-sm">

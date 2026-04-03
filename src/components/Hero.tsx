@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { Link } from 'react-router';
 import { ArrowRight, Activity } from 'lucide-react';
 import { useIsDark } from '../hooks/useIsDark';
+import { fluidSpring } from './SystemManager';
 
 export default function Hero() {
   const isDark = useIsDark();
@@ -34,7 +35,7 @@ export default function Hero() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={fluidSpring}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-subtle border border-border mb-8 backdrop-blur-md"
             >
               <span className="flex h-2 w-2 rounded-full bg-[#00f0ff] animate-pulse" />
@@ -106,7 +107,7 @@ export default function Hero() {
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ ...fluidSpring, delay: 0.2 }}
               className="text-lg md:text-xl text-secondary mb-10 max-w-2xl leading-relaxed font-medium"
             >
               Institutional-grade crypto mining and yield generation platform. 
@@ -116,7 +117,7 @@ export default function Hero() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ ...fluidSpring, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-start gap-4"
             >
               <Link
@@ -138,7 +139,7 @@ export default function Hero() {
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.4, type: "spring" }}
+              transition={{ ...fluidSpring, delay: 0.4 }}
               className="relative w-full aspect-square"
             >
               {/* Abstract 3D-like visual representation */}

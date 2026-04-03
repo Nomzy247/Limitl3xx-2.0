@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { toast } from 'sonner';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function Profile() {
   const { userData } = useAuth();
@@ -23,7 +24,7 @@ export default function Profile() {
   const profileStats = [
     { label: 'Total Balance', value: `$${(userData?.balance || 0).toLocaleString()}`, icon: Wallet, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { label: 'Mining Level', value: `Level ${userData?.level || 1}`, icon: Award, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-    { label: 'Referrals', value: userData?.referralCount || 0, icon: User, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: 'Referrals', value: userData?.referral_count || 0, icon: User, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { label: 'Efficiency', value: '98.5%', icon: TrendingUp, color: 'text-[#00f0ff]', bg: 'bg-[#00f0ff]/10' },
   ];
 
@@ -35,6 +36,7 @@ export default function Profile() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={fluidSpring}
             className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
           >
             <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-5xl mb-6 border-4 border-[#0052ff]/20">
@@ -62,7 +64,7 @@ export default function Profile() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ ...fluidSpring, delay: 0.1 }}
             className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl"
           >
             <h3 className="font-bold mb-6 flex items-center gap-2">
@@ -83,11 +85,11 @@ export default function Profile() {
                   <span className="text-sm font-medium">KYC Status</span>
                 </div>
                 <span className={`font-bold text-xs ${
-                  userData?.verificationStatus === 'verified' ? 'text-emerald-400' :
-                  userData?.verificationStatus === 'pending' ? 'text-yellow-400' :
+                  userData?.verification_status === 'verified' ? 'text-emerald-400' :
+                  userData?.verification_status === 'pending' ? 'text-yellow-400' :
                   'text-rose-400'
                 }`}>
-                  {userData?.verificationStatus?.toUpperCase() || 'PENDING'}
+                  {userData?.verification_status?.toUpperCase() || 'PENDING'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -96,7 +98,7 @@ export default function Profile() {
                   <span className="text-sm font-medium">Member Since</span>
                 </div>
                 <span className="text-primary font-bold text-xs">
-                  {userData?.joinedDate ? new Date(userData.joinedDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}
+                  {userData?.joined_date ? new Date(userData.joined_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}
                 </span>
               </div>
             </div>
@@ -111,7 +113,7 @@ export default function Profile() {
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ ...fluidSpring, delay: i * 0.1 }}
                 className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl flex items-center gap-4"
               >
                 <div className={`p-4 rounded-2xl ${stat.bg}`}>
@@ -128,7 +130,7 @@ export default function Profile() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ ...fluidSpring, delay: 0.4 }}
             className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl"
           >
             <h3 className="text-xl font-bold mb-6">Recent Mining Activity</h3>
@@ -158,7 +160,7 @@ export default function Profile() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ ...fluidSpring, delay: 0.5 }}
             className="bg-[#0052ff] rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-[100px] opacity-20 pointer-events-none" />

@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Cpu, Shield, Zap, BarChart3, Wallet, Globe, ArrowUpRight } from 'lucide-react';
 import { useIsDark } from '../hooks/useIsDark';
+import { fluidSpring } from './SystemManager';
 
 const features = [
   {
@@ -76,7 +77,7 @@ export default function Features() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ ...fluidSpring, delay: index * 0.1 }}
               whileHover={{ 
                 scale: 1.02,
                 boxShadow: isDark ? '0 0 30px rgba(0, 240, 255, 0.15)' : '0 0 30px rgba(0, 82, 255, 0.1)',

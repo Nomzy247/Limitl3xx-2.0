@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Users, Server, Activity, DollarSign, AlertCircle, CheckCircle2, ArrowUpRight, ArrowDownRight, Bot, Settings, Sliders, ShieldAlert, ShieldCheck, ShieldX, Search } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { db, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, runTransaction, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { fluidSpring } from '../components/SystemManager';
+import UserActionModal from '../components/UserActionModal';
 
 const data = [
   { name: 'Mon', revenue: 4000, users: 2400 },
@@ -34,6 +36,7 @@ export default function AdminDashboard() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [isPromoting, setIsPromoting] = useState(false);
+  const [selectedUserForAction, setSelectedUserForAction] = useState<any>(null);
 
   // Fetch Global Settings
   useEffect(() => {
@@ -143,7 +146,13 @@ export default function AdminDashboard() {
 
   const displayedUsers = searchTerm.trim() ? searchResults : recentUsers;
 
+  const isSuperUser = currentUser?.email === 'why.wd.ww.do@gmail.com' || currentUser?.email === 'limitl3xx.007@gmail.com';
+
   const handlePromoteToAdmin = async (userId: string) => {
+    if (!isSuperUser) {
+      toast.error('Only the Super User can allocate administrator roles.');
+      return;
+    }
     try {
       await updateDoc(doc(db, 'users', userId), { role: 'admin' });
       toast.success('User promoted to admin successfully');
@@ -154,7 +163,11 @@ export default function AdminDashboard() {
   };
 
   const handleDemoteFromAdmin = async (userId: string, userEmail: string) => {
-    if (userEmail === 'why.wd.ww.do@gmail.com') {
+    if (!isSuperUser) {
+      toast.error('Only the Super User can revoke administrator roles.');
+      return;
+    }
+    if (userEmail === 'why.wd.ww.do@gmail.com' || userEmail === 'limitl3xx.007@gmail.com') {
       toast.error('Root admin cannot be demoted');
       return;
     }
@@ -169,6 +182,10 @@ export default function AdminDashboard() {
   };
 
   const handlePromoteByEmail = async () => {
+    if (!isSuperUser) {
+      toast.error('Only the Super User can allocate administrator roles.');
+      return;
+    }
     if (!adminEmailInput) return;
     setIsPromoting(true);
     try {
@@ -295,10 +312,16 @@ export default function AdminDashboard() {
           <p className="text-secondary mt-1">System status and user management</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-subtle text-primary rounded-full font-medium hover:bg-subtle-hover transition-colors">
-            Export Report
+          <button 
+            onClick={() => {
+              document.getElementById('user-management-section')?.scrollIntoView({ behavior: 'smooth' });
+              toast.info('Select a user from the list below to open their Action Panel');
+            }}
+            className="px-4 py-2 bg-primary text-background rounded-full font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-primary/20"
+          >
+            <Settings size={16} /> User Action Panel
           </button>
-          <button className="px-4 py-2 bg-primary text-background rounded-full font-medium hover:opacity-90 transition-opacity">
+          <button className="px-4 py-2 bg-subtle text-primary rounded-full font-medium hover:bg-subtle-hover transition-colors">
             System Settings
           </button>
         </div>
@@ -309,6 +332,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={fluidSpring}
           className="bg-surface border border-border rounded-2xl p-6"
         >
           <div className="flex items-center justify-between mb-4">
@@ -326,7 +350,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ ...fluidSpring, delay: 0.1 }}
           className="bg-surface border border-border rounded-2xl p-6"
         >
           <div className="flex items-center justify-between mb-4">
@@ -344,7 +368,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ ...fluidSpring, delay: 0.2 }}
           className="bg-surface border border-border rounded-2xl p-6"
         >
           <div className="flex items-center justify-between mb-4">
@@ -362,7 +386,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ ...fluidSpring, delay: 0.3 }}
           className="bg-surface border border-border rounded-2xl p-6"
         >
           <div className="flex items-center justify-between mb-4">
@@ -383,7 +407,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ ...fluidSpring, delay: 0.4 }}
           className="lg:col-span-2 bg-surface border border-border rounded-3xl p-6"
         >
           <h3 className="text-xl font-bold mb-6">Revenue & User Growth</h3>
@@ -411,10 +435,11 @@ export default function AdminDashboard() {
 
         {/* Recent Users */}
         <motion.div 
+          id="user-management-section"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-surface border border-border rounded-3xl p-6 flex flex-col"
+          transition={{ ...fluidSpring, delay: 0.5 }}
+          className="bg-surface border border-border rounded-3xl p-6 flex flex-col scroll-mt-24"
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold">User Management</h3>
@@ -446,7 +471,7 @@ export default function AdminDashboard() {
                         </span>
                       )}
                     </p>
-                    <p className="text-xs text-secondary">{user.email}</p>
+                    <p className="text-xs text-secondary">{user.email || user.phone || 'No contact info'}</p>
                   </div>
                 </div>
                 <div className="text-right flex flex-col items-end gap-2">
@@ -458,24 +483,33 @@ export default function AdminDashboard() {
                     {user.verification_status || 'pending'}
                   </span>
                   
-                  {user.id !== currentUser?.id && (
-                    user.role !== 'admin' ? (
+                  {user.id !== currentUser?.uid && (
+                    <div className="flex flex-col gap-2 items-end">
                       <button
-                        onClick={() => handlePromoteToAdmin(user.id)}
-                        className="text-[10px] text-[#00f0ff] hover:text-white hover:bg-[#00f0ff]/20 px-2 py-1 rounded transition-colors flex items-center gap-1 font-bold uppercase"
+                        onClick={() => setSelectedUserForAction(user)}
+                        className="text-xs bg-primary text-background hover:opacity-90 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 font-bold shadow-md"
                       >
-                        <ShieldAlert size={12} /> Promote
+                        <Settings size={14} /> Action Panel
                       </button>
-                    ) : (
-                      user.email !== 'why.wd.ww.do@gmail.com' && (
+                      
+                      {isSuperUser && user.role !== 'admin' && (
+                        <button
+                          onClick={() => handlePromoteToAdmin(user.id)}
+                          className="text-[10px] text-[#00f0ff] hover:text-white hover:bg-[#00f0ff]/20 px-2 py-1 rounded transition-colors flex items-center gap-1 font-bold uppercase"
+                        >
+                          <ShieldAlert size={12} /> Promote
+                        </button>
+                      )}
+                      
+                      {isSuperUser && user.role === 'admin' && user.email !== 'why.wd.ww.do@gmail.com' && user.email !== 'limitl3xx.007@gmail.com' && (
                         <button
                           onClick={() => handleDemoteFromAdmin(user.id, user.email)}
                           className="text-[10px] text-red-400 hover:text-white hover:bg-red-400/20 px-2 py-1 rounded transition-colors flex items-center gap-1 font-bold uppercase"
                         >
                           <ShieldX size={12} /> Revoke Admin
                         </button>
-                      )
-                    )
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -495,7 +529,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ ...fluidSpring, delay: 0.6 }}
           className="bg-surface border border-border rounded-3xl p-6"
         >
           <div className="flex items-center gap-3 mb-6">
@@ -544,7 +578,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
+          transition={{ ...fluidSpring, delay: 0.7 }}
           className="bg-surface border border-border rounded-3xl p-6"
         >
           <div className="flex items-center gap-3 mb-6">
@@ -595,12 +629,12 @@ export default function AdminDashboard() {
           </button>
         </motion.div>
 
-        {/* Add Admin by Email */}
+        {/* Add Admin by Email (Super User Only) */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.75 }}
-          className="bg-surface border border-border rounded-3xl p-6"
+          transition={{ ...fluidSpring, delay: 0.75 }}
+          className={`bg-surface border border-border rounded-3xl p-6 ${!isSuperUser ? 'opacity-50 pointer-events-none' : ''}`}
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-primary/10 rounded-xl">
@@ -608,7 +642,9 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h3 className="text-xl font-bold">Add Administrator</h3>
-              <p className="text-sm text-secondary">Promote any user by their email address</p>
+              <p className="text-sm text-secondary">
+                {isSuperUser ? 'Promote any user by their email address' : 'Super User access required'}
+              </p>
             </div>
           </div>
 
@@ -645,7 +681,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ ...fluidSpring, delay: 0.8 }}
           className="bg-surface border border-border rounded-3xl p-6"
         >
           <div className="flex items-center justify-between mb-6">
@@ -702,7 +738,7 @@ export default function AdminDashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
+          transition={{ ...fluidSpring, delay: 0.9 }}
           className="bg-surface border border-border rounded-3xl p-6"
         >
           <div className="flex items-center justify-between mb-6">
@@ -754,6 +790,16 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {selectedUserForAction && (
+          <UserActionModal 
+            user={selectedUserForAction} 
+            onClose={() => setSelectedUserForAction(null)} 
+            isSuperUser={isSuperUser} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

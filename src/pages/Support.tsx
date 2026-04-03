@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { MessageCircle, Mail, Phone, HelpCircle, Search, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function Support() {
   const [message, setMessage] = useState('');
@@ -47,6 +48,8 @@ export default function Support() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={fluidSpring}
           className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
         >
           <div className="p-4 bg-[#0052ff]/10 rounded-2xl mb-6">
@@ -54,15 +57,21 @@ export default function Support() {
           </div>
           <h3 className="text-xl font-bold mb-2">Live Chat</h3>
           <p className="text-secondary text-sm mb-6 leading-relaxed">Speak directly with our support agents in real-time.</p>
-          <button className="w-full py-3 bg-[#0052ff] text-white rounded-full font-bold hover:bg-[#0052ff]/90 transition-colors">
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={fluidSpring}
+            className="w-full py-3 bg-[#0052ff] text-white rounded-full font-bold hover:bg-[#0052ff]/90 transition-colors"
+          >
             Start Chat
-          </button>
+          </motion.button>
         </motion.div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={{ ...fluidSpring, delay: 0.1 }}
           className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
         >
           <div className="p-4 bg-emerald-500/10 rounded-2xl mb-6">
@@ -70,15 +79,21 @@ export default function Support() {
           </div>
           <h3 className="text-xl font-bold mb-2">Email Support</h3>
           <p className="text-secondary text-sm mb-6 leading-relaxed">Send us a detailed message and we'll reply via email.</p>
-          <button className="w-full py-3 bg-emerald-500 text-white rounded-full font-bold hover:bg-emerald-600 transition-colors">
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={fluidSpring}
+            className="w-full py-3 bg-emerald-500 text-white rounded-full font-bold hover:bg-emerald-600 transition-colors"
+          >
             Send Email
-          </button>
+          </motion.button>
         </motion.div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={{ ...fluidSpring, delay: 0.2 }}
           className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
         >
           <div className="p-4 bg-purple-500/10 rounded-2xl mb-6">
@@ -86,9 +101,14 @@ export default function Support() {
           </div>
           <h3 className="text-xl font-bold mb-2">Phone Support</h3>
           <p className="text-secondary text-sm mb-6 leading-relaxed">Call our international support line for urgent matters.</p>
-          <button className="w-full py-3 bg-purple-500 text-white rounded-full font-bold hover:bg-purple-600 transition-colors">
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={fluidSpring}
+            className="w-full py-3 bg-purple-500 text-white rounded-full font-bold hover:bg-purple-600 transition-colors"
+          >
             Call Now
-          </button>
+          </motion.button>
         </motion.div>
       </div>
 
@@ -104,7 +124,8 @@ export default function Support() {
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
+                whileHover={{ x: 10, backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
+                transition={{ ...fluidSpring, delay: i * 0.1 }}
                 className="p-6 bg-card rounded-2xl border border-border/50 hover:border-border transition-all cursor-pointer group"
               >
                 <h4 className="font-bold text-primary group-hover:text-[#0052ff] transition-colors mb-2">{faq.q}</h4>
@@ -151,7 +172,10 @@ export default function Support() {
                 className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
               />
             </div>
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={fluidSpring}
               type="submit"
               disabled={isSubmitting}
               className="w-full py-4 bg-[#0052ff] text-white rounded-full font-bold hover:bg-[#0052ff]/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
@@ -163,7 +187,7 @@ export default function Support() {
                   <Send size={18} /> Submit Ticket
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
         </div>
       </div>

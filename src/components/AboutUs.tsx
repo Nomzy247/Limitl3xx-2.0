@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Shield, Zap, Globe } from 'lucide-react';
 import { useIsDark } from '../hooks/useIsDark';
+import { fluidSpring } from './SystemManager';
 
 export default function AboutUs() {
   const isDark = useIsDark();
@@ -15,11 +16,11 @@ export default function AboutUs() {
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
+            transition={fluidSpring}
           >
             <motion.h2 
               whileHover={{ color: ['#ffffff', '#00f0ff', '#ffffff'] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
+              transition={{ ...fluidSpring, duration: 1.5, repeat: Infinity }}
               className="text-4xl md:text-5xl font-bold mb-6 tracking-tight cursor-default"
             >
               Pioneering the <br />
@@ -56,7 +57,7 @@ export default function AboutUs() {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+            transition={{ ...fluidSpring, delay: 0.2 }}
             whileHover={{ 
               scale: 1.02,
               boxShadow: isDark ? '0 0 30px rgba(0, 240, 255, 0.15)' : '0 0 30px rgba(0, 82, 255, 0.1)',

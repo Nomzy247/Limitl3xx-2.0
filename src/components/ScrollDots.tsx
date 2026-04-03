@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import { fluidSpring } from './SystemManager';
 
 export default function ScrollDots() {
   const [sections, setSections] = useState<HTMLElement[]>([]);
@@ -84,7 +85,7 @@ export default function ScrollDots() {
             height: activeIndex === index ? 16 : 6,
             opacity: activeIndex === index ? 1 : 0.4
           }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          transition={fluidSpring}
         >
           <div 
             className={`w-1.5 rounded-full transition-colors duration-300 ${

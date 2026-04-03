@@ -1,3 +1,7 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { useAuth } from '../context/AuthContext';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Pricing from '../components/Pricing';
@@ -11,6 +15,16 @@ import ScrollReveal from '../components/ScrollReveal';
 import MarketOpportunities from '../components/MarketOpportunities';
 
 export default function Home() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
+  useEffect(() => {
+    if (user && isMobile) {
+      navigate('/hub');
+    }
+  }, [user, isMobile, navigate]);
+
   return (
     <div className="flex flex-col w-full bg-background">
       <section className="w-full flex flex-col justify-center"><Hero /></section>

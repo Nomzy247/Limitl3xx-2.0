@@ -1,25 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Cpu, Cloud, Zap, CheckCircle2, Sliders } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { db, doc, collection, runTransaction, serverTimestamp } from '../firebase';
-
-const plans = {
-  pool: [
-    { id: 'p1', name: 'Starter Pool', hashpower: '10 TH/s', price: 150, dailyReturn: 1.2 },
-    { id: 'p2', name: 'Pro Pool', hashpower: '50 TH/s', price: 650, dailyReturn: 1.5 },
-  ],
-  cloud: [
-    { id: 'c1', name: 'Basic Cloud', hashpower: '5 TH/s', price: 100, dailyReturn: 1.0 },
-    { id: 'c2', name: 'Advanced Cloud', hashpower: '25 TH/s', price: 450, dailyReturn: 1.3 },
-  ],
-  crypto: [
-    { id: 'cr1', name: 'Altcoin Miner', hashpower: '100 MH/s', price: 200, dailyReturn: 1.4 },
-    { id: 'cr2', name: 'DeFi Miner', hashpower: '500 MH/s', price: 800, dailyReturn: 1.8 },
-  ]
-};
+import { db, doc, collection, runTransaction, serverTimestamp, onSnapshot } from '../firebase';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function BuyHashpower() {
   const { user, userData } = useAuth();
@@ -28,6 +14,39 @@ export default function BuyHashpower() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [calcAmount, setCalcAmount] = useState(1000);
+  
+  const [settings, setSettings] = useState({
+    global_profit_margin: 15,
+    costings: { pool: 150, cloud: 100, crypto: 200 }
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setSettings({
+          global_profit_margin: data.global_profit_margin || 15,
+          costings: data.costings || { pool: 150, cloud: 100, crypto: 200 }
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const plans = {
+    pool: [
+      { id: 'p1', name: 'Starter Pool', hashpower: '10 TH/s', price: settings.costings.pool, dailyReturn: (settings.global_profit_margin / 10).toFixed(1) },
+      { id: 'p2', name: 'Pro Pool', hashpower: '50 TH/s', price: settings.costings.pool * 4.3, dailyReturn: (settings.global_profit_margin / 8).toFixed(1) },
+    ],
+    cloud: [
+      { id: 'c1', name: 'Basic Cloud', hashpower: '5 TH/s', price: settings.costings.cloud, dailyReturn: (settings.global_profit_margin / 12).toFixed(1) },
+      { id: 'c2', name: 'Advanced Cloud', hashpower: '25 TH/s', price: settings.costings.cloud * 4.5, dailyReturn: (settings.global_profit_margin / 9).toFixed(1) },
+    ],
+    crypto: [
+      { id: 'cr1', name: 'Altcoin Miner', hashpower: '100 MH/s', price: settings.costings.crypto, dailyReturn: (settings.global_profit_margin / 11).toFixed(1) },
+      { id: 'cr2', name: 'DeFi Miner', hashpower: '500 MH/s', price: settings.costings.crypto * 4, dailyReturn: (settings.global_profit_margin / 7).toFixed(1) },
+    ]
+  };
 
   const handlePurchase = async () => {
     if (!user || !userData) {
@@ -43,7 +62,9 @@ export default function BuyHashpower() {
     const plan = plans[activeTab].find(p => p.id === selectedPlan);
     if (!plan) return;
 
-    if ((userData.balance || 0) < plan.price) {
+    const price = Number(plan.price);
+
+    if ((userData.balance || 0) < price) {
       toast.error('Insufficient balance. Please deposit funds first.');
       return;
     }
@@ -57,10 +78,10 @@ export default function BuyHashpower() {
         if (!userSnap.exists()) throw new Error('User not found');
         
         const currentBalance = userSnap.data().balance || 0;
-        if (currentBalance < plan.price) throw new Error('Insufficient balance');
+        if (currentBalance < price) throw new Error('Insufficient balance');
 
         // Deduct balance
-        transaction.update(userRef, { balance: currentBalance - plan.price });
+        transaction.update(userRef, { balance: currentBalance - price });
 
         // Create contract
         const contractRef = doc(collection(db, 'contracts'));
@@ -70,8 +91,8 @@ export default function BuyHashpower() {
           plan_name: plan.name,
           type: activeTab,
           hashpower: plan.hashpower,
-          price: plan.price,
-          daily_return: plan.dailyReturn,
+          price: price,
+          daily_return: Number(plan.dailyReturn),
           status: 'active',
           start_date: serverTimestamp(),
           next_payout: new Date(Date.now() + 86400000) // 24 hours from now
@@ -82,7 +103,7 @@ export default function BuyHashpower() {
         transaction.set(txRef, {
           user_id: user.uid,
           type: 'purchase',
-          amount: plan.price,
+          amount: price,
           status: 'completed',
           description: `Purchased ${plan.name} (${plan.hashpower})`,
           timestamp: serverTimestamp()
@@ -111,6 +132,7 @@ export default function BuyHashpower() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={fluidSpring}
           className="bg-surface border border-border rounded-3xl p-8 shadow-2xl"
         >
           <h1 className="text-3xl font-bold mb-2">Buy Hashpower</h1>
@@ -118,28 +140,41 @@ export default function BuyHashpower() {
 
           {/* Tabs */}
           <div className="flex space-x-4 mb-8 border-b border-border pb-4">
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={fluidSpring}
               onClick={() => setActiveTab('pool')}
               className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-colors ${activeTab === 'pool' ? 'bg-[#0052ff] text-white' : 'bg-background text-secondary hover:text-primary'}`}
             >
               <Zap size={20} /> Pool Mining
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={fluidSpring}
               onClick={() => setActiveTab('cloud')}
               className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-colors ${activeTab === 'cloud' ? 'bg-[#00f0ff] text-[#0a0a0a]' : 'bg-background text-secondary hover:text-primary'}`}
             >
               <Cloud size={20} /> Cloud Mining
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={fluidSpring}
               onClick={() => setActiveTab('crypto')}
               className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-colors ${activeTab === 'crypto' ? 'bg-[#ff0055] text-white' : 'bg-background text-secondary hover:text-primary'}`}
             >
               <Cpu size={20} /> Crypto Mining
-            </button>
+            </motion.button>
           </div>
 
           {/* Mining Calculator */}
-          <div className="bg-background border border-border rounded-2xl p-6 mb-8">
+          <motion.div 
+            whileHover={{ y: -5, scale: 1.01 }}
+            transition={fluidSpring}
+            className="bg-background border border-border rounded-2xl p-6 mb-8 shadow-lg"
+          >
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Sliders className="text-primary" size={20} /> Profit Calculator
             </h3>
@@ -153,24 +188,35 @@ export default function BuyHashpower() {
                   className="w-full bg-surface border border-border rounded-xl px-4 py-2 text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
-              <div className="bg-surface p-4 rounded-xl border border-border/50">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                transition={fluidSpring}
+                className="bg-surface p-4 rounded-xl border border-border/50"
+              >
                 <p className="text-xs text-secondary uppercase tracking-wider mb-1">Daily Profit</p>
                 <p className="text-2xl font-bold text-emerald-400">${(calcAmount * 0.015).toFixed(2)}</p>
                 <p className="text-[10px] text-secondary mt-1">Based on 1.5% avg. return</p>
-              </div>
-              <div className="bg-surface p-4 rounded-xl border border-border/50">
+              </motion.div>
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                transition={fluidSpring}
+                className="bg-surface p-4 rounded-xl border border-border/50"
+              >
                 <p className="text-xs text-secondary uppercase tracking-wider mb-1">Monthly Profit</p>
                 <p className="text-2xl font-bold text-emerald-400">${(calcAmount * 0.015 * 30).toFixed(2)}</p>
                 <p className="text-[10px] text-secondary mt-1">~{(calcAmount * 0.015 * 30 / 65000).toFixed(6)} BTC</p>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {plans[activeTab].map((plan) => (
-              <div 
+              <motion.div 
                 key={plan.id}
+                whileHover={{ y: -5, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={fluidSpring}
                 onClick={() => setSelectedPlan(plan.id)}
                 className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${selectedPlan === plan.id ? 'border-[#0052ff] bg-[#0052ff]/5' : 'border-border bg-background hover:border-muted'}`}
               >
@@ -183,12 +229,15 @@ export default function BuyHashpower() {
                   <p className="text-secondary flex justify-between"><span>Daily Return:</span> <span className="font-mono text-[#00f0ff]">~{plan.dailyReturn}%</span></p>
                   <p className="text-secondary flex justify-between"><span>Cost:</span> <span className="font-mono text-primary">${plan.price}</span></p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
           <div className="flex justify-end border-t border-border pt-6">
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={fluidSpring}
               onClick={handlePurchase}
               disabled={!selectedPlan || isPurchasing}
               className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -198,7 +247,7 @@ export default function BuyHashpower() {
               ) : (
                 'Confirm Purchase'
               )}
-            </button>
+            </motion.button>
           </div>
         </motion.div>
       </div>

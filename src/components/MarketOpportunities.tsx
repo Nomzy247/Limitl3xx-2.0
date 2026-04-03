@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { TrendingUp, Activity, Coins, ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router';
+import { fluidSpring } from './SystemManager';
 
 const marketData = [
   {
@@ -65,7 +66,7 @@ export default function MarketOpportunities() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
+              transition={{ ...fluidSpring, delay: idx * 0.1 }}
               className="bg-card border border-border/50 rounded-2xl p-6 hover:border-border transition-colors"
             >
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/50">

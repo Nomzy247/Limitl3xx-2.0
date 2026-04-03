@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { db, doc, collection, runTransaction, serverTimestamp } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function Withdraw() {
   const { user, userData } = useAuth();
@@ -74,6 +75,7 @@ export default function Withdraw() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={fluidSpring}
           className="bg-surface border border-border rounded-3xl p-8 shadow-2xl"
         >
           <h1 className="text-3xl font-bold mb-2">Withdraw Funds</h1>
@@ -109,7 +111,10 @@ export default function Withdraw() {
               />
             </div>
 
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={fluidSpring}
               type="submit"
               disabled={isSubmitting}
               className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-4 rounded-full font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
@@ -121,7 +126,7 @@ export default function Withdraw() {
                   <Send size={20} /> Request Withdrawal
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
         </motion.div>
       </div>

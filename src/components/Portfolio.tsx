@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Bitcoin, Coins, Diamond, Hexagon } from 'lucide-react';
 import { useIsDark } from '../hooks/useIsDark';
+import { fluidSpring } from './SystemManager';
 
 const assets = [
   { name: 'Bitcoin', symbol: 'BTC', icon: <Bitcoin size={32} className="text-[#F7931A]" />, apy: '12-18%' },
@@ -35,7 +36,7 @@ export default function Portfolio() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+              transition={{ ...fluidSpring, delay: index * 0.1 }}
               whileHover={{ 
                 y: -10,
                 scale: 1.02,

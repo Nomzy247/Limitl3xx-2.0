@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { MapPin, Zap, Shield, Server } from 'lucide-react';
+import { fluidSpring } from '../components/SystemManager';
 
 const locations = [
   {
@@ -40,7 +41,7 @@ export default function Locations() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ color: ['#ffffff', '#00f0ff', '#ffffff'] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          transition={{ ...fluidSpring, duration: 1.5, repeat: Infinity }}
           className="text-4xl md:text-5xl font-bold mb-6 cursor-default"
         >
           Global Mining <span className="text-primary">Infrastructure</span>
@@ -48,7 +49,7 @@ export default function Locations() {
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ ...fluidSpring, delay: 0.1 }}
           className="text-lg text-secondary max-w-3xl mx-auto"
         >
           We operate state-of-the-art mining facilities across four continents, strategically located to maximize efficiency, utilize renewable energy, and ensure maximum uptime for your investments.
@@ -62,7 +63,7 @@ export default function Locations() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ ...fluidSpring, delay: index * 0.1 }}
             whileHover={{ scale: 1.02 }}
             className="group relative bg-surface border border-border rounded-3xl overflow-hidden hover:border-primary/50 transition-colors cursor-default"
           >

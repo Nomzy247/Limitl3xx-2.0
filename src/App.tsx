@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
@@ -24,19 +24,42 @@ import Settings from './pages/Settings';
 import Support from './pages/Support';
 import Referrals from './pages/Referrals';
 import Profile from './pages/Profile';
+import MobileHub from './pages/MobileHub';
+import EarnOverview from './pages/overviews/EarnOverview';
+import MenuOverview from './pages/overviews/MenuOverview';
+import WalletOverview from './pages/overviews/WalletOverview';
+import SystemManager from './components/SystemManager';
+import { useMediaQuery } from './hooks/useMediaQuery';
+import { ReactNode } from 'react';
+import EPaymentIntegration from './pages/EPaymentIntegration';
+
+function MobileRedirect({ children }: { children: ReactNode }) {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const location = useLocation();
+  
+  if (isMobile && location.pathname === '/dashboard') {
+    return <Navigate to="/hub" replace />;
+  }
+  
+  return <>{children}</>;
+}
 
 export default function App() {
   return (
-    <AuthProvider>
-      <LoadingScreen />
-      <Router>
-        <Toaster position="top-right" richColors />
-        <Routes>
+    <SystemManager>
+      <AuthProvider>
+        <LoadingScreen />
+        <Router>
+          <Toaster position="top-right" richColors />
+          <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="overview/earn" element={<EarnOverview />} />
+            <Route path="overview/menu" element={<MenuOverview />} />
+            <Route path="overview/wallet" element={<WalletOverview />} />
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
-            <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="dashboard" element={<ProtectedRoute><MobileRedirect><Dashboard /></MobileRedirect></ProtectedRoute>} />
             <Route path="deposit" element={<ProtectedRoute><Deposit /></ProtectedRoute>} />
             <Route path="withdraw" element={<ProtectedRoute><Withdraw /></ProtectedRoute>} />
             <Route path="buy-hashpower" element={<ProtectedRoute><BuyHashpower /></ProtectedRoute>} />
@@ -46,6 +69,8 @@ export default function App() {
             <Route path="support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="hub" element={<ProtectedRoute><MobileHub /></ProtectedRoute>} />
+            <Route path="integration/e-payment" element={<ProtectedRoute><EPaymentIntegration /></ProtectedRoute>} />
             <Route path="locations" element={<Locations />} />
             <Route path="services" element={<Services />} />
             <Route path="about" element={<About />} />
@@ -58,5 +83,6 @@ export default function App() {
         </Routes>
       </Router>
     </AuthProvider>
+    </SystemManager>
   );
 }

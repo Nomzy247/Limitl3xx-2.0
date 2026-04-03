@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +24,7 @@ export default function Contact() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ color: ['#ffffff', '#00f0ff', '#ffffff'] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          transition={{ ...fluidSpring, duration: 1.5, repeat: Infinity }}
           className="text-4xl md:text-5xl font-bold mb-6 cursor-default"
         >
           Get in <span className="text-primary">Touch</span>
@@ -31,7 +32,7 @@ export default function Contact() {
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ ...fluidSpring, delay: 0.1 }}
           className="text-lg text-secondary max-w-2xl mx-auto"
         >
           Have questions about our mining services? Our global support team is available 24/7 to assist you with any inquiries.
@@ -43,7 +44,7 @@ export default function Contact() {
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ ...fluidSpring, delay: 0.2 }}
           className="space-y-8"
         >
           <div>
@@ -126,7 +127,7 @@ export default function Contact() {
         <motion.div 
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ ...fluidSpring, delay: 0.3 }}
           className="bg-surface border border-border rounded-3xl p-8 shadow-xl"
         >
           <motion.h3 

@@ -3,11 +3,12 @@ import { motion } from 'motion/react';
 import { Users, Gift, Share2, TrendingUp, DollarSign, Award, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function Referrals() {
   const { userData } = useAuth();
 
-  const referralLink = `https://poolmining.cloud/ref/${userData?.referralCode || 'USER'}`;
+  const referralLink = `https://poolmining.cloud/ref/${userData?.referral_code || 'USER'}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);
@@ -15,7 +16,7 @@ export default function Referrals() {
   };
 
   const referralStats = [
-    { label: 'Total Referrals', value: userData?.referralCount || 0, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Total Referrals', value: userData?.referral_count || 0, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { label: 'Active Miners', value: 0, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { label: 'Total Earnings', value: '$0.00', icon: DollarSign, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { label: 'Current Level', value: 'Bronze', icon: Award, color: 'text-amber-500', bg: 'bg-amber-500/10' },
@@ -36,7 +37,7 @@ export default function Referrals() {
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ ...fluidSpring, delay: i * 0.1 }}
             className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
           >
             <div className={`p-3 rounded-xl ${stat.bg} w-fit mb-4`}>
@@ -54,6 +55,7 @@ export default function Referrals() {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={fluidSpring}
             className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#0052ff] rounded-full blur-[100px] opacity-10 pointer-events-none" />
@@ -110,6 +112,7 @@ export default function Referrals() {
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={fluidSpring}
             className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl"
           >
             <div className="flex items-center gap-3 mb-6">
@@ -142,7 +145,7 @@ export default function Referrals() {
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ ...fluidSpring, delay: 0.1 }}
             className="bg-[#0052ff] rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-[60px] opacity-20 pointer-events-none" />

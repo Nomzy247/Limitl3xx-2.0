@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { useIsDark } from '../hooks/useIsDark';
+import { fluidSpring } from './SystemManager';
 
 const stats = [
   { label: 'Total Value Locked', value: '$142M+' },
@@ -33,7 +34,7 @@ export default function Stats() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ ...fluidSpring, delay: index * 0.1 }}
               whileHover={{ 
                 scale: 1.1,
               }}

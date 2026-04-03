@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Cloud, Users, Cpu, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
+import { fluidSpring } from '../components/SystemManager';
 
 const services = [
   {
@@ -65,7 +66,7 @@ export default function Services() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ color: ['#ffffff', '#00f0ff', '#ffffff'] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          transition={{ ...fluidSpring, duration: 1.5, repeat: Infinity }}
           className="text-4xl md:text-5xl font-bold mb-6 cursor-default"
         >
           Our Mining <span className="text-primary">Services</span>
@@ -73,7 +74,7 @@ export default function Services() {
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ ...fluidSpring, delay: 0.1 }}
           className="text-lg text-secondary max-w-3xl mx-auto"
         >
           Whether you want to rent hash power, connect your own rigs, or host your hardware in our facilities, we have the perfect solution for your crypto mining needs.
@@ -87,6 +88,7 @@ export default function Services() {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
+            transition={fluidSpring}
             className={`flex flex-col ${index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-12 items-center`}
           >
             <div className="flex-1 space-y-8">

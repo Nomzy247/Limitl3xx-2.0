@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Hexagon, Users, Globe, Shield, Zap, Target, Lightbulb, Heart } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import { fluidSpring } from '../components/SystemManager';
 
 const sections = [
   {
@@ -30,6 +31,7 @@ export default function About() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={fluidSpring}
             className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 tracking-tight text-primary"
           >
             About <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0052ff] to-[#00f0ff]">PoolMining</span>
@@ -37,7 +39,7 @@ export default function About() {
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ ...fluidSpring, delay: 0.1 }}
             className="text-xl text-secondary"
           >
             Democratizing access to institutional-grade cryptocurrency mining, making it accessible, profitable, and secure for everyone.

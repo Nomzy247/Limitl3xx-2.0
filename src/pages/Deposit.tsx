@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { db, collection, addDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function Deposit() {
   const { user } = useAuth();
@@ -60,6 +61,7 @@ export default function Deposit() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={fluidSpring}
           className="bg-surface border border-border rounded-3xl p-8 shadow-2xl"
         >
           <h1 className="text-3xl font-bold mb-2">Deposit Funds</h1>
@@ -81,12 +83,15 @@ export default function Deposit() {
                     value={walletAddress}
                     className="w-full bg-background border border-border rounded-full px-4 py-3 text-primary font-mono text-sm focus:outline-none"
                   />
-                  <button 
+                  <motion.button 
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={fluidSpring}
                     onClick={handleCopy}
                     className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white p-3 rounded-full transition-colors flex-shrink-0"
                   >
                     {copied ? <CheckCircle2 size={20} /> : <Copy size={20} />}
-                  </button>
+                  </motion.button>
                 </div>
                 <p className="text-xs text-muted mt-3 text-center">
                   Only send Bitcoin (BTC) to this address. Sending any other asset will result in permanent loss.
@@ -108,7 +113,10 @@ export default function Deposit() {
                       required
                     />
                   </div>
-                  <button 
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={fluidSpring}
                     type="submit"
                     disabled={isSubmitting}
                     className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-lg shadow-[#0052ff]/20"
@@ -120,7 +128,7 @@ export default function Deposit() {
                         <Send size={18} /> I've Sent the Funds
                       </>
                     )}
-                  </button>
+                  </motion.button>
                 </form>
               </div>
             </div>

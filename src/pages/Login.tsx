@@ -1,23 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hexagon, Mail, Lock, AlertCircle, Phone } from 'lucide-react';
+import { Hexagon, Mail, Lock, AlertCircle, Phone, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { auth, signInWithGoogle } from '../firebase';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { fluidSpring } from '../components/SystemManager';
+
+import { useMediaQuery } from '../hooks/useMediaQuery';
+
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+    grecaptcha: any;
+  }
+}
 
 export default function Login() {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   // Recovery State
   const [showRecovery, setShowRecovery] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved
+        }
+      });
+    }
+  }, []);
 
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,13 +51,30 @@ export default function Login() {
     try {
       if (loginMethod === 'email') {
         await signInWithEmailAndPassword(auth, email, password);
+        navigate(isMobile ? '/hub' : '/dashboard');
       } else {
-        // Mock phone login for now
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (confirmationResult) {
+          // Verify OTP
+          await confirmationResult.confirm(otp);
+          navigate(isMobile ? '/hub' : '/dashboard');
+        } else {
+          // Send OTP
+          const appVerifier = window.recaptchaVerifier;
+          const result = await signInWithPhoneNumber(auth, phone, appVerifier);
+          setConfirmationResult(result);
+          toast.success('OTP sent to your phone!');
+        }
       }
-      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
+      if (err.message?.includes('reCAPTCHA')) {
+        // Reset recaptcha on error
+        if (window.recaptchaVerifier) {
+          window.recaptchaVerifier.render().then((widgetId: any) => {
+            window.grecaptcha.reset(widgetId);
+          });
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +83,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithGoogle();
-      navigate('/');
+      navigate(isMobile ? '/hub' : '/dashboard');
     } catch (err: any) {
       setError(err.message || 'Google login failed.');
     }
@@ -82,6 +123,7 @@ export default function Login() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={fluidSpring}
         className="max-w-md w-full space-y-8 bg-card p-8 rounded-3xl border border-border relative z-10 shadow-2xl"
       >
         <div className="text-center">
@@ -104,6 +146,7 @@ export default function Login() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
+              transition={fluidSpring}
               className="mt-8 space-y-6" 
               onSubmit={handleRecoverySubmit}
             >
@@ -145,6 +188,7 @@ export default function Login() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
+              transition={fluidSpring}
             >
               <div className="flex p-1 bg-surface rounded-xl mb-6 border border-border">
                 <button
@@ -190,41 +234,71 @@ export default function Login() {
                         <input
                           type="tel"
                           required
+                          disabled={!!confirmationResult}
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface disabled:opacity-50"
                           placeholder="+1 (555) 000-0000"
                         />
                       </div>
                     </div>
                   )}
                   
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-sm font-medium text-muted">Password</label>
-                      <button type="button" onClick={() => setShowRecovery(true)} className="text-xs text-[#00f0ff] hover:underline">Forgot password?</button>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-muted" />
+                  {loginMethod === 'email' && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-muted">Password</label>
+                        <button type="button" onClick={() => setShowRecovery(true)} className="text-xs text-[#00f0ff] hover:underline">Forgot password?</button>
                       </div>
-                      <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
-                        placeholder="••••••••"
-                      />
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Lock className="h-5 w-5 text-muted" />
+                        </div>
+                        <input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
+                          placeholder="••••••••"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {loginMethod === 'phone' && confirmationResult && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="overflow-hidden"
+                    >
+                      <label className="block text-sm font-medium text-muted mb-1">Verification Code</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Key className="h-5 w-5 text-muted" />
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface tracking-widest"
+                          placeholder="123456"
+                          maxLength={6}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
+
+                <div id="recaptcha-container"></div>
 
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-[#0052ff] hover:bg-[#0052ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052ff] transition-all"
+                  disabled={isLoading}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-[#0052ff] hover:bg-[#0052ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052ff] transition-all disabled:opacity-50"
                 >
-                  Continue
+                  {isLoading ? 'Processing...' : (loginMethod === 'phone' && !confirmationResult ? 'Send Code' : 'Continue')}
                 </button>
                 {error && (
                   <div className="mt-4 p-3 rounded-full bg-red-500/10 border border-red-500/50 flex items-center gap-2 text-red-400 text-sm">

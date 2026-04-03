@@ -13,8 +13,11 @@ import { useAuth } from '../context/AuthContext';
 import { db, collection, query, where, orderBy, limit, onSnapshot, handleFirestoreError, OperationType, logOut } from '../firebase';
 import WalletWidget from '../components/WalletWidget';
 import NewsFeed from '../components/NewsFeed';
+import MarketOverview from '../components/MarketOverview';
+import TransactionHistoryModule from '../components/TransactionHistoryModule';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { fluidSpring } from '../components/SystemManager';
 
 const mockChartData = [
   { name: 'Mon', value: 4000, hashrate: 120 },
@@ -99,7 +102,7 @@ export default function Dashboard() {
       collection(db, 'transactions'),
       where('user_id', '==', user.uid),
       orderBy('timestamp', 'desc'),
-      limit(10)
+      limit(5)
     );
 
     const unsubscribeTransactions = onSnapshot(transactionsQuery, (snapshot) => {
@@ -169,25 +172,52 @@ export default function Dashboard() {
   const { currentLevel, nextLevel, progress } = getLevelInfo(totalInvestment);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Welcome back, {userData?.name}</h1>
-          <p className="text-secondary text-sm">Here is what's happening with your portfolio today.</p>
-        </div>
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-subtle hover:bg-subtle-hover text-muted transition-colors text-sm"
-        >
-          <LogOut size={16} /> Sign Out
-        </button>
+    <div className="relative min-h-screen bg-background">
+      {/* Global Ambient Gradients for Deep Blue/Purple Tones */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Welcome back, {userData?.name}</h1>
+            <p className="text-secondary text-sm">Here is what's happening with your portfolio today.</p>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-subtle hover:bg-subtle-hover text-muted transition-colors text-sm"
+          >
+            <LogOut size={16} /> Sign Out
+          </button>
+        </div>
+
+        {/* TradingView Widget */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={fluidSpring}
+          className="w-full h-[400px] mb-8 rounded-3xl overflow-hidden border border-border/50 shadow-xl bg-card"
+        >
+          <iframe 
+            src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_123&symbol=BINANCE%3ABTCUSDT&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=transparent&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=localhost&utm_medium=widget&utm_campaign=chart&utm_term=BINANCE%3ABTCUSDT" 
+            width="100%" 
+            height="100%" 
+            frameBorder="0" 
+            allowTransparency={true} 
+            scrolling="no" 
+            allowFullScreen
+          ></iframe>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         {/* Balance Card */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -5, scale: 1.01 }}
+          transition={fluidSpring}
           className="col-span-1 lg:col-span-2 bg-card rounded-3xl p-6 border border-border/50 relative overflow-hidden shadow-xl"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#0052ff] rounded-full blur-[100px] opacity-10 pointer-events-none" />
@@ -199,18 +229,34 @@ export default function Dashboard() {
                 <AnimatedNumber value={userData?.balance || 0} prefix="$" />
               </h2>
             </div>
-            <div className="p-3 bg-[#0052ff]/10 rounded-xl">
+            <motion.div 
+              whileHover={{ rotate: 15, scale: 1.1 }}
+              transition={fluidSpring}
+              className="p-3 bg-[#0052ff]/10 rounded-xl"
+            >
               <Wallet className="text-[#0052ff]" size={24} />
-            </div>
+            </motion.div>
           </div>
 
           <div className="flex gap-4 relative z-10">
-            <button onClick={() => navigate('/deposit')} className="flex-1 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-colors">
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={fluidSpring}
+              onClick={() => navigate('/deposit')} 
+              className="flex-1 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-colors"
+            >
               <ArrowDownRight size={18} /> Deposit
-            </button>
-            <button onClick={() => navigate('/withdraw')} className="flex-1 bg-subtle hover:bg-subtle-hover text-primary py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-colors border border-border">
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={fluidSpring}
+              onClick={() => navigate('/withdraw')} 
+              className="flex-1 bg-subtle hover:bg-subtle-hover text-primary py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-colors border border-border"
+            >
               <ArrowUpRight size={18} /> Withdraw
-            </button>
+            </motion.button>
           </div>
         </motion.div>
 
@@ -218,12 +264,18 @@ export default function Dashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          whileHover={{ y: -5, scale: 1.01 }}
+          transition={{ ...fluidSpring, delay: 0.1 }}
           className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
         >
           <div className="flex justify-between items-center mb-4">
             <p className="text-secondary font-medium">Mining Stats</p>
-            <Activity className="text-[#00f0ff]" size={20} />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            >
+              <Activity className="text-[#00f0ff]" size={20} />
+            </motion.div>
           </div>
           <div className="space-y-4">
             <div>
@@ -237,7 +289,12 @@ export default function Dashboard() {
             <div className="pt-2 border-t border-border/50">
               <p className="text-[10px] text-secondary">Efficiency: 98.5%</p>
               <div className="w-full bg-subtle h-1 rounded-full mt-1 overflow-hidden">
-                <div className="bg-[#00f0ff] h-full w-[98.5%]" />
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: '98.5%' }}
+                  transition={{ ...fluidSpring, delay: 0.5 }}
+                  className="bg-[#00f0ff] h-full" 
+                />
               </div>
             </div>
           </div>
@@ -247,7 +304,8 @@ export default function Dashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          whileHover={{ y: -5, scale: 1.01 }}
+          transition={{ ...fluidSpring, delay: 0.2 }}
           className="bg-card rounded-3xl p-6 border border-border/50 flex flex-col justify-between shadow-xl"
         >
           <div>
@@ -262,39 +320,50 @@ export default function Dashboard() {
               <input 
                 type="text" 
                 readOnly 
-                value={`https://mine.io/ref/${userData?.referralCode || 'USER'}`} 
+                value={`${window.location.origin}/signup?ref=${userData?.referral_code || 'USER'}`} 
                 className="bg-transparent text-[10px] text-primary w-full outline-none"
               />
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={fluidSpring}
                 onClick={() => {
-                  navigator.clipboard.writeText(`https://mine.io/ref/${userData?.referralCode || 'USER'}`);
+                  navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${userData?.referral_code || 'USER'}`);
                   toast.success('Referral link copied!');
                 }}
                 className="text-[10px] bg-[#0052ff] text-white px-2 py-1 rounded-md font-bold uppercase"
               >
                 Copy
-              </button>
+              </motion.button>
             </div>
           </div>
           <div className="mt-4 flex justify-between items-center text-[10px]">
-            <span className="text-secondary">Total Referrals: {userData?.referralCount || 0}</span>
-            <span className="text-emerald-400 font-bold">Earned: $0.00</span>
+            <span className="text-secondary">Total Referrals: {userData?.referral_count || 0}</span>
+            <span className="text-emerald-400 font-bold">Earned: ${userData?.referral_earnings?.toFixed(2) || '0.00'}</span>
           </div>
         </motion.div>
       </div>
+
+      {/* Financial Dashboard Module (Stock & Crypto) */}
+      <MarketOverview />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         {/* Profile Summary */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          whileHover={{ y: -5, scale: 1.01 }}
+          transition={{ ...fluidSpring, delay: 0.3 }}
           className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
         >
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
+            <motion.div 
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={fluidSpring}
+              className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl"
+            >
               {userData?.name?.charAt(0) || 'U'}
-            </div>
+            </motion.div>
             <div>
               <h4 className="font-bold text-primary">{userData?.name || 'User'}</h4>
               <p className="text-xs text-[#00f0ff] font-semibold">Level {currentLevel.level}: {currentLevel.name}</p>
@@ -315,7 +384,7 @@ export default function Dashboard() {
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                transition={{ duration: 1, delay: 0.5 }}
+                transition={{ ...fluidSpring, delay: 0.5 }}
                 className="bg-gradient-to-r from-[#0052ff] to-[#00f0ff] h-full" 
               />
             </div>
@@ -329,36 +398,39 @@ export default function Dashboard() {
             <div className="flex justify-between text-xs">
               <span className="text-secondary">Referral Code</span>
               <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-[#00f0ff]">{userData?.referralCode || 'N/A'}</span>
-                <button 
+                <span className="font-mono font-bold text-[#00f0ff]">{userData?.referral_code || 'N/A'}</span>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={fluidSpring}
                   onClick={() => {
-                    navigator.clipboard.writeText(userData?.referralCode || 'N/A');
+                    navigator.clipboard.writeText(userData?.referral_code || 'N/A');
                     toast.success('Referral code copied!');
                   }}
                   className="text-[10px] bg-subtle hover:bg-subtle-hover text-primary px-2 py-0.5 rounded"
                 >
                   Copy
-                </button>
+                </motion.button>
               </div>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-secondary">Referral Count</span>
-              <span className="font-medium text-primary">{userData?.referralCount || 0}</span>
+              <span className="font-medium text-primary">{userData?.referral_count || 0}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-secondary">Verification</span>
               <span className={`font-medium ${
-                userData?.verificationStatus === 'verified' ? 'text-emerald-400' :
-                userData?.verificationStatus === 'pending' ? 'text-yellow-400' :
+                userData?.verification_status === 'verified' ? 'text-emerald-400' :
+                userData?.verification_status === 'pending' ? 'text-yellow-400' :
                 'text-red-400'
               }`}>
-                {userData?.verificationStatus?.toUpperCase() || 'PENDING'}
+                {userData?.verification_status?.toUpperCase() || 'PENDING'}
               </span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-secondary">Member Since</span>
               <span className="text-primary">
-                {userData?.joinedDate ? new Date(userData.joinedDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}
+                {userData?.joined_date ? new Date(userData.joined_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}
               </span>
             </div>
           </div>
@@ -368,7 +440,8 @@ export default function Dashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          whileHover={{ y: -5, scale: 1.01 }}
+          transition={{ ...fluidSpring, delay: 0.4 }}
           className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
         >
           <div className="flex justify-between items-center mb-6">
@@ -378,8 +451,8 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-secondary">Email Verification</span>
-              <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${userData?.verificationStatus === 'verified' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
-                {userData?.verificationStatus === 'verified' ? 'VERIFIED' : 'PENDING'}
+              <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${userData?.verification_status === 'verified' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                {userData?.verification_status === 'verified' ? 'VERIFIED' : 'PENDING'}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -387,12 +460,15 @@ export default function Dashboard() {
               <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded">ACTIVE</span>
             </div>
             <div className="pt-2 border-t border-border/50">
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={fluidSpring}
                 onClick={() => toast.success('Mining reward of 0.005 BTC successfully added to your balance!')}
                 className="w-full text-xs bg-subtle hover:bg-subtle-hover text-primary py-2 rounded-lg transition-colors border border-border"
               >
                 Simulate Reward Notification
-              </button>
+              </motion.button>
             </div>
             <div className="pt-2 border-t border-border/50">
               <p className="text-[10px] text-secondary">Last Login IP:</p>
@@ -405,8 +481,9 @@ export default function Dashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="col-span-1 lg:col-span-2 bg-card rounded-3xl p-6 border border-border/50"
+          whileHover={{ y: -5, scale: 1.005 }}
+          transition={{ ...fluidSpring, delay: 0.2 }}
+          className="col-span-1 lg:col-span-2 bg-card/60 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl"
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold">Yield Performance Overview</h3>
@@ -452,63 +529,10 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Recent Activity */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl flex flex-col"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Recent Activity</h3>
-            <button className="text-sm text-[#0052ff] hover:text-[#00f0ff] transition-colors font-medium">View All</button>
-          </div>
-          
-          <div className="space-y-3 flex-1">
-            {transactions.length > 0 ? (
-              transactions.map((tx: any, i: number) => (
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  key={tx.id} 
-                  className="group flex items-center justify-between p-4 rounded-2xl bg-surface border border-border/50 hover:border-border hover:bg-subtle transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-xl transition-transform group-hover:scale-110 ${
-                      tx.type === 'deposit' ? 'bg-emerald-500/10 text-emerald-400' :
-                      tx.type === 'withdrawal' ? 'bg-rose-500/10 text-rose-400' :
-                      'bg-[#00f0ff]/10 text-[#00f0ff]'
-                    }`}>
-                      {tx.type === 'deposit' ? <ArrowDownRight size={18} /> :
-                       tx.type === 'withdrawal' ? <ArrowUpRight size={18} /> :
-                       <Activity size={18} />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold capitalize text-primary group-hover:text-primary transition-colors">{tx.type}</p>
-                      <p className="text-xs text-muted mt-0.5">
-                        {new Date(tx.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`font-bold text-sm ${
-                      tx.type === 'withdrawal' ? 'text-rose-400' : 'text-emerald-400'
-                    }`}>
-                      {tx.type === 'withdrawal' ? '-' : '+'}${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </span>
-                    <p className="text-xs text-muted mt-0.5 capitalize">{tx.status}</p>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-muted text-sm py-8">
-                <History className="mb-3 opacity-30" size={32} />
-                <p>No recent transactions</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
+        {/* Transaction History Module */}
+        <div className="col-span-1 lg:col-span-2">
+          <TransactionHistoryModule transactions={transactions} miningRevenue={totalMined} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -525,8 +549,8 @@ export default function Dashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="col-span-1 lg:col-span-3 bg-card rounded-3xl p-6 border border-border/50"
+          transition={{ ...fluidSpring, delay: 0.4 }}
+          className="col-span-1 lg:col-span-3 bg-card/60 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl"
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold">Active Mining Contracts</h3>
@@ -575,6 +599,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
       </div>
+    </div>
     </div>
   );
 }

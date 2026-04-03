@@ -4,6 +4,7 @@ import { History, Search, Filter, ArrowUpRight, ArrowDownRight, Activity } from 
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
+import { fluidSpring } from '../components/SystemManager';
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -47,15 +48,22 @@ export default function Transactions() {
               className="pl-10 pr-4 py-2 bg-card border border-border rounded-full text-sm focus:outline-none focus:border-[#0052ff] transition-colors"
             />
           </div>
-          <button className="p-2 bg-card border border-border rounded-full hover:bg-subtle transition-colors">
+          <motion.button 
+            whileHover={{ scale: 1.1, rotate: 15 }}
+            whileTap={{ scale: 0.9 }}
+            transition={fluidSpring}
+            className="p-2 bg-card border border-border rounded-full hover:bg-subtle transition-colors"
+          >
             <Filter size={20} />
-          </button>
+          </motion.button>
         </div>
       </div>
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -5, scale: 1.005 }}
+        transition={fluidSpring}
         className="bg-card rounded-3xl border border-border/50 overflow-hidden shadow-xl"
       >
         <div className="overflow-x-auto">
@@ -66,7 +74,7 @@ export default function Transactions() {
                 <th className="p-6 font-medium">Date</th>
                 <th className="p-6 font-medium">Amount</th>
                 <th className="p-6 font-medium">Status</th>
-                <th className="p-6 font-medium">Description</th>
+                <th className="p-6 font-medium">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
@@ -77,8 +85,19 @@ export default function Transactions() {
                   </td>
                 </tr>
               ) : transactions.length > 0 ? (
-                transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-subtle transition-colors group">
+                transactions.map((tx) => {
+                  const isPositive = tx.type !== 'withdrawal';
+                  // Mock confirmations based on status
+                  const confirmations = tx.status === 'completed' || tx.status === 'approved' ? '12+ Confirmed' : 
+                                        tx.status === 'pending' ? '2/12 Confirmations' : 'Failed';
+                  
+                  return (
+                  <motion.tr 
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', x: 5 }}
+                    transition={fluidSpring}
+                    key={tx.id} 
+                    className="hover:bg-subtle transition-colors group cursor-pointer"
+                  >
                     <td className="p-6">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${
@@ -103,26 +122,47 @@ export default function Transactions() {
                       })}
                     </td>
                     <td className="p-6">
-                      <span className={`font-bold ${
-                        tx.type === 'withdrawal' ? 'text-rose-400' : 'text-emerald-400'
-                      }`}>
-                        {tx.type === 'withdrawal' ? '-' : '+'}${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-bold ${
+                          isPositive ? 'text-emerald-400' : 'text-rose-400'
+                        }`}>
+                          {isPositive ? '+' : '-'}${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </span>
+                        {/* Visual indicator for balance change */}
+                        <div className={`w-1.5 h-1.5 rounded-full ${isPositive ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                      </div>
                     </td>
                     <td className="p-6">
-                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
-                        tx.status === 'approved' || tx.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                        tx.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-rose-500/20 text-rose-400'
-                      }`}>
-                        {tx.status}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase w-fit ${
+                          tx.status === 'approved' || tx.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                          tx.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-rose-500/20 text-rose-400'
+                        }`}>
+                          {tx.status}
+                        </span>
+                        <span className="text-[10px] text-muted">{confirmations}</span>
+                      </div>
                     </td>
-                    <td className="p-6 text-muted text-sm">
-                      {tx.description || `Transaction for ${tx.type}`}
+                    <td className="p-6">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-secondary">{tx.description || `Transaction for ${tx.type}`}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-muted font-mono">
+                          <span>ID: {tx.id.substring(0, 8)}...</span>
+                          <a 
+                            href={`https://mempool.space/tx/${tx.id}`} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="text-[#00f0ff] hover:underline flex items-center gap-0.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Explorer <ArrowUpRight size={10} />
+                          </a>
+                        </div>
+                      </div>
                     </td>
-                  </tr>
-                ))
+                  </motion.tr>
+                )})
               ) : (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-muted">

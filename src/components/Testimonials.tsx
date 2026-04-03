@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, Quote, RefreshCw } from 'lucide-react';
 import { useIsDark } from '../hooks/useIsDark';
+import { fluidSpring } from './SystemManager';
 
 const testimonials = [
   {
@@ -106,7 +107,7 @@ export default function Testimonials() {
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                transition={fluidSpring}
                 className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 md:px-16"
               >
                 <div className="relative mb-8">

@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { fluidSpring } from '../components/SystemManager';
 
 const faqs = [
   {
@@ -35,6 +36,7 @@ export default function FAQ() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={fluidSpring}
             className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 tracking-tight text-primary"
           >
             Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0052ff] to-[#00f0ff]">Questions</span>
@@ -42,7 +44,7 @@ export default function FAQ() {
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ ...fluidSpring, delay: 0.1 }}
             className="text-xl text-secondary"
           >
             Find answers to common questions about our platform, mining process, and security.
@@ -72,6 +74,7 @@ export default function FAQ() {
               <motion.div
                 initial={false}
                 animate={{ height: openIndex === index ? 'auto' : 0, opacity: openIndex === index ? 1 : 0 }}
+                transition={fluidSpring}
                 className="overflow-hidden"
               >
                 <div className="p-6 pt-0 text-secondary leading-relaxed">

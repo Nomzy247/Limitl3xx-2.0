@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, X, Send, Bot, User, Trash2 } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, Trash2, Mic, Square } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
+import { fluidSpring } from './SystemManager';
+import { toast } from 'sonner';
 
 // @ts-ignore
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 'dummy-key';
@@ -14,8 +16,11 @@ export default function Chatbot() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,6 +64,74 @@ export default function Chatbot() {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await transcribeAudio(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      toast.error('Could not access microphone. Please check permissions.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const transcribeAudio = async (audioBlob: Blob) => {
+    setIsLoading(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      reader.onloadend = async () => {
+        const base64data = (reader.result as string).split(',')[1];
+        
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-flash-preview',
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: 'Transcribe this audio accurately. Only output the transcription, nothing else.' },
+                { inlineData: { data: base64data, mimeType: audioBlob.type } }
+              ]
+            }
+          ]
+        });
+        
+        const transcribedText = response.text?.trim() || '';
+        if (transcribedText) {
+          setInput(prev => prev + (prev ? ' ' : '') + transcribedText);
+        }
+        setIsLoading(false);
+      };
+    } catch (error) {
+      console.error('Transcription error:', error);
+      toast.error('Failed to transcribe audio');
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       {/* Chat Toggle Button */}
@@ -80,6 +153,7 @@ export default function Chatbot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={fluidSpring}
             className="fixed bottom-20 md:bottom-24 right-6 w-80 sm:w-96 bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col h-[500px] max-h-[80vh]"
           >
             {/* Header */}
@@ -127,12 +201,20 @@ export default function Chatbot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Type your message..."
-                  className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                  placeholder={isRecording ? "Listening..." : "Type your message..."}
+                  disabled={isRecording}
+                  className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
                 />
                 <button
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className={`p-2 rounded-full transition-colors ${isRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-surface border border-border text-muted hover:text-primary'}`}
+                  title={isRecording ? "Stop Recording" : "Voice Input"}
+                >
+                  {isRecording ? <Square size={18} fill="currentColor" /> : <Mic size={18} />}
+                </button>
+                <button
                   onClick={handleSend}
-                  disabled={isLoading || !input.trim()}
+                  disabled={isLoading || !input.trim() || isRecording}
                   className="bg-primary text-background p-2 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity"
                 >
                   <Send size={18} />
