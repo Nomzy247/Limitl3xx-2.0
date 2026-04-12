@@ -179,18 +179,12 @@ export default function Dashboard() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-2xl font-bold">Welcome back, {userData?.name}</h1>
             <p className="text-secondary text-sm">Here is what's happening with your portfolio today.</p>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-subtle hover:bg-subtle-hover text-muted transition-colors text-sm"
-          >
-            <LogOut size={16} /> Sign Out
-          </button>
         </div>
 
         {/* TradingView Widget */}

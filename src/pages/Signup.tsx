@@ -68,6 +68,7 @@ export default function Signup() {
     setError('');
     setSuccess('');
     setIsLoading(true);
+    console.log('Signup attempt started:', { method: signupMethod, email, phone: !!phone });
 
     try {
       if (signupMethod === 'email') {
@@ -77,33 +78,41 @@ export default function Signup() {
           return;
         }
 
+        console.log('Creating user with email...');
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        console.log('User created, updating profile...');
         await updateProfile(userCredential.user, {
           displayName: name
         });
         
+        console.log('Email signup successful');
         setSuccess('Account created successfully! Redirecting...');
         setTimeout(() => navigate(isMobile ? '/hub' : '/dashboard'), 2000);
       } else {
         if (confirmationResult) {
-          // Verify OTP
+          console.log('Confirming OTP...');
           const userCredential = await confirmationResult.confirm(otp);
+          console.log('OTP confirmed, updating profile...');
           await updateProfile(userCredential.user, {
             displayName: name
           });
+          console.log('Phone signup successful');
           setSuccess('Account created successfully! Redirecting...');
           setTimeout(() => navigate(isMobile ? '/hub' : '/dashboard'), 2000);
         } else {
-          // Send OTP
+          console.log('Sending OTP...');
           const appVerifier = window.recaptchaVerifier;
           const result = await signInWithPhoneNumber(auth, phone, appVerifier);
           setConfirmationResult(result);
+          console.log('OTP sent successfully');
           toast.success('OTP sent to your phone!');
         }
       }
     } catch (err: any) {
+      console.error('Signup error:', err);
       setError(err.message || 'Signup failed. Please try again.');
       if (err.message?.includes('reCAPTCHA')) {
+        console.log('Resetting reCAPTCHA...');
         // Reset recaptcha on error
         if (window.recaptchaVerifier) {
           window.recaptchaVerifier.render().then((widgetId: any) => {
@@ -117,10 +126,13 @@ export default function Signup() {
   };
 
   const handleGoogleSignup = async () => {
+    console.log('Google signup attempt started');
     try {
       await signInWithGoogle();
+      console.log('Google signup successful');
       navigate(isMobile ? '/hub' : '/dashboard');
     } catch (err: any) {
+      console.error('Google signup error:', err);
       setError(err.message || 'Google signup failed.');
     }
   };

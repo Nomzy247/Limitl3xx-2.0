@@ -9,6 +9,8 @@ export default function BottomNav() {
   const location = useLocation();
   const currentPath = location.pathname;
 
+  if (!user) return null;
+
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: user ? '/dashboard' : '/overview/earn', icon: List, label: 'Earn' },

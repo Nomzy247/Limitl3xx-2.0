@@ -11,9 +11,11 @@ import ScrollDots from './ScrollDots';
 import ScrollToTopButton from './ScrollToTopButton';
 import PWAInstallPrompt from './PWAInstallPrompt';
 import { fluidSpring } from './SystemManager';
+import { useAuth } from '../context/AuthContext';
 
 export default function Layout() {
   const location = useLocation();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-surface text-primary flex flex-col">
@@ -29,7 +31,7 @@ export default function Layout() {
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
           transition={fluidSpring}
-          className="flex-1 pb-16 md:pb-0"
+          className={`flex-1 ${user ? 'pb-24 md:pb-0' : ''}`}
         >
           <Outlet />
         </motion.main>

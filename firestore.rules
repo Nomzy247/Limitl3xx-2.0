@@ -51,7 +51,7 @@ service cloud.firestore {
     }
 
     function isValidEmail(email) {
-      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+      return email is string && (email == "" || email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"));
     }
 
     // ===============================================================
@@ -59,7 +59,7 @@ service cloud.firestore {
     // ===============================================================
     function isValidUser(data) {
       return hasRequiredFields(['name', 'email', 'role', 'balance']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.name is string && data.name.size() >= 0 && data.name.size() < 100 &&
              data.email is string && isValidEmail(data.email) && data.email.size() < 150 &&
              data.role in ['user', 'admin'] &&
              data.balance is number && data.balance >= 0 &&

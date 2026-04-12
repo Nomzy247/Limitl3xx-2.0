@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Server, Activity, DollarSign, AlertCircle, CheckCircle2, ArrowUpRight, ArrowDownRight, Bot, Settings, Sliders, ShieldAlert, ShieldCheck, ShieldX, Search } from 'lucide-react';
+import { Users, Server, Activity, DollarSign, AlertCircle, CheckCircle2, ArrowUpRight, ArrowDownRight, Bot, Settings, Sliders, ShieldAlert, ShieldCheck, ShieldX, Search, Power } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { db, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, runTransaction, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
@@ -37,6 +37,17 @@ export default function AdminDashboard() {
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [isPromoting, setIsPromoting] = useState(false);
   const [selectedUserForAction, setSelectedUserForAction] = useState<any>(null);
+  const [txFilterType, setTxFilterType] = useState('all');
+  const [txFilterStatus, setTxFilterStatus] = useState('pending');
+
+  const logAdminAction = async (action: string) => {
+    await addDoc(collection(db, 'logs'), {
+      user_id: currentUser?.uid,
+      type: 'admin',
+      action,
+      timestamp: serverTimestamp()
+    });
+  };
 
   // Fetch Global Settings
   useEffect(() => {
@@ -60,21 +71,28 @@ export default function AdminDashboard() {
 
   // Fetch Transactions
   useEffect(() => {
-    const transactionsQuery = query(
+    let transactionsQuery = query(
       collection(db, 'transactions'),
-      where('status', '==', 'pending'),
       orderBy('timestamp', 'desc')
     );
 
     const unsubscribe = onSnapshot(transactionsQuery, (snapshot) => {
-      const txData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let txData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+      
+      if (txFilterType !== 'all') {
+        txData = txData.filter(tx => tx.type === txFilterType);
+      }
+      if (txFilterStatus !== 'all') {
+        txData = txData.filter(tx => tx.status === txFilterStatus);
+      }
+      
       setTransactions(txData);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'transactions');
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [txFilterType, txFilterStatus]);
 
   // Fetch Logs
   useEffect(() => {
@@ -155,6 +173,7 @@ export default function AdminDashboard() {
     }
     try {
       await updateDoc(doc(db, 'users', userId), { role: 'admin' });
+      await logAdminAction(`Promoted user ${userId} to admin`);
       toast.success('User promoted to admin successfully');
     } catch (error: any) {
       console.error('Error promoting user:', error);
@@ -174,6 +193,7 @@ export default function AdminDashboard() {
 
     try {
       await updateDoc(doc(db, 'users', userId), { role: 'user' });
+      await logAdminAction(`Revoked admin privileges from user ${userId}`);
       toast.success('Admin privileges revoked');
     } catch (error: any) {
       console.error('Error demoting user:', error);
@@ -202,6 +222,7 @@ export default function AdminDashboard() {
       } else {
         const userDoc = snapshot.docs[0];
         await updateDoc(doc(db, 'users', userDoc.id), { role: 'admin' });
+        await logAdminAction(`Promoted user ${userDoc.id} to admin by email`);
 
         toast.success(`${adminEmailInput} promoted to admin`);
         setAdminEmailInput('');
@@ -211,6 +232,16 @@ export default function AdminDashboard() {
       toast.error('Failed to promote user');
     } finally {
       setIsPromoting(false);
+    }
+  };
+
+  const openUserActionModal = async (user: any) => {
+    const userRef = doc(db, 'users', user.id);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      setSelectedUserForAction({ id: userSnap.id, ...userSnap.data() });
+    } else {
+      toast.error('User not found');
     }
   };
 
@@ -242,8 +273,7 @@ export default function AdminDashboard() {
         transaction.update(userRef, { balance: newBalance });
 
         // Log action
-        const logRef = doc(collection(db, 'logs'));
-        transaction.set(logRef, {
+        transaction.set(doc(collection(db, 'logs')), {
           user_id: currentUser?.uid,
           type: 'admin',
           action: `Approved ${tx.type} of ${tx.amount} BTC for user ${tx.user_id}`,
@@ -267,14 +297,7 @@ export default function AdminDashboard() {
       });
 
       toast.info('Transaction rejected');
-
-      // Log action
-      await addDoc(collection(db, 'logs'), {
-        user_id: currentUser?.uid,
-        type: 'admin',
-        action: `Rejected ${tx.type} of ${tx.amount} BTC for user ${tx.user_id}`,
-        timestamp: serverTimestamp()
-      });
+      await logAdminAction(`Rejected ${tx.type} of ${tx.amount} BTC for user ${tx.user_id}`);
     } catch (error: any) {
       console.error('Rejection error:', error);
       toast.error(error.message || 'Failed to reject transaction');
@@ -293,11 +316,7 @@ export default function AdminDashboard() {
       toast.success('Global settings updated successfully!');
       
       // Log the action
-      await addDoc(collection(db, 'logs'), {
-        type: 'admin',
-        action: `Updated global settings: AI=${aiEnabled}, Margin=${globalProfitMargin}%`,
-        timestamp: serverTimestamp()
-      });
+      await logAdminAction(`Updated global settings: AI=${aiEnabled}, Margin=${globalProfitMargin}%`);
     } catch (error: any) {
       console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
@@ -459,8 +478,9 @@ export default function AdminDashboard() {
             {filteredUsers.map((user) => (
               <div key={user.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-subtle transition-colors border border-transparent hover:border-border/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold relative">
                     {user.name?.charAt(0) || 'U'}
+                    <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-surface ${user.is_blocked ? 'bg-red-500' : 'bg-emerald-500'}`} title={user.is_blocked ? 'Blocked' : 'Active'} />
                   </div>
                   <div>
                     <p className="font-medium text-sm flex items-center gap-2">
@@ -468,6 +488,11 @@ export default function AdminDashboard() {
                       {user.role === 'admin' && (
                         <span className="px-1.5 py-0.5 rounded-md bg-[#0052ff]/10 text-[#0052ff] text-[10px] font-bold uppercase flex items-center gap-1">
                           <ShieldCheck size={10} /> Admin
+                        </span>
+                      )}
+                      {!user.trade_enabled && (
+                        <span className="px-1.5 py-0.5 rounded-md bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase flex items-center gap-1">
+                          <Power size={10} /> Trading Disabled
                         </span>
                       )}
                     </p>
@@ -486,7 +511,7 @@ export default function AdminDashboard() {
                   {user.id !== currentUser?.uid && (
                     <div className="flex flex-col gap-2 items-end">
                       <button
-                        onClick={() => setSelectedUserForAction(user)}
+                        onClick={() => openUserActionModal(user)}
                         className="text-xs bg-primary text-background hover:opacity-90 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 font-bold shadow-md"
                       >
                         <Settings size={14} /> Action Panel
@@ -743,8 +768,22 @@ export default function AdminDashboard() {
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold">Pending Transactions</h3>
+            <div className="flex gap-2">
+              <select value={txFilterType} onChange={(e) => setTxFilterType(e.target.value)} className="bg-background border border-border rounded-full px-3 py-1 text-xs">
+                <option value="all">All Types</option>
+                <option value="deposit">Deposit</option>
+                <option value="withdrawal">Withdrawal</option>
+                <option value="purchase">Purchase</option>
+              </select>
+              <select value={txFilterStatus} onChange={(e) => setTxFilterStatus(e.target.value)} className="bg-background border border-border rounded-full px-3 py-1 text-xs">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
             <span className="px-2 py-1 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold rounded">
-              {transactions.length} PENDING
+              {transactions.length} {txFilterStatus.toUpperCase()}
             </span>
           </div>
 
@@ -796,7 +835,18 @@ export default function AdminDashboard() {
           <UserActionModal 
             user={selectedUserForAction} 
             onClose={() => setSelectedUserForAction(null)} 
-            isSuperUser={isSuperUser} 
+            isSuperUser={isSuperUser}
+            onUpdateUser={async (userId, data) => {
+              await updateDoc(doc(db, 'users', userId), data);
+            }}
+            onLogAction={async (action) => {
+              await addDoc(collection(db, 'logs'), {
+                user_id: selectedUserForAction.id,
+                type: 'admin',
+                action,
+                timestamp: serverTimestamp()
+              });
+            }}
           />
         )}
       </AnimatePresence>

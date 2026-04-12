@@ -15,6 +15,7 @@ import About from './pages/About';
 import FAQ from './pages/FAQ';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminSettings from './pages/AdminSettings';
 import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw';
 import BuyHashpower from './pages/BuyHashpower';
@@ -48,7 +49,6 @@ export default function App() {
   return (
     <SystemManager>
       <AuthProvider>
-        <LoadingScreen />
         <Router>
           <Toaster position="top-right" richColors />
           <Routes>
@@ -79,6 +79,7 @@ export default function App() {
             <Route path="admin" element={<Navigate to="/admin/poolmining.cloud" replace />} />
             <Route path="admin/poolmining.cloud" element={<AdminLogin />} />
             <Route path="admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
           </Route>
         </Routes>
       </Router>

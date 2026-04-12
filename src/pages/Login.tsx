@@ -47,27 +47,34 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+    console.log('Login attempt started:', { method: loginMethod, email, phone: !!phone });
 
     try {
       if (loginMethod === 'email') {
+        console.log('Signing in with email...');
         await signInWithEmailAndPassword(auth, email, password);
+        console.log('Email sign-in successful');
         navigate(isMobile ? '/hub' : '/dashboard');
       } else {
         if (confirmationResult) {
-          // Verify OTP
+          console.log('Confirming OTP...');
           await confirmationResult.confirm(otp);
+          console.log('OTP confirmation successful');
           navigate(isMobile ? '/hub' : '/dashboard');
         } else {
-          // Send OTP
+          console.log('Sending OTP...');
           const appVerifier = window.recaptchaVerifier;
           const result = await signInWithPhoneNumber(auth, phone, appVerifier);
           setConfirmationResult(result);
+          console.log('OTP sent successfully');
           toast.success('OTP sent to your phone!');
         }
       }
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err.message || 'Login failed. Please check your credentials.');
       if (err.message?.includes('reCAPTCHA')) {
+        console.log('Resetting reCAPTCHA...');
         // Reset recaptcha on error
         if (window.recaptchaVerifier) {
           window.recaptchaVerifier.render().then((widgetId: any) => {
@@ -81,10 +88,13 @@ export default function Login() {
   };
 
   const handleGoogleLogin = async () => {
+    console.log('Google login attempt started');
     try {
       await signInWithGoogle();
+      console.log('Google login successful');
       navigate(isMobile ? '/hub' : '/dashboard');
     } catch (err: any) {
+      console.error('Google login error:', err);
       setError(err.message || 'Google login failed.');
     }
   };
