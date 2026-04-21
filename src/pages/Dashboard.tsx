@@ -172,27 +172,25 @@ export default function Dashboard() {
   const { currentLevel, nextLevel, progress } = getLevelInfo(totalInvestment);
 
   return (
-    <div className="relative min-h-screen bg-background">
-      {/* Global Ambient Gradients for Deep Blue/Purple Tones */}
+    <div className="relative min-h-screen bg-background text-primary p-4 md:p-8">
+      {/* Global Ambient Gradients */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/5 rounded-full blur-[120px]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8 relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Welcome back, {userData?.name}</h1>
-            <p className="text-secondary text-sm">Here is what's happening with your portfolio today.</p>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto pt-16 pb-8 relative z-10">
+        <header className="mb-10">
+          <h1 className="text-3xl font-bold tracking-tighter">Welcome back, {userData?.name}</h1>
+          <p className="text-secondary mt-2 text-sm leading-relaxed">Here is the update on your mining portfolio performance.</p>
+        </header>
 
         {/* TradingView Widget */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={fluidSpring}
-          className="w-full h-[400px] mb-8 rounded-3xl overflow-hidden border border-border/50 shadow-xl bg-card"
+          className="w-full h-[400px] mb-10 rounded-3xl overflow-hidden border border-border/30 shadow-lg bg-card"
         >
           <iframe 
             src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_123&symbol=BINANCE%3ABTCUSDT&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=transparent&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=localhost&utm_medium=widget&utm_campaign=chart&utm_term=BINANCE%3ABTCUSDT" 
@@ -205,62 +203,51 @@ export default function Dashboard() {
           ></iframe>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <section className="flex flex-col gap-6 mb-10">
         {/* Balance Card */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -5, scale: 1.01 }}
-          transition={fluidSpring}
-          className="col-span-1 lg:col-span-2 bg-card rounded-3xl p-6 border border-border/50 relative overflow-hidden shadow-xl"
+          whileHover={{ y: -5 }}
+          className="w-full bg-card rounded-3xl p-8 border border-border/30 shadow-lg relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#0052ff] rounded-full blur-[100px] opacity-10 pointer-events-none" />
           
           <div className="flex justify-between items-start mb-8 relative z-10">
             <div>
-              <p className="text-secondary font-medium mb-1">Total Balance</p>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+              <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter">
                 <AnimatedNumber value={userData?.balance || 0} prefix="$" />
               </h2>
             </div>
-            <motion.div 
-              whileHover={{ rotate: 15, scale: 1.1 }}
-              transition={fluidSpring}
-              className="p-3 bg-[#0052ff]/10 rounded-xl"
-            >
-              <Wallet className="text-[#0052ff]" size={24} />
-            </motion.div>
+            <div className="p-4 bg-[#0052ff]/10 rounded-2xl">
+              <Wallet className="text-[#0052ff]" size={28} />
+            </div>
           </div>
 
           <div className="flex gap-4 relative z-10">
-            <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={fluidSpring}
+            <button 
               onClick={() => navigate('/deposit')} 
-              className="flex-1 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-colors"
+              className="flex-1 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95"
             >
               <ArrowDownRight size={18} /> Deposit
-            </motion.button>
-            <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={fluidSpring}
+            </button>
+            <button 
               onClick={() => navigate('/withdraw')} 
-              className="flex-1 bg-subtle hover:bg-subtle-hover text-primary py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-colors border border-border"
+              className="flex-1 bg-subtle hover:bg-subtle-hover text-primary py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border"
             >
               <ArrowUpRight size={18} /> Withdraw
-            </motion.button>
+            </button>
           </div>
         </motion.div>
-
+        
         {/* Mining Stats */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.01 }}
           transition={{ ...fluidSpring, delay: 0.1 }}
-          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
+          className="w-full bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
         >
           <div className="flex justify-between items-center mb-4">
             <p className="text-secondary font-medium">Mining Stats</p>
@@ -300,7 +287,7 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.01 }}
           transition={{ ...fluidSpring, delay: 0.2 }}
-          className="bg-card rounded-3xl p-6 border border-border/50 flex flex-col justify-between shadow-xl"
+          className="w-full bg-card rounded-3xl p-6 border border-border/50 flex flex-col justify-between shadow-xl"
         >
           <div>
             <div className="flex justify-between items-center mb-4">
@@ -336,195 +323,196 @@ export default function Dashboard() {
             <span className="text-emerald-400 font-bold">Earned: ${userData?.referral_earnings?.toFixed(2) || '0.00'}</span>
           </div>
         </motion.div>
-      </div>
+        
+        </section>
 
-      {/* Financial Dashboard Module (Stock & Crypto) */}
-      <MarketOverview />
+        {/* Financial Dashboard Module (Stock & Crypto) */}
+        <MarketOverview />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-        {/* Profile Summary */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -5, scale: 1.01 }}
-          transition={{ ...fluidSpring, delay: 0.3 }}
-          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
-        >
-          <div className="flex items-center gap-4 mb-4">
-            <motion.div 
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={fluidSpring}
-              className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl"
-            >
-              {userData?.name?.charAt(0) || 'U'}
-            </motion.div>
-            <div>
-              <h4 className="font-bold text-primary">{userData?.name || 'User'}</h4>
-              <p className="text-xs text-[#00f0ff] font-semibold">Level {currentLevel.level}: {currentLevel.name}</p>
-            </div>
-          </div>
-
-          {/* Level Progress Bar */}
-          <div className="mb-6 bg-surface p-3 rounded-xl border border-border/50">
-            <div className="flex justify-between text-xs mb-2">
-              <span className="text-secondary">Level {currentLevel.level}</span>
-              {nextLevel ? (
-                <span className="text-secondary">Level {nextLevel.level} ({nextLevel.threshold - totalInvestment > 0 ? `$${(nextLevel.threshold - totalInvestment).toLocaleString()} to go` : 'Ready'})</span>
-              ) : (
-                <span className="text-[#00f0ff]">Max Level</span>
-              )}
-            </div>
-            <div className="w-full bg-subtle h-2 rounded-full overflow-hidden">
+        <div className="flex flex-col gap-6 mb-6">
+          {/* Profile Summary */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -5, scale: 1.01 }}
+            transition={{ ...fluidSpring, delay: 0.3 }}
+            className="w-full bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
+          >
+            <div className="flex items-center gap-4 mb-4">
               <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ ...fluidSpring, delay: 0.5 }}
-                className="bg-gradient-to-r from-[#0052ff] to-[#00f0ff] h-full" 
-              />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex justify-between text-xs">
-              <span className="text-secondary">Total Investment</span>
-              <span className="font-medium text-primary">${totalInvestment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-secondary">Referral Code</span>
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-[#00f0ff]">{userData?.referral_code || 'N/A'}</span>
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={fluidSpring}
-                  onClick={() => {
-                    navigator.clipboard.writeText(userData?.referral_code || 'N/A');
-                    toast.success('Referral code copied!');
-                  }}
-                  className="text-[10px] bg-subtle hover:bg-subtle-hover text-primary px-2 py-0.5 rounded"
-                >
-                  Copy
-                </motion.button>
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={fluidSpring}
+                className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl"
+              >
+                {userData?.name?.charAt(0) || 'U'}
+              </motion.div>
+              <div>
+                <h4 className="font-bold text-primary">{userData?.name || 'User'}</h4>
+                <p className="text-xs text-[#00f0ff] font-semibold">Level {currentLevel.level}: {currentLevel.name}</p>
               </div>
             </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-secondary">Referral Count</span>
-              <span className="font-medium text-primary">{userData?.referral_count || 0}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-secondary">Verification</span>
-              <span className={`font-medium ${
-                userData?.verification_status === 'verified' ? 'text-emerald-400' :
-                userData?.verification_status === 'pending' ? 'text-yellow-400' :
-                'text-red-400'
-              }`}>
-                {userData?.verification_status?.toUpperCase() || 'PENDING'}
-              </span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-secondary">Member Since</span>
-              <span className="text-primary">
-                {userData?.joined_date ? new Date(userData.joined_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}
-              </span>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Security Status */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -5, scale: 1.01 }}
-          transition={{ ...fluidSpring, delay: 0.4 }}
-          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h4 className="font-bold text-primary">Security</h4>
-            <Shield className="text-emerald-400" size={18} />
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-secondary">Email Verification</span>
-              <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${userData?.verification_status === 'verified' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
-                {userData?.verification_status === 'verified' ? 'VERIFIED' : 'PENDING'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-secondary">Email Alerts</span>
-              <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded">ACTIVE</span>
-            </div>
-            <div className="pt-2 border-t border-border/50">
-              <motion.button 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={fluidSpring}
-                onClick={() => toast.success('Mining reward of 0.005 BTC successfully added to your balance!')}
-                className="w-full text-xs bg-subtle hover:bg-subtle-hover text-primary py-2 rounded-lg transition-colors border border-border"
-              >
-                Simulate Reward Notification
-              </motion.button>
-            </div>
-            <div className="pt-2 border-t border-border/50">
-              <p className="text-[10px] text-secondary">Last Login IP:</p>
-              <p className="text-[10px] text-primary font-mono mt-0.5">192.168.1.42 (London, UK)</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Chart */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -5, scale: 1.005 }}
-          transition={{ ...fluidSpring, delay: 0.2 }}
-          className="col-span-1 lg:col-span-2 bg-card/60 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Yield Performance Overview</h3>
-            <select className="bg-surface border border-border rounded-full px-3 py-1 text-sm text-muted focus:outline-none focus:border-[#0052ff] transition-colors">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-              <option>All Time</option>
-            </select>
-          </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#0052ff" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis dataKey="name" stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                <YAxis stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} dx={-10} />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#ffffff20', strokeWidth: 2, strokeDasharray: '4 4' }} />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#00f0ff" 
-                  strokeWidth={3} 
-                  fillOpacity={1} 
-                  fill="url(#colorValue)" 
-                  activeDot={{ r: 6, fill: '#00f0ff', stroke: '#111827', strokeWidth: 3 }}
+            {/* Level Progress Bar */}
+            <div className="mb-6 bg-surface p-3 rounded-xl border border-border/50">
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-secondary">Level {currentLevel.level}</span>
+                {nextLevel ? (
+                  <span className="text-secondary">Level {nextLevel.level} ({nextLevel.threshold - totalInvestment > 0 ? `$${(nextLevel.threshold - totalInvestment).toLocaleString()} to go` : 'Ready'})</span>
+                ) : (
+                  <span className="text-[#00f0ff]">Max Level</span>
+                )}
+              </div>
+              <div className="w-full bg-subtle h-2 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ ...fluidSpring, delay: 0.5 }}
+                  className="bg-gradient-to-r from-[#0052ff] to-[#00f0ff] h-full" 
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="hashrate" 
-                  stroke="#0052ff" 
-                  strokeWidth={2} 
-                  fillOpacity={0} 
-                  activeDot={{ r: 4, fill: '#0052ff', stroke: '#111827', strokeWidth: 2 }}
-                />
-                <Brush dataKey="name" height={30} stroke="#0052ff" fill="#111827" tickFormatter={() => ''} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
+              </div>
+            </div>
 
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-secondary">Total Investment</span>
+                <span className="font-medium text-primary">${totalInvestment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-secondary">Referral Code</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-[#00f0ff]">{userData?.referral_code || 'N/A'}</span>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={fluidSpring}
+                    onClick={() => {
+                      navigator.clipboard.writeText(userData?.referral_code || 'N/A');
+                      toast.success('Referral code copied!');
+                    }}
+                    className="text-[10px] bg-subtle hover:bg-subtle-hover text-primary px-2 py-0.5 rounded"
+                  >
+                    Copy
+                  </motion.button>
+                </div>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-secondary">Referral Count</span>
+                <span className="font-medium text-primary">{userData?.referral_count || 0}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-secondary">Verification</span>
+                <span className={`font-medium ${
+                  userData?.verification_status === 'verified' ? 'text-emerald-400' :
+                  userData?.verification_status === 'pending' ? 'text-yellow-400' :
+                  'text-red-400'
+                }`}>
+                  {userData?.verification_status?.toUpperCase() || 'PENDING'}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-secondary">Member Since</span>
+                <span className="text-primary">
+                  {userData?.joined_date ? new Date(userData.joined_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Security Status */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -5, scale: 1.01 }}
+            transition={{ ...fluidSpring, delay: 0.4 }}
+            className="w-full bg-card rounded-3xl p-6 border border-border/50 shadow-xl"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="font-bold text-primary">Security</h4>
+              <Shield className="text-emerald-400" size={18} />
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-secondary">Email Verification</span>
+                <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${userData?.verification_status === 'verified' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                  {userData?.verification_status === 'verified' ? 'VERIFIED' : 'PENDING'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-secondary">Email Alerts</span>
+                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded">ACTIVE</span>
+              </div>
+              <div className="pt-2 border-t border-border/50">
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={fluidSpring}
+                  onClick={() => toast.success('Mining reward of 0.005 BTC successfully added to your balance!')}
+                  className="w-full text-xs bg-subtle hover:bg-subtle-hover text-primary py-2 rounded-lg transition-colors border border-border"
+                >
+                  Simulate Reward Notification
+                </motion.button>
+              </div>
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-[10px] text-secondary">Last Login IP:</p>
+                <p className="text-[10px] text-primary font-mono mt-0.5">192.168.1.42 (London, UK)</p>
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Chart */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -5, scale: 1.005 }}
+            transition={{ ...fluidSpring, delay: 0.2 }}
+            className="w-full bg-card/60 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold">Yield Performance Overview</h3>
+              <select className="bg-surface border border-border rounded-full px-3 py-1 text-sm text-muted focus:outline-none focus:border-[#0052ff] transition-colors">
+                <option>Last 7 Days</option>
+                <option>Last 30 Days</option>
+                <option>All Time</option>
+              </select>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#0052ff" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                  <XAxis dataKey="name" stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+                  <YAxis stroke="#ffffff40" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} dx={-10} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#ffffff20', strokeWidth: 2, strokeDasharray: '4 4' }} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#00f0ff" 
+                    strokeWidth={3} 
+                    fillOpacity={1} 
+                    fill="url(#colorValue)" 
+                    activeDot={{ r: 6, fill: '#00f0ff', stroke: '#111827', strokeWidth: 3 }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="hashrate" 
+                    stroke="#0052ff" 
+                    strokeWidth={2} 
+                    fillOpacity={0} 
+                    activeDot={{ r: 4, fill: '#0052ff', stroke: '#111827', strokeWidth: 2 }}
+                  />
+                  <Brush dataKey="name" height={30} stroke="#0052ff" fill="#111827" tickFormatter={() => ''} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        
         {/* Transaction History Module */}
-        <div className="col-span-1 lg:col-span-2">
+        <div className="w-full">
           <TransactionHistoryModule transactions={transactions} miningRevenue={totalMined} />
         </div>
       </div>

@@ -136,16 +136,16 @@ export default function Login() {
         transition={fluidSpring}
         className="max-w-md w-full space-y-8 bg-card p-8 rounded-3xl border border-border relative z-10 shadow-2xl"
       >
-        <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <Hexagon className="text-[#00f0ff]" size={32} />
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 mb-6 group">
+            <Hexagon className="text-[#00f0ff] transition-transform duration-500 group-hover:rotate-180" size={36} />
             <span className="text-2xl font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
           </Link>
-          <h2 className="text-3xl font-bold text-primary">
+          <h2 className="text-2xl font-semibold text-primary">
             {showRecovery ? 'Account Recovery' : 'Welcome back'}
           </h2>
-          <p className="mt-2 text-sm text-secondary">
-            {showRecovery ? 'Enter your email or phone to recover your account' : 'Sign in to access your dashboard'}
+          <p className="mt-1 text-sm text-secondary">
+            {showRecovery ? 'Enter your details to recover your account' : 'Sign in to access your dashboard'}
           </p>
         </div>
         
@@ -153,41 +153,41 @@ export default function Login() {
           {showRecovery ? (
             <motion.form 
               key="recovery"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={fluidSpring}
-              className="mt-8 space-y-6" 
+              className="space-y-6" 
               onSubmit={handleRecoverySubmit}
             >
               <div>
-                <label className="block text-sm font-medium text-muted mb-1">Email Address</label>
+                <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">Email Address</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full px-4 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
-                  placeholder="Enter your email"
+                  placeholder="you@example.com"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-[#0052ff] hover:bg-[#0052ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052ff] transition-all"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-lg text-sm font-semibold text-white bg-[#0052ff] hover:bg-[#0052ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052ff] transition-all active:scale-95 disabled:opacity-50"
               >
                 {isLoading ? 'Sending...' : 'Send Recovery Link'}
               </button>
               {error && (
-                <div className="mt-4 p-3 rounded-full bg-red-500/10 border border-red-500/50 flex items-center gap-2 text-red-400 text-sm">
-                  <AlertCircle size={16} />
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/50 flex items-center gap-2 text-red-400 text-xs">
+                  <AlertCircle size={14} />
                   {error}
                 </div>
               )}
               <button
                 type="button"
                 onClick={() => setShowRecovery(false)}
-                className="w-full text-sm text-secondary hover:text-primary transition-colors"
+                className="w-full text-xs text-secondary hover:text-primary transition-colors hover:underline"
               >
                 Back to Login
               </button>
@@ -195,51 +195,51 @@ export default function Login() {
           ) : (
             <motion.div
               key="login"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
               transition={fluidSpring}
             >
-              <div className="flex p-1 bg-surface rounded-xl mb-6 border border-border">
+              <div className="flex p-1 bg-surface rounded-xl mb-6 border border-border/50">
                 <button
-                  className={`flex-1 py-2 text-sm font-medium rounded-full transition-colors ${loginMethod === 'email' ? 'bg-card text-primary shadow-sm' : 'text-muted hover:text-primary'}`}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${loginMethod === 'email' ? 'bg-card text-primary shadow-sm' : 'text-muted hover:text-primary'}`}
                   onClick={() => setLoginMethod('email')}
                 >
                   Email
                 </button>
                 <button
-                  className={`flex-1 py-2 text-sm font-medium rounded-full transition-colors ${loginMethod === 'phone' ? 'bg-card text-primary shadow-sm' : 'text-muted hover:text-primary'}`}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${loginMethod === 'phone' ? 'bg-card text-primary shadow-sm' : 'text-muted hover:text-primary'}`}
                   onClick={() => setLoginMethod('phone')}
                 >
                   Phone
                 </button>
               </div>
 
-              <form className="space-y-6" onSubmit={handleInitialSubmit}>
+              <form className="space-y-5" onSubmit={handleInitialSubmit}>
                 <div className="space-y-4">
                   {loginMethod === 'email' ? (
                     <div>
-                      <label className="block text-sm font-medium text-muted mb-1">Email Address</label>
+                      <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">Email Address</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Mail className="h-5 w-5 text-muted" />
+                          <Mail className="h-4 w-4 text-muted" />
                         </div>
                         <input
                           type="email"
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-sm text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
                           placeholder="you@example.com"
                         />
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <label className="block text-sm font-medium text-muted mb-1">Phone Number</label>
+                      <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">Phone Number</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Phone className="h-5 w-5 text-muted" />
+                          <Phone className="h-4 w-4 text-muted" />
                         </div>
                         <input
                           type="tel"
@@ -247,7 +247,7 @@ export default function Login() {
                           disabled={!!confirmationResult}
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface disabled:opacity-50"
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-sm text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface disabled:opacity-50"
                           placeholder="+1 (555) 000-0000"
                         />
                       </div>
@@ -256,20 +256,20 @@ export default function Login() {
                   
                   {loginMethod === 'email' && (
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-sm font-medium text-muted">Password</label>
-                        <button type="button" onClick={() => setShowRecovery(true)} className="text-xs text-[#00f0ff] hover:underline">Forgot password?</button>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-semibold text-muted uppercase tracking-wider">Password</label>
+                        <button type="button" onClick={() => setShowRecovery(true)} className="text-[10px] font-semibold text-[#00f0ff] hover:underline">Forgot?</button>
                       </div>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Lock className="h-5 w-5 text-muted" />
+                          <Lock className="h-4 w-4 text-muted" />
                         </div>
                         <input
                           type="password"
                           required
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-sm text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
                           placeholder="••••••••"
                         />
                       </div>
@@ -282,17 +282,17 @@ export default function Login() {
                       animate={{ opacity: 1, height: 'auto' }}
                       className="overflow-hidden"
                     >
-                      <label className="block text-sm font-medium text-muted mb-1">Verification Code</label>
+                      <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">Verification Code</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Key className="h-5 w-5 text-muted" />
+                          <Key className="h-4 w-4 text-muted" />
                         </div>
                         <input
                           type="text"
                           required
                           value={otp}
                           onChange={(e) => setOtp(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface tracking-widest"
+                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-sm text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface tracking-widest"
                           placeholder="123456"
                           maxLength={6}
                         />
@@ -306,13 +306,13 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-[#0052ff] hover:bg-[#0052ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052ff] transition-all disabled:opacity-50"
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-lg text-sm font-semibold text-white bg-[#0052ff] hover:bg-[#0052ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052ff] transition-all active:scale-95 disabled:opacity-50"
                 >
-                  {isLoading ? 'Processing...' : (loginMethod === 'phone' && !confirmationResult ? 'Send Code' : 'Continue')}
+                  {isLoading ? 'Processing...' : (loginMethod === 'phone' && !confirmationResult ? 'Send Code' : 'Sign In')}
                 </button>
                 {error && (
-                  <div className="mt-4 p-3 rounded-full bg-red-500/10 border border-red-500/50 flex items-center gap-2 text-red-400 text-sm">
-                    <AlertCircle size={16} />
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/50 flex items-center gap-2 text-red-400 text-xs text-center justify-center">
+                    <AlertCircle size={14} />
                     {error}
                   </div>
                 )}
@@ -322,8 +322,8 @@ export default function Login() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-border"></div>
                 </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-card text-muted">Or continue with</span>
+                <div className="relative flex justify-center text-[10px] font-semibold text-muted uppercase tracking-widest">
+                  <span className="px-2 bg-card">Or continue with</span>
                 </div>
               </div>
 
@@ -331,9 +331,9 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-border rounded-full shadow-sm text-sm font-medium text-primary bg-surface hover:bg-subtle transition-all"
+                  className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-border rounded-xl text-xs font-semibold text-primary bg-surface hover:bg-subtle transition-all active:scale-95"
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -344,9 +344,9 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={handleMicrosoftLogin}
-                  className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-border rounded-full shadow-sm text-sm font-medium text-primary bg-surface hover:bg-subtle transition-all"
+                  className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-border rounded-xl text-xs font-semibold text-primary bg-surface hover:bg-subtle transition-all active:scale-95"
                 >
-                  <svg className="w-5 h-5" viewBox="0 0 23 23">
+                  <svg className="w-4 h-4" viewBox="0 0 23 23">
                     <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
                     <path fill="#f35325" d="M1 1h10v10H1z"/>
                     <path fill="#81bc06" d="M12 1h10v10H12z"/>
@@ -360,9 +360,9 @@ export default function Login() {
           )}
         </AnimatePresence>
         
-        <p className="text-center text-sm text-secondary mt-8">
+        <p className="text-center text-xs text-secondary mt-8">
           Don't have an account?{' '}
-          <Link to="/signup" className="font-medium text-[#00f0ff] hover:underline">
+          <Link to="/signup" className="font-semibold text-[#00f0ff] hover:underline">
             Create one now
           </Link>
         </p>

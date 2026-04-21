@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './context/AuthContext';
+import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -50,6 +51,7 @@ export default function App() {
     <SystemManager>
       <AuthProvider>
         <Router>
+          <ScrollToTop/>
           <Toaster position="top-right" richColors />
           <Routes>
           <Route path="/" element={<Layout />}>
