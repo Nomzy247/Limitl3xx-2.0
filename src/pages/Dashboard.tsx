@@ -214,7 +214,7 @@ export default function Dashboard() {
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff] rounded-full blur-[60px] opacity-10 pointer-events-none" />
               
-              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 relative z-10">
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 relative z-10">
                 <div>
                   <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
                   <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">
@@ -223,22 +223,22 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Quick Action Bar */}
-                <div className="flex gap-2 w-full md:w-auto">
+                <div className="flex flex-wrap lg:flex-nowrap gap-2 w-full lg:w-auto">
                   <button 
                     onClick={() => navigate('/deposit')} 
-                    className="flex-1 md:flex-none bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
+                    className="flex-1 lg:flex-none bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
                   >
                     <ArrowDownRight size={16} /> Deposit
                   </button>
                   <button 
                     onClick={() => navigate('/withdraw')} 
-                    className="flex-1 md:flex-none bg-subtle hover:bg-subtle-hover text-primary px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm"
+                    className="flex-1 lg:flex-none bg-subtle hover:bg-subtle-hover text-primary px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
                   >
                     <ArrowUpRight size={16} /> Withdraw
                   </button>
                   <button 
                     onClick={() => navigate('/buy-hashpower')} 
-                    className="flex-1 md:flex-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
+                    className="flex-1 lg:flex-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
                   >
                     <Plus size={16} /> Mining
                   </button>

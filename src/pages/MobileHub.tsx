@@ -72,41 +72,41 @@ export default function MobileHub() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         {quickActions.map((action, i) => (
           <Link key={i} to={action.path}>
             <motion.div
               whileHover={{ y: -5, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={fluidSpring}
-              className="bg-card border border-border/50 p-4 rounded-2xl flex flex-col items-center gap-2 shadow-lg"
+              className="bg-card border border-border/50 p-4 rounded-2xl flex flex-row items-center justify-between gap-2 shadow-lg"
             >
+              <span className="text-xs font-bold uppercase tracking-wider">{action.label}</span>
               <div className="p-2 bg-primary/5 rounded-xl text-primary">
                 <action.icon size={20} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider">{action.label}</span>
             </motion.div>
           </Link>
         ))}
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         {menuItems.map((item, i) => (
           <Link key={i} to={item.path}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ ...fluidSpring, delay: i * 0.05 }}
-              whileHover={{ y: -5, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-card border border-border/50 p-6 rounded-3xl flex flex-col items-start gap-4 shadow-xl relative overflow-hidden group"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="bg-card border border-border/50 p-6 rounded-3xl flex items-center gap-4 shadow-xl relative overflow-hidden group"
             >
-              <div className={`p-3 ${item.bg} ${item.color} rounded-2xl transition-transform group-hover:scale-110`}>
-                <item.icon size={24} />
+              <div className={`p-4 ${item.bg} ${item.color} rounded-2xl transition-transform group-hover:scale-110`}>
+                <item.icon size={28} />
               </div>
-              <span className="font-bold text-lg">{item.label}</span>
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-colors" />
+              <span className="font-bold text-xl">{item.label}</span>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
             </motion.div>
           </Link>
         ))}

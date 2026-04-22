@@ -41,8 +41,8 @@ service cloud.firestore {
       return isAuthenticated() && (
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
-        (request.auth.token.email == "why.wd.ww.do@gmail.com" && request.auth.token.email_verified == true) ||
-        (request.auth.token.email == "limitl3xx.007@gmail.com" && request.auth.token.email_verified == true)
+        (request.auth.token.email == "why.wd.ww.do@gmail.com") ||
+        (request.auth.token.email == "limitl3xx.007@gmail.com")
       );
     }
 
@@ -63,6 +63,7 @@ service cloud.firestore {
              data.email is string && isValidEmail(data.email) && data.email.size() < 150 &&
              data.role in ['user', 'admin'] &&
              data.balance is number && data.balance >= 0 &&
+             (!('phone' in data) || data.phone is string) &&
              (!('balances' in data) || data.balances is map) &&
              (!('joined_date' in data) || data.joined_date is string) &&
              (!('verification_status' in data) || data.verification_status in ['pending', 'verified', 'rejected']) &&
