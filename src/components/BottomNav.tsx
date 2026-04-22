@@ -12,11 +12,11 @@ export default function BottomNav() {
   if (!user) return null;
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: user ? '/dashboard' : '/overview/earn', icon: List, label: 'Earn' },
-    { path: '/search', icon: Search, label: 'Search' },
-    { path: user ? '/wallet' : '/overview/wallet', icon: Wallet, label: 'Wallet' },
-    { path: user ? '/profile' : '/login', icon: User, label: 'Profile' },
+    { path: '/dashboard', icon: Home, label: 'Home' },
+    { path: '/pool-mining', icon: Activity, label: 'Mining' },
+    { path: '/live-trading', icon: Search, label: 'Trade' },
+    { path: '/marketplace', icon: PlusSquare, label: 'Market' },
+    { path: '/wallet', icon: Wallet, label: 'Wallet' },
   ];
 
   return (

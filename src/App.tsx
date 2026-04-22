@@ -27,6 +27,11 @@ import Support from './pages/Support';
 import Referrals from './pages/Referrals';
 import Profile from './pages/Profile';
 import MobileHub from './pages/MobileHub';
+import LiveTrading from './pages/LiveTrading';
+import PoolMining from './pages/PoolMining';
+import CloudMining from './pages/CloudMining';
+import CryptoTrading from './pages/CryptoTrading';
+import Marketplace from './pages/Marketplace';
 import EarnOverview from './pages/overviews/EarnOverview';
 import MenuOverview from './pages/overviews/MenuOverview';
 import WalletOverview from './pages/overviews/WalletOverview';
@@ -67,6 +72,11 @@ export default function App() {
             <Route path="buy-hashpower" element={<ProtectedRoute><BuyHashpower /></ProtectedRoute>} />
             <Route path="transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
             <Route path="wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+            <Route path="pool-mining" element={<ProtectedRoute><PoolMining /></ProtectedRoute>} />
+            <Route path="cloud-mining" element={<ProtectedRoute><CloudMining /></ProtectedRoute>} />
+            <Route path="live-trading" element={<ProtectedRoute><LiveTrading /></ProtectedRoute>} />
+            <Route path="crypto-trading" element={<ProtectedRoute><CryptoTrading /></ProtectedRoute>} />
+            <Route path="marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />

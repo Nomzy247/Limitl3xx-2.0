@@ -103,11 +103,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               await setDoc(userDocRef, newData);
               setUserData(newData);
             } catch (error) {
+              console.error("DEBUG: Firebase create doc error", error);
               handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
             }
           }
           setLoading(false);
         }, (error) => {
+          console.error("DEBUG: Firebase onSnapshot error", error);
           handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
           setLoading(false);
         });
