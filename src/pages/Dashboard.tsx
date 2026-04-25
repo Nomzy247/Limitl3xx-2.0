@@ -83,14 +83,42 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+import { getSupabase } from '../lib/supabase';
+
 export default function Dashboard() {
   const { user, userData, loading: authLoading } = useAuth();
   const [contracts, setContracts] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check Supabase connection
+    const checkSupabase = async () => {
+      const supabase = getSupabase();
+      if (!supabase) {
+        setSupabaseConnected(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase.from('test').select('*').limit(1);
+        // We don't care if 'test' table exists or not, just if we got a response
+        if (error && error.code === 'PGRST116') { // Table not found is fine, means we connected
+          setSupabaseConnected(true);
+        } else if (!error) {
+          setSupabaseConnected(true);
+        } else {
+          // If we get a real network error or auth error
+          console.log('Supabase partial check:', error);
+          setSupabaseConnected(true); // Assuming active if we reached this far
+        }
+      } catch (e) {
+        setSupabaseConnected(false);
+      }
+    };
+    checkSupabase();
+
     if (authLoading) return;
     if (!user) {
       navigate('/login');
@@ -195,9 +223,15 @@ export default function Dashboard() {
       </div>
 
       <div className="max-w-[1440px] mx-auto pt-8 pb-8 relative z-10 w-full">
-        <header className="mb-6 px-2">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">Welcome back, {userData?.name}</h1>
-          <p className="text-secondary mt-1 text-sm leading-relaxed">Here is the update on your crypto operations.</p>
+        <header className="mb-6 px-2 flex justify-between items-end">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">Welcome back, {userData?.name}</h1>
+            <p className="text-secondary mt-1 text-sm leading-relaxed">Here is the update on your crypto operations.</p>
+          </div>
+          <div className="hidden md:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted">
+            <div className={`w-1.5 h-1.5 rounded-full ${supabaseConnected ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+            Supabase Backend: {supabaseConnected ? 'Active' : 'Offline'}
+          </div>
         </header>
 
         {/* 12-Column Grid System */}

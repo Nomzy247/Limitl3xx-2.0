@@ -35,7 +35,11 @@ export default function Withdraw() {
       return;
     }
 
-    setShow2FA(true);
+    if (userData.two_factor_enabled) {
+      setShow2FA(true);
+    } else {
+      executeWithdrawal();
+    }
   };
 
   const executeWithdrawal = async () => {

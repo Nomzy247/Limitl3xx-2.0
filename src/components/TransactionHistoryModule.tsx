@@ -22,13 +22,22 @@ export default function TransactionHistoryModule({ transactions, miningRevenue }
       transition={{ ...fluidSpring, delay: 0.3 }}
       className="bg-card/60 backdrop-blur-2xl rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col relative overflow-hidden"
     >
-      {/* Glassmorphism Gradient Overlays */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#00f0ff]/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#0052ff]/10 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="mb-8 relative z-10">
-        <h2 className="text-2xl font-bold text-primary tracking-tight">Transaction History</h2>
-        <p className="text-sm text-secondary mt-1">Track all your trades and mining revenue</p>
+      <div className="mb-8 relative z-10 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-primary tracking-tight">Real-time Feed</h2>
+          <p className="text-sm text-secondary mt-1">Live updates from your mining rigs and trades</p>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+          <motion.div 
+            animate={{ opacity: [1, 0.4, 1] }} 
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.8)]" 
+          />
+          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest leading-none">Live</span>
+        </div>
       </div>
 
       {/* Metrics Grid */}

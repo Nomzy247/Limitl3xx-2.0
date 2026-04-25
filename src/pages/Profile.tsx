@@ -37,26 +37,32 @@ export default function Profile() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={fluidSpring}
-            className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
+            className="bg-card rounded-[2.5rem] p-8 border border-white/5 shadow-2xl text-center flex flex-col items-center relative overflow-hidden"
           >
-            <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-5xl mb-6 border-4 border-[#0052ff]/20">
-              {userData?.name?.charAt(0) || 'U'}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff]/10 rounded-full blur-[60px] pointer-events-none" />
+            
+            <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#0052ff] to-[#00f0ff] p-1 shadow-2xl mb-6 relative">
+              <div className="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-white font-bold text-5xl border-4 border-card overflow-hidden">
+                {userData?.avatar_url ? <img src={userData.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : userData?.name?.charAt(0) || 'U'}
+              </div>
+              <div className="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-card" />
             </div>
-            <h2 className="text-2xl font-bold mb-1">{userData?.name || 'User'}</h2>
-            <p className="text-secondary text-sm mb-6">{userData?.email}</p>
+            
+            <h2 className="text-2xl font-bold mb-1 tracking-tight">{userData?.name || 'User'}</h2>
+            <p className="text-secondary text-sm mb-8 font-medium">{userData?.email}</p>
             
             <div className="w-full space-y-3">
               <button 
                 onClick={() => navigate('/settings')}
-                className="w-full py-3 bg-subtle hover:bg-subtle-hover text-primary rounded-full font-bold transition-all flex items-center justify-center gap-2 border border-border/50"
+                className="w-full py-3.5 bg-white/5 hover:bg-white/10 text-primary rounded-2xl font-bold transition-all flex items-center justify-center gap-2 border border-white/5"
               >
-                <Settings size={18} /> Edit Profile
+                <Settings size={18} /> Account Settings
               </button>
               <button 
                 onClick={handleLogout}
-                className="w-full py-3 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 rounded-full font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
               >
-                <LogOut size={18} /> Sign Out
+                <LogOut size={18} /> Terminate Session
               </button>
             </div>
           </motion.div>

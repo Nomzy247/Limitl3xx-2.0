@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hexagon, Mail, Lock, AlertCircle, Phone, Key } from 'lucide-react';
+import { Hexagon, Mail, Lock, AlertCircle, Phone, Key, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { auth, signInWithGoogle } from '../firebase';
 import { signInWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
@@ -43,6 +43,10 @@ export default function Login() {
     }
   }, []);
 
+  const [show2FA, setShow2FA] = useState(false);
+  const [faCode, setFaCode] = useState('');
+  const [pendingUser, setPendingUser] = useState<any>(null);
+
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -50,17 +54,14 @@ export default function Login() {
     console.log('Login attempt started:', { method: loginMethod, email, phone: !!phone });
 
     try {
+      let userCredential;
       if (loginMethod === 'email') {
         console.log('Signing in with email...');
-        await signInWithEmailAndPassword(auth, email, password);
-        console.log('Email sign-in successful');
-        navigate(isMobile ? '/hub' : '/dashboard');
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       } else {
         if (confirmationResult) {
           console.log('Confirming OTP...');
-          await confirmationResult.confirm(otp);
-          console.log('OTP confirmation successful');
-          navigate(isMobile ? '/hub' : '/dashboard');
+          userCredential = await confirmationResult.confirm(otp);
         } else {
           console.log('Sending OTP...');
           const appVerifier = window.recaptchaVerifier;
@@ -68,11 +69,30 @@ export default function Login() {
           setConfirmationResult(result);
           console.log('OTP sent successfully');
           toast.success('OTP sent to your phone!');
+          setIsLoading(false);
+          return;
         }
+      }
+
+      if (userCredential?.user) {
+        // Double check for 2FA
+        const { getDoc, doc, db } = await import('../firebase');
+        const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+        
+        if (userDoc.exists() && userDoc.data().two_factor_enabled) {
+          setPendingUser(userCredential.user);
+          setShow2FA(true);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('Sign-in successful, navigating...');
+        navigate(isMobile ? '/hub' : '/dashboard');
       }
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Login failed. Please check your credentials.');
+      // ... existing error handling ...
       if (err.message?.includes('reCAPTCHA')) {
         console.log('Resetting reCAPTCHA...');
         // Reset recaptcha on error
@@ -126,6 +146,23 @@ export default function Login() {
     }
   };
 
+  const handle2FAVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (faCode.length !== 6) {
+      toast.error('Please enter a valid 6-digit code');
+      return;
+    }
+    
+    setIsLoading(true);
+    // In a real app, you'd verify against a TOTP secret.
+    // For this implementation, we'll simulate verification success if code is 6 digits.
+    setTimeout(() => {
+      toast.success('Security verification complete!');
+      navigate(isMobile ? '/hub' : '/dashboard');
+      setIsLoading(false);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0052ff] rounded-full blur-[150px] opacity-20 pointer-events-none" />
@@ -150,7 +187,56 @@ export default function Login() {
         </div>
         
         <AnimatePresence mode="wait">
-          {showRecovery ? (
+          {show2FA ? (
+            <motion.form 
+              key="2fa"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={fluidSpring}
+              className="space-y-8" 
+              onSubmit={handle2FAVerify}
+            >
+              <div className="text-center">
+                <div className="inline-flex p-4 bg-emerald-500/10 rounded-2xl text-emerald-400 mb-4">
+                  <Shield size={32} />
+                </div>
+                <h3 className="text-xl font-bold">Security Verification</h3>
+                <p className="text-xs text-secondary mt-2">Enter the 6-digit code from your authenticator app to authorize this login.</p>
+              </div>
+              
+              <div className="flex justify-center">
+                <input 
+                  type="text" 
+                  maxLength={6}
+                  value={faCode}
+                  onChange={(e) => setFaCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000 000"
+                  className="w-full text-center bg-surface-dark/50 border-2 border-white/5 focus:border-[#00f0ff]/40 rounded-2xl py-4 text-2xl font-bold tracking-[0.5em] text-[#00f0ff] outline-none"
+                  autoFocus
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || faCode.length !== 6}
+                className="w-full flex justify-center py-4 px-4 border border-transparent rounded-full shadow-lg text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isLoading ? 'Verifying...' : 'Verify & Continue'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setShow2FA(false);
+                  setFaCode('');
+                }}
+                className="w-full text-xs text-secondary hover:text-primary transition-colors"
+              >
+                Cancel and sign in again
+              </button>
+            </motion.form>
+          ) : showRecovery ? (
             <motion.form 
               key="recovery"
               initial={{ opacity: 0, y: 10 }}

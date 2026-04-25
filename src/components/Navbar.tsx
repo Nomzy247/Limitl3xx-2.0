@@ -268,11 +268,11 @@ export default function Navbar() {
                   <div className="flex items-center gap-6">
                     <div className="hidden md:flex items-baseline space-x-4">
                       <Link to="/" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Home</Link>
-                      <Link to="/about" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">About</Link>
-                      <Link to="/pools" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Mining Pools</Link>
-                      <Link to="/pricing" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Pricing</Link>
-                      <Link to="/blog" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Blog</Link>
-                      <Link to="/contact" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Contact</Link>
+                      <Link to="/marketplace" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Marketplace</Link>
+                      <Link to="/live-trading" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Live Trading</Link>
+                      <Link to="/services" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Services</Link>
+                      <Link to="/locations" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">Locations</Link>
+                      <Link to="/faq" className="text-muted hover:text-primary px-2 py-1 rounded-md text-xs font-medium transition-colors">FAQ</Link>
                     </div>
                     
                     <motion.div 
@@ -311,11 +311,11 @@ export default function Navbar() {
                         className="absolute top-16 left-0 w-full bg-surface/95 backdrop-blur-xl border-b border-border/50 flex flex-col px-6 py-4 gap-4 md:hidden"
                       >
                         <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Home</Link>
-                        <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">About</Link>
-                        <Link to="/pools" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Mining Pools</Link>
-                        <Link to="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Pricing</Link>
-                        <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Blog</Link>
-                        <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Contact</Link>
+                        <Link to="/marketplace" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Marketplace</Link>
+                        <Link to="/live-trading" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Live Trading</Link>
+                        <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Services</Link>
+                        <Link to="/locations" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Locations</Link>
+                        <Link to="/faq" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">FAQ</Link>
                         <div className="h-px bg-border/50 my-2" />
                         <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-medium">Log in</Link>
                         <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="bg-[#0052ff] text-white px-4 py-2 rounded-full text-center font-medium">Create Account</Link>

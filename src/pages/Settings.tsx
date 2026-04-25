@@ -1,13 +1,36 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { Settings as SettingsIcon, User, Lock, Bell, Shield, Globe, Moon, Sun, Trash2, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Settings as SettingsIcon, User, Lock, Bell, Shield, 
+  Globe, Moon, Sun, Trash2, Save, Camera, Smartphone, 
+  CheckCircle, Copy, RefreshCw, Eye, EyeOff, ChevronRight, X
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 import { toast } from 'sonner';
+import { db, doc, updateDoc, auth } from '../firebase';
+import { updatePassword, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
 export default function Settings() {
-  const { userData } = useAuth();
+  const { user, userData } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'preferences'>('profile');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Profile Form State
+  const [name, setName] = useState(userData?.name || '');
+  const [phone, setPhone] = useState(userData?.phone || '');
+  const [country, setCountry] = useState('United Kingdom');
+  const [avatar, setAvatar] = useState(userData?.avatar_url || '');
+
+  // Security Form State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
+  const [is2FAEnabled, setIs2FAEnabled] = useState(userData?.two_factor_enabled || false);
+  const [faStep, setFaStep] = useState(1);
+  const [faCode, setFaCode] = useState('');
 
   const tabs = [
     { id: 'profile', icon: User, label: 'Profile' },
@@ -16,241 +39,529 @@ export default function Settings() {
     { id: 'preferences', icon: Globe, label: 'Preferences' },
   ];
 
-  const handleSave = () => {
-    toast.success('Settings saved successfully!');
+  useEffect(() => {
+    if (userData) {
+      setName(userData.name);
+      setPhone(userData.phone || '');
+      setIs2FAEnabled(userData.two_factor_enabled || false);
+    }
+  }, [userData]);
+
+  const handleProfileUpdate = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        name,
+        phone,
+        // Since we don't have a real storage upload, we'll just mock the avatar update if changed
+        avatar_url: avatar
+      });
+      toast.success('Profile updated successfully!');
+    } catch (error) {
+      toast.error('Failed to update profile');
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!user || !currentPassword || !newPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const credential = EmailAuthProvider.credential(user.email!, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+      toast.success('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update password');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleToggle2FA = () => {
+    if (is2FAEnabled) {
+      setIs2FAModalOpen(true);
+      setFaStep(3); // Direct to disable flow
+    } else {
+      setIs2FAModalOpen(true);
+      setFaStep(1);
+    }
+  };
+
+  const complete2FASetup = async () => {
+    if (faCode.length !== 6) {
+      toast.error('Please enter a valid 6-digit code');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (!user) return;
+      await updateDoc(doc(db, 'users', user.uid), {
+        two_factor_enabled: !is2FAEnabled
+      });
+      setIs2FAEnabled(!is2FAEnabled);
+      toast.success(is2FAEnabled ? '2FA disabled' : '2FA enabled successfully!');
+      setIs2FAModalOpen(false);
+      setFaCode('');
+      setFaStep(1);
+    } catch (error) {
+      toast.error('Failed to update 2FA status');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Account Settings</h1>
-          <p className="text-secondary mt-1">Manage your account preferences and security settings.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+          <p className="text-secondary mt-1">Configure your personal profile and safeguard your assets.</p>
         </div>
         <motion.button 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          transition={fluidSpring}
-          onClick={handleSave}
-          className="px-6 py-2 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white rounded-full font-medium transition-colors flex items-center gap-2"
+          disabled={isSaving}
+          onClick={activeTab === 'profile' ? handleProfileUpdate : activeTab === 'security' ? handlePasswordUpdate : () => toast.info('Settings saved')}
+          className="px-8 py-3 bg-gradient-to-r from-[#0052ff] to-[#00f0ff] text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all disabled:opacity-50"
         >
-          <Save size={18} /> Save Changes
+          {isSaving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+          Save Changes
         </motion.button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Navigation Sidebar */}
         <div className="lg:col-span-1 space-y-2">
           {tabs.map((tab) => (
             <motion.button
               key={tab.id}
               whileHover={{ x: 5 }}
               whileTap={{ scale: 0.98 }}
-              transition={fluidSpring}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
+              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all font-semibold ${
                 activeTab === tab.id 
-                  ? 'bg-[#0052ff]/10 text-[#0052ff] border border-[#0052ff]/20' 
-                  : 'text-muted hover:bg-subtle hover:text-primary'
+                  ? 'bg-gradient-to-r from-[#0052ff]/10 to-[#00f0ff]/10 text-[#00f0ff] border border-[#00f0ff]/20' 
+                  : 'text-muted hover:bg-surface hover:text-primary border border-transparent'
               }`}
             >
-              <tab.icon size={20} />
-              {tab.label}
+              <div className="flex items-center gap-3">
+                <tab.icon size={20} />
+                <span className="text-sm">{tab.label}</span>
+              </div>
+              {activeTab === tab.id && <ChevronRight size={16} />}
             </motion.button>
           ))}
         </div>
 
+        {/* Content Area */}
         <div className="lg:col-span-3">
-          <motion.div 
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={fluidSpring}
-            className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl space-y-8"
-          >
-            {activeTab === 'profile' && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-6 pb-8 border-b border-border/50">
-                  <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl">
-                    {userData?.name?.charAt(0) || 'U'}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">{userData?.name || 'User'}</h3>
-                    <p className="text-secondary text-sm">{userData?.email}</p>
-                    <button className="mt-2 text-xs text-[#0052ff] font-bold hover:underline">Change Avatar</button>
-                  </div>
-                </div>
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={activeTab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={fluidSpring}
+              className="bg-card/40 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/5 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00f0ff]/5 rounded-full blur-[100px] pointer-events-none" />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-muted mb-2">Full Name</label>
-                    <input 
-                      type="text" 
-                      defaultValue={userData?.name}
-                      className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-muted mb-2">Email Address</label>
-                    <input 
-                      type="email" 
-                      defaultValue={userData?.email}
-                      disabled
-                      className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-muted cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-muted mb-2">Phone Number</label>
-                    <input 
-                      type="tel" 
-                      placeholder="+1 (555) 000-0000"
-                      className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-muted mb-2">Country</label>
-                    <select className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all">
-                      <option>United Kingdom</option>
-                      <option>United States</option>
-                      <option>Canada</option>
-                      <option>Germany</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'security' && (
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="font-bold flex items-center gap-2">
-                    <Shield size={18} className="text-[#00f0ff]" />
-                    Security Features
-                  </h3>
-                  <div className="p-4 bg-surface rounded-2xl border border-border/50 flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">Two-Factor Authentication (2FA)</p>
-                      <p className="text-xs text-secondary mt-1">Add an extra layer of security to your account.</p>
-                    </div>
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={fluidSpring}
-                      className="px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold hover:bg-emerald-500/20 transition-colors"
-                    >
-                      Enable
-                    </motion.button>
-                  </div>
-                  <div className="p-4 bg-surface rounded-2xl border border-border/50 flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">Login Alerts</p>
-                      <p className="text-xs text-secondary mt-1">Get notified of new logins to your account.</p>
-                    </div>
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={fluidSpring}
-                      className="px-4 py-2 bg-emerald-500 text-white rounded-full text-xs font-bold transition-colors"
-                    >
-                      Active
-                    </motion.button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold">Change Password</h3>
-                  <div className="space-y-4">
-                    <input 
-                      type="password" 
-                      placeholder="Current Password"
-                      className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
-                    />
-                    <input 
-                      type="password" 
-                      placeholder="New Password"
-                      className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
-                    />
-                    <input 
-                      type="password" 
-                      placeholder="Confirm New Password"
-                      className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'notifications' && (
-              <div className="space-y-6">
-                <h3 className="font-bold">Notification Preferences</h3>
-                <div className="space-y-4">
-                  {[
-                    { id: 'mining', label: 'Mining Rewards', desc: 'Get notified when you receive mining payouts.' },
-                    { id: 'deposits', label: 'Deposits & Withdrawals', desc: 'Alerts for successful financial transactions.' },
-                    { id: 'security', label: 'Security Alerts', desc: 'Critical alerts about your account security.' },
-                    { id: 'marketing', label: 'Marketing & News', desc: 'Stay updated with our latest offers and features.' },
-                  ].map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-4 bg-surface rounded-2xl border border-border/50">
-                      <div>
-                        <p className="font-semibold">{item.label}</p>
-                        <p className="text-xs text-secondary mt-1">{item.desc}</p>
+              {activeTab === 'profile' && (
+                <div className="space-y-10 relative z-10">
+                  <div className="flex flex-col md:flex-row items-center gap-8 pb-10 border-b border-white/5">
+                    <div className="relative group">
+                      <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-[#0052ff] to-[#00f0ff] p-1 shadow-2xl">
+                        <div className="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-white font-bold text-4xl overflow-hidden border-4 border-card">
+                          {avatar ? <img src={avatar} alt="Avatar" className="w-full h-full object-cover" /> : name?.charAt(0) || 'U'}
+                        </div>
                       </div>
-                      <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#0052ff]">
-                        <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6" />
+                      <button className="absolute bottom-0 right-0 p-2.5 bg-[#0052ff] text-white rounded-full shadow-lg group-hover:scale-110 transition-transform border-4 border-card">
+                        <Camera size={16} />
                       </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'preferences' && (
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h3 className="font-bold">Appearance</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <motion.button 
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={fluidSpring}
-                      className="p-4 rounded-2xl border-2 border-[#0052ff] bg-surface flex flex-col items-center gap-3"
-                    >
-                      <Moon size={24} className="text-[#0052ff]" />
-                      <span className="font-bold text-sm">Dark Mode</span>
-                    </motion.button>
-                    <motion.button 
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={fluidSpring}
-                      className="p-4 rounded-2xl border border-border/50 bg-white flex flex-col items-center gap-3"
-                    >
-                      <Sun size={24} className="text-muted" />
-                      <span className="font-bold text-sm text-muted">Light Mode</span>
-                    </motion.button>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-border/50">
-                  <h3 className="font-bold text-rose-500 mb-4">Danger Zone</h3>
-                  <div className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-2xl flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-rose-500">Delete Account</p>
-                      <p className="text-xs text-rose-400/70 mt-1">Permanently delete your account and all your data.</p>
+                    <div className="text-center md:text-left">
+                      <h3 className="text-2xl font-bold tracking-tight">{name || 'Set your name'}</h3>
+                      <p className="text-secondary text-sm mt-1">{userData?.email}</p>
+                      <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
+                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase rounded-full border border-emerald-500/20">Email Verified</span>
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase rounded-full border border-blue-500/20">LVL {userData?.level || 1}</span>
+                      </div>
                     </div>
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={fluidSpring}
-                      className="px-4 py-2 bg-rose-500 text-white rounded-full text-xs font-bold hover:bg-rose-600 transition-colors flex items-center gap-2"
-                    >
-                      <Trash2 size={14} /> Delete
-                    </motion.button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Full Name</label>
+                      <input 
+                        type="text" 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full bg-surface-dark/50 border border-white/5 focus:border-[#00f0ff]/30 rounded-2xl px-5 py-4 text-primary focus:outline-none focus:ring-4 focus:ring-[#00f0ff]/5 transition-all text-sm font-medium"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Email Address</label>
+                      <input 
+                        type="email" 
+                        value={userData?.email}
+                        disabled
+                        className="w-full bg-surface border border-white/5 rounded-2xl px-5 py-4 text-muted cursor-not-allowed text-sm font-medium opacity-60"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Phone Number</label>
+                      <div className="relative">
+                        <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 text-secondary" size={18} />
+                        <input 
+                          type="tel" 
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="+1 (555) 000-0000"
+                          className="w-full bg-surface-dark/50 border border-white/5 focus:border-[#00f0ff]/30 rounded-2xl pl-12 pr-5 py-4 text-primary focus:outline-none focus:ring-4 focus:ring-[#00f0ff]/5 transition-all text-sm font-medium"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-secondary uppercase tracking-widest px-1">Country / Region</label>
+                      <select 
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className="w-full bg-surface-dark/50 border border-white/5 focus:border-[#00f0ff]/30 rounded-2xl px-5 py-4 text-primary focus:outline-none focus:ring-4 focus:ring-[#00f0ff]/5 transition-all text-sm font-medium appearance-none"
+                      >
+                        <option>United Kingdom</option>
+                        <option>United States</option>
+                        <option>Canada</option>
+                        <option>Germany</option>
+                        <option>France</option>
+                        <option>Australia</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </motion.div>
+              )}
+
+              {activeTab === 'security' && (
+                <div className="space-y-12 relative z-10">
+                  {/* Password Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-2">
+                       <Lock size={20} className="text-[#00f0ff]" />
+                       <h3 className="text-xl font-bold tracking-tight">Security Credentials</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <input 
+                          type={showPassword ? 'text' : 'password'} 
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="Current Password"
+                          className="w-full bg-surface-dark/50 border border-white/5 focus:border-[#00f0ff]/30 rounded-2xl px-5 py-4 text-primary focus:outline-none focus:ring-4 focus:ring-[#00f0ff]/5 transition-all text-sm font-medium"
+                        />
+                        <button 
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-5 top-1/2 -track-y-1/2 text-muted hover:text-primary transition-colors"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input 
+                          type="password" 
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="New Password"
+                          className="w-full bg-surface-dark/50 border border-white/5 focus:border-[#00f0ff]/30 rounded-2xl px-5 py-4 text-primary focus:outline-none focus:ring-4 focus:ring-[#00f0ff]/5 transition-all text-sm font-medium"
+                        />
+                        <input 
+                          type="password" 
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm New Password"
+                          className="w-full bg-surface-dark/50 border border-white/5 focus:border-[#00f0ff]/30 rounded-2xl px-5 py-4 text-primary focus:outline-none focus:ring-4 focus:ring-[#00f0ff]/5 transition-all text-sm font-medium"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2FA Section */}
+                  <div className="space-y-6 pt-10 border-t border-white/5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                         <Shield size={20} className="text-emerald-400" />
+                         <h3 className="text-xl font-bold tracking-tight">Two-Factor Authentication</h3>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${is2FAEnabled ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                        {is2FAEnabled ? 'Active' : 'Disabled'}
+                      </div>
+                    </div>
+
+                    <div className="bg-surface-dark/30 rounded-3xl p-6 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+                      <div className="flex items-start gap-4">
+                        <div className="p-4 bg-emerald-500/10 rounded-2xl text-emerald-400">
+                          <Smartphone size={28} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-primary">Authenticator App</p>
+                          <p className="text-xs text-secondary mt-1 max-w-xs leading-relaxed">
+                            Protect your account with a secondary security layer from Google Authenticator or Authy.
+                          </p>
+                        </div>
+                      </div>
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleToggle2FA}
+                        className={`px-8 py-3 rounded-xl text-sm font-bold transition-all shadow-xl ${
+                          is2FAEnabled 
+                            ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border border-rose-500/20' 
+                            : 'bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600'
+                        }`}
+                      >
+                        {is2FAEnabled ? 'Disable 2FA' : 'Enable 2FA'}
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'notifications' && (
+                <div className="space-y-6 relative z-10">
+                  <div className="flex items-center gap-3 mb-6">
+                     <Bell size={20} className="text-[#00f0ff]" />
+                     <h3 className="text-xl font-bold tracking-tight">System Alerts</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {[
+                      { id: 'mining', label: 'Mining Rewards', desc: 'Get real-time alerts when daily mining payouts are processed.' },
+                      { id: 'deposits', label: 'Financial Transactions', desc: 'Confirmations for all deposits, withdrawals, and internal transfers.' },
+                      { id: 'security', label: 'Security Protocols', desc: 'Critical alerts about logins and credential modifications.' },
+                      { id: 'marketing', label: 'Network News', desc: 'Be the first to know about new mining plans and platform updates.' },
+                    ].map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-6 bg-surface-dark/30 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
+                        <div className="max-w-md">
+                          <p className="font-bold text-primary">{item.label}</p>
+                          <p className="text-[11px] text-secondary mt-1 leading-relaxed">{item.desc}</p>
+                        </div>
+                        <label className="relative inline-flex h-7 w-12 items-center cursor-pointer group">
+                          <input type="checkbox" className="sr-only peer" defaultChecked={item.id !== 'marketing'} />
+                          <div className="w-12 h-7 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00f0ff]/30 border border-white/5"></div>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'preferences' && (
+                <div className="space-y-12 relative z-10">
+                  <div className="space-y-6">
+                     <div className="flex items-center gap-3 mb-6">
+                        <Globe size={20} className="text-[#00f0ff]" />
+                        <h3 className="text-xl font-bold tracking-tight">Platform Experience</h3>
+                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <motion.button 
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="p-6 rounded-[2rem] border-2 border-[#0052ff] bg-surface-dark/50 flex flex-col items-start gap-4 transition-all shadow-xl shadow-blue-500/10"
+                      >
+                        <div className="p-3 bg-[#0052ff]/10 rounded-xl text-[#0052ff]">
+                          <Moon size={28} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold text-lg">Fintech Dark</p>
+                          <p className="text-xs text-muted mt-1 leading-relaxed">High contrast, low eye-strain professional dashboard.</p>
+                        </div>
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        disabled
+                        className="p-6 rounded-[2rem] border border-white/5 bg-white/5 flex flex-col items-start gap-4 opacity-50 cursor-not-allowed group"
+                      >
+                        <div className="p-3 bg-white/10 rounded-xl text-muted">
+                          <Sun size={28} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold text-lg text-muted">Light UI</p>
+                          <p className="text-xs text-muted mt-1 leading-relaxed uppercase tracking-tighter">Coming Soon</p>
+                        </div>
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  <div className="pt-12 border-t border-white/5">
+                    <h3 className="font-bold text-rose-500 mb-6 flex items-center gap-2 uppercase tracking-widest text-xs">
+                       Danger Protocols
+                    </h3>
+                    <div className="p-8 bg-rose-500/5 border border-rose-500/10 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 group hover:bg-rose-500/10 transition-colors">
+                      <div className="text-center md:text-left">
+                        <p className="font-bold text-lg text-rose-500">Purge Data & Terminate Account</p>
+                        <p className="text-xs text-rose-400/60 mt-1 max-w-sm">This action is irreversible. All assets, history, and verification will be permanently erased.</p>
+                      </div>
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-8 py-3 bg-rose-500/20 text-rose-500 border border-rose-500/30 rounded-xl text-sm font-bold hover:bg-rose-500 hover:text-white transition-all flex items-center gap-2 group-hover:shadow-xl group-hover:shadow-rose-500/20"
+                      >
+                        <Trash2 size={16} /> Delete Forever
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
+
+      {/* 2FA Setup Modal */}
+      <AnimatePresence>
+        {is2FAModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIs2FAModalOpen(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-card rounded-[2.5rem] p-10 border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[60px] pointer-events-none" />
+              
+              <button 
+                onClick={() => setIs2FAModalOpen(false)}
+                className="absolute top-6 right-6 text-muted hover:text-primary p-2 hover:bg-surface rounded-full transition-all"
+              >
+                <X size={20} />
+              </button>
+
+              {faStep === 1 && (
+                <div className="text-center space-y-8 mt-4">
+                  <div className="inline-flex p-5 bg-emerald-500/10 rounded-3xl text-emerald-400">
+                    <Smartphone size={48} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Enable Security Layer</h2>
+                    <p className="text-secondary text-sm mt-3 leading-relaxed">
+                      Download Google Authenticator or Authy to start the verification process.
+                    </p>
+                  </div>
+                  <div className="bg-white p-6 rounded-3xl mx-auto w-fit shadow-xl border-4 border-card">
+                    {/* Simulated QR Code */}
+                    <div className="w-32 h-32 bg-background flex flex-wrap gap-1 p-1">
+                       {[...Array(16)].map((_, i) => (
+                         <div key={i} className={`w-7 h-7 rounded-sm ${Math.random() > 0.5 ? 'bg-primary' : 'bg-transparent'}`} />
+                       ))}
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-surface rounded-2xl border border-white/5">
+                      <code className="text-[#00f0ff] font-bold text-base tracking-wider">J7X2 L9P0 W4K1</code>
+                      <button className="text-muted hover:text-primary transition-colors">
+                        <Copy size={16} />
+                      </button>
+                    </div>
+                    <button 
+                      onClick={() => setFaStep(2)}
+                      className="w-full py-4 bg-[#0052ff] hover:bg-[#1e6aff] text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                    >
+                      I scanned the QR <ChevronRight size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {faStep === 2 && (
+                <div className="text-center space-y-8 mt-4">
+                  <div className="inline-flex p-5 bg-emerald-500/10 rounded-3xl text-emerald-400">
+                    <Shield size={48} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Verify Secure Code</h2>
+                    <p className="text-secondary text-sm mt-3 leading-relaxed">
+                      Enter the 6-digit code generated from your authenticator app to complete setup.
+                    </p>
+                  </div>
+                  <div className="flex justify-center gap-2">
+                    <input 
+                      type="text" 
+                      maxLength={6}
+                      value={faCode}
+                      onChange={(e) => setFaCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="000 000"
+                      className="w-full text-center bg-surface-dark/50 border-2 border-white/5 focus:border-[#00f0ff]/40 rounded-2xl py-5 text-3xl font-bold tracking-[0.5em] text-[#00f0ff] outline-none"
+                    />
+                  </div>
+                  <button 
+                    onClick={complete2FASetup}
+                    disabled={faCode.length !== 6 || isSaving}
+                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isSaving ? <RefreshCw size={20} className="animate-spin" /> : <CheckCircle size={20} />}
+                    Complete Verification
+                  </button>
+                </div>
+              )}
+
+              {faStep === 3 && (
+                <div className="text-center space-y-8 mt-4">
+                  <div className="inline-flex p-5 bg-rose-500/10 rounded-3xl text-rose-500">
+                    <Trash2 size={48} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Disable Security</h2>
+                    <p className="text-secondary text-sm mt-3 leading-relaxed">
+                      This will remove the secondary verification layer. Enter your 6-digit code to confirm.
+                    </p>
+                  </div>
+                  <div className="flex justify-center gap-2">
+                    <input 
+                      type="text" 
+                      maxLength={6}
+                      value={faCode}
+                      onChange={(e) => setFaCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="000 000"
+                      className="w-full text-center bg-surface-dark/50 border-2 border-rose-500/10 focus:border-rose-500/40 rounded-2xl py-5 text-3xl font-bold tracking-[0.5em] text-rose-500 outline-none"
+                    />
+                  </div>
+                  <button 
+                    onClick={complete2FASetup}
+                    disabled={faCode.length !== 6 || isSaving}
+                    className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-bold shadow-lg shadow-rose-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isSaving ? <RefreshCw size={20} className="animate-spin" /> : <X size={20} />}
+                    Disable 2FA Layer
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -70,40 +70,40 @@ export default function Footer() {
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#features" 
+                  href="/services" 
                   className="text-secondary text-sm block"
                 >
-                  Features
+                  Services
                 </motion.a>
               </li>
               <li>
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#plans" 
+                  href="/locations" 
                   className="text-secondary text-sm block"
                 >
-                  Pricing Plans
+                  Locations
                 </motion.a>
               </li>
               <li>
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#" 
+                  href="/live-trading" 
                   className="text-secondary text-sm block"
                 >
-                  Mining Pools
+                  Live Trading
                 </motion.a>
               </li>
               <li>
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#" 
+                  href="/marketplace" 
                   className="text-secondary text-sm block"
                 >
-                  Hardware Specs
+                  Marketplace
                 </motion.a>
               </li>
             </ul>
@@ -122,27 +122,17 @@ export default function Footer() {
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#" 
+                  href="/faq" 
                   className="text-secondary text-sm block"
                 >
-                  Documentation
+                  FAQ
                 </motion.a>
               </li>
               <li>
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#" 
-                  className="text-secondary text-sm block"
-                >
-                  API Reference
-                </motion.a>
-              </li>
-              <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="#" 
+                  href="/support" 
                   className="text-secondary text-sm block"
                 >
                   Help Center
@@ -152,10 +142,20 @@ export default function Footer() {
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#" 
+                  href="/profile" 
                   className="text-secondary text-sm block"
                 >
-                  Community
+                  Account Profile
+                </motion.a>
+              </li>
+              <li>
+                <motion.a 
+                  whileHover={{ x: 5, color: '#00f0ff' }}
+                  transition={fluidSpring}
+                  href="/referrals" 
+                  className="text-secondary text-sm block"
+                >
+                  Referral Program
                 </motion.a>
               </li>
             </ul>
@@ -174,7 +174,7 @@ export default function Footer() {
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#" 
+                  href="/about" 
                   className="text-secondary text-sm block"
                 >
                   About Us
@@ -184,10 +184,10 @@ export default function Footer() {
                 <motion.a 
                   whileHover={{ x: 5, color: '#00f0ff' }}
                   transition={fluidSpring}
-                  href="#" 
+                  href="/contact" 
                   className="text-secondary text-sm block"
                 >
-                  Careers
+                  Contact
                 </motion.a>
               </li>
               <li>
