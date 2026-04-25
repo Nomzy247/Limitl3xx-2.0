@@ -69,12 +69,12 @@ export default function Signup() {
         setError('Phone auth implementation requires ReCAPTCHA setup.');
       }
     } catch (err: any) {
-      console.error('Signup error:', err);
       const errString = String(err.message || err);
       if (err.code === 'auth/email-already-in-use' || errString.includes('auth/email-already-in-use')) {
         toast.error('This email is already registered. Redirecting to login...');
         setTimeout(() => navigate('/login'), 2000);
       } else {
+        console.error('Signup error:', err);
         setError(err.message || 'Signup failed. Please try again.');
       }
     } finally {

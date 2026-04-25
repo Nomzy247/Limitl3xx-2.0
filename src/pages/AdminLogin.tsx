@@ -66,7 +66,7 @@ export default function AdminLogin() {
       }
     } catch (error: any) {
       const errString = String(error.message || error);
-      if (error.code === 'auth/invalid-credential' || errString.includes('auth/invalid-credential') || error.code === 'auth/user-not-found' || errString.includes('auth/user-not-found') || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/invalid-credential' || errString.includes('auth/invalid-credential') || error.code === 'auth/invalid-login-credentials' || errString.includes('auth/invalid-login-credentials') || error.code === 'auth/user-not-found' || errString.includes('auth/user-not-found') || error.code === 'auth/wrong-password') {
         toast.error('Incorrect admin email or password.');
       } else if (error.code === 'auth/too-many-requests' || errString.includes('auth/too-many-requests')) {
         toast.error('Too many failed attempts. Please try again later.');

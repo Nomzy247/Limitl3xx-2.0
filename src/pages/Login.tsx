@@ -93,7 +93,7 @@ export default function Login() {
       }
     } catch (err: any) {
       const errString = String(err.message || err);
-      if (err.code === 'auth/invalid-credential' || errString.includes('auth/invalid-credential') || err.code === 'auth/user-not-found' || errString.includes('auth/user-not-found') || err.code === 'auth/wrong-password') {
+      if (err.code === 'auth/invalid-credential' || errString.includes('auth/invalid-credential') || err.code === 'auth/invalid-login-credentials' || errString.includes('auth/invalid-login-credentials') || err.code === 'auth/user-not-found' || errString.includes('auth/user-not-found') || err.code === 'auth/wrong-password') {
         setError('Incorrect email or password.');
       } else if (err.code === 'auth/too-many-requests' || errString.includes('auth/too-many-requests')) {
         setError('Too many failed login attempts. Please wait a few minutes and try again.');
