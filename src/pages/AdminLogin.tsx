@@ -42,7 +42,8 @@ export default function AdminLogin() {
     setIsLoading(true);
     
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const normalizedEmail = email.trim().toLowerCase();
+      const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       const user = userCredential.user;
       
       if (user) {
@@ -50,12 +51,12 @@ export default function AdminLogin() {
           
         if (!userDoc.exists()) {
           await signOut(auth);
-          throw new Error('User record not found');
+          throw new Error('User record not found. Please register as a user first.');
         }
         
         const userData = userDoc.data();
         
-        if (userData && userData.role === 'admin') {
+        if (userData && (userData.role === 'admin' || userData.role === 'root')) {
           toast.success('Admin login successful');
           navigate('/admin/dashboard');
         } else {
@@ -64,7 +65,14 @@ export default function AdminLogin() {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Invalid admin credentials.');
+      console.error('Admin login error:', error);
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        toast.error('Incorrect admin email or password. If you have an account but can\'t log in, you might need to register again on our new platform.');
+      } else if (error.code === 'auth/too-many-requests') {
+        toast.error('Security threshold reached. Too many failed attempts. Please try again later.');
+      } else {
+        toast.error(error.message || 'Invalid admin credentials.');
+      }
     } finally {
       setIsLoading(false);
     }

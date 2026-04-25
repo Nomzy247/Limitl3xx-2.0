@@ -5,7 +5,7 @@ import { Hexagon, Mail, Lock, User, AlertCircle, Phone, Key } from 'lucide-react
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 import { auth, signInWithGoogle } from '../firebase';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, ConfirmationResult } from 'firebase/auth';
 
 import { useMediaQuery } from '../hooks/useMediaQuery';
 
@@ -19,6 +19,7 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   
   const navigate = useNavigate();
 
@@ -57,17 +58,23 @@ export default function Signup() {
           return;
         }
 
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const normalizedEmail = email.trim().toLowerCase();
+        const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
         await updateProfile(userCredential.user, { displayName: name });
         
-        setSuccess('Account created successfully! Redirecting...');
-        setTimeout(() => navigate(isMobile ? '/hub' : '/dashboard'), 2000);
+        toast.success('Account created successfully!');
+        navigate(isMobile ? '/hub' : '/dashboard');
       } else {
         setError('Phone auth implementation requires ReCAPTCHA setup.');
       }
     } catch (err: any) {
       console.error('Signup error:', err);
-      setError(err.message || 'Signup failed. Please try again.');
+      if (err.code === 'auth/email-already-in-use') {
+        toast.error('This email is already registered. Redirecting to login...');
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        setError(err.message || 'Signup failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

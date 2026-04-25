@@ -3,9 +3,18 @@ import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Hexagon, Mail, Lock, AlertCircle, Phone, Key, Shield } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSupabase } from '../lib/supabase';
+import { auth, signInWithGoogle, db } from '../firebase';
+import { signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { fluidSpring } from '../components/SystemManager';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+    grecaptcha: any;
+  }
+}
 
 export default function Login() {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -13,9 +22,11 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
   // Recovery State
   const [showRecovery, setShowRecovery] = useState(false);
 
@@ -23,37 +34,40 @@ export default function Login() {
 
   // 2FA state
   const [show2FA, setShow2FA] = useState(false);
-  // ...
+  const [faCode, setFaCode] = useState('');
+  const [pendingUser, setPendingUser] = useState<any>(null);
+
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': () => {
+          // reCAPTCHA solved
+        }
+      });
+    }
+  };
 
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    const supabase = getSupabase();
-    if (!supabase) {
-      setError('Supabase not initialized');
-      setIsLoading(false);
-      return;
-    }
 
     try {
       if (loginMethod === 'email') {
-        console.log('Signing in with email...');
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        if (error) throw error;
+        const normalizedEmail = email.trim().toLowerCase();
+        console.log('Signing in with email:', normalizedEmail);
+        const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
+        const user = userCredential.user;
 
-        if (data.user) {
-          console.log('Sign-in successful, user:', data.user.id);
-          // Double check for 2FA (Firestore still holds this info)
-          const { getDoc, doc, db } = await import('../firebase');
-          const userDoc = await getDoc(doc(db, 'users', data.user.id));
+        if (user) {
+          console.log('Sign-in successful, user:', user.uid);
+          // Check for 2FA in Firestore
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
           
           if (userDoc.exists() && userDoc.data().two_factor_enabled) {
             console.log('2FA required');
-            setPendingUser(data.user);
+            setPendingUser(user);
             setShow2FA(true);
             setIsLoading(false);
             return;
@@ -63,12 +77,33 @@ export default function Login() {
           navigate(isMobile ? '/hub' : '/dashboard');
         }
       } else {
-        // TODO: Phone auth implementation with Supabase
-        setError('Phone auth using Supabase not yet implemented.');
+        if (!confirmationResult) {
+          setupRecaptcha();
+          const appVerifier = window.recaptchaVerifier;
+          const result = await signInWithPhoneNumber(auth, phone, appVerifier);
+          setConfirmationResult(result);
+          toast.success('Verification code sent!');
+        } else {
+          const result = await confirmationResult.confirm(otp);
+          const user = result.user;
+          if (user) {
+            navigate(isMobile ? '/hub' : '/dashboard');
+          }
+        }
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed.');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Incorrect email or password. Please note: If your account was created before our system upgrade, you may need to register a new account.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Security threshold reached. Too many failed login attempts. Please wait a few minutes and try again.');
+      } else if (err.code === 'auth/invalid-verification-code') {
+        setError('The verification code you entered is incorrect. Please try again.');
+      } else if (err.code === 'auth/invalid-phone-number') {
+        setError('The phone number provided is not valid. Please check and try again.');
+      } else {
+        setError(err.message || 'Login failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -123,11 +158,9 @@ export default function Login() {
     setIsLoading(true);
     // In a real app, you'd verify against a TOTP secret.
     // For this implementation, we'll simulate verification success if code is 6 digits.
-    setTimeout(() => {
-      toast.success('Security verification complete!');
-      navigate(isMobile ? '/hub' : '/dashboard');
-      setIsLoading(false);
-    }, 1000);
+    toast.success('Security verification complete!');
+    navigate(isMobile ? '/hub' : '/dashboard');
+    setIsLoading(false);
   };
 
   return (

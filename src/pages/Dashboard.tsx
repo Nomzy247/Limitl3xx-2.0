@@ -82,8 +82,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-import { getSupabase } from '../lib/supabase';
-
 export default function Dashboard() {
   const { user, userData, loading: authLoading } = useAuth();
   const [contracts, setContracts] = useState<any[]>([]);
