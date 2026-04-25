@@ -28,8 +28,6 @@ export default function AdminLogin() {
   useEffect(() => {
     if (isRootAdmin) {
       setEmail(ROOT_ADMIN_EMAILS[0]);
-      // We don't auto-fill password by default for security, 
-      // but we provide a quick-fill button below.
     }
   }, [isRootAdmin]);
 

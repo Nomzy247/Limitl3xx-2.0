@@ -10,14 +10,13 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Brush 
 } from 'recharts';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, query, where, orderBy, limit, onSnapshot, handleFirestoreError, OperationType, logOut } from '../firebase';
+import { auth, db, collection, query, where, orderBy, limit, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
 import WalletWidget from '../components/WalletWidget';
 import NewsFeed from '../components/NewsFeed';
 import MarketOverview from '../components/MarketOverview';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
+import { signOut } from 'firebase/auth';
 
 // Lazy load TradingView widget
 const TradingViewWidget = lazy(() => Promise.resolve({
@@ -90,35 +89,9 @@ export default function Dashboard() {
   const [contracts, setContracts] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [supabaseConnected, setSupabaseConnected] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check Supabase connection
-    const checkSupabase = async () => {
-      const supabase = getSupabase();
-      if (!supabase) {
-        setSupabaseConnected(false);
-        return;
-      }
-      try {
-        const { data, error } = await supabase.from('test').select('*').limit(1);
-        // We don't care if 'test' table exists or not, just if we got a response
-        if (error && error.code === 'PGRST116') { // Table not found is fine, means we connected
-          setSupabaseConnected(true);
-        } else if (!error) {
-          setSupabaseConnected(true);
-        } else {
-          // If we get a real network error or auth error
-          console.log('Supabase partial check:', error);
-          setSupabaseConnected(true); // Assuming active if we reached this far
-        }
-      } catch (e) {
-        setSupabaseConnected(false);
-      }
-    };
-    checkSupabase();
-
     if (authLoading) return;
     if (!user) {
       navigate('/login');
@@ -229,10 +202,48 @@ export default function Dashboard() {
             <p className="text-secondary mt-1 text-sm leading-relaxed">Here is the update on your crypto operations.</p>
           </div>
           <div className="hidden md:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted">
-            <div className={`w-1.5 h-1.5 rounded-full ${supabaseConnected ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-            Supabase Backend: {supabaseConnected ? 'Active' : 'Offline'}
           </div>
         </header>
+
+        {/* Quick Actions / Balance (Moved to Top) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full bg-card rounded-2xl p-4 sm:p-6 md:p-8 border border-border/30 shadow-md relative overflow-hidden shrink-0 mb-6"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff] rounded-full blur-[60px] opacity-10 pointer-events-none" />
+          
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 relative z-10">
+            <div>
+              <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter">
+                <AnimatedNumber value={userData?.balance || 0} prefix="$" />
+              </h2>
+            </div>
+            
+            {/* Quick Action Bar */}
+            <div className="flex flex-wrap lg:flex-nowrap gap-2 w-full lg:w-auto">
+              <button 
+                onClick={() => navigate('/deposit')} 
+                className="flex-1 lg:flex-none bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
+              >
+                <ArrowDownRight size={18} /> Deposit
+              </button>
+              <button 
+                onClick={() => navigate('/withdraw')} 
+                className="flex-1 lg:flex-none bg-subtle hover:bg-subtle-hover text-primary px-4 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
+              >
+                <ArrowUpRight size={18} /> Withdraw
+              </button>
+              <button 
+                onClick={() => navigate('/buy-hashpower')} 
+                className="flex-1 lg:flex-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-4 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
+              >
+                <Plus size={18} /> Mining
+              </button>
+            </div>
+          </div>
+        </motion.div>
 
         {/* 12-Column Grid System */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
@@ -240,46 +251,6 @@ export default function Dashboard() {
           {/* Main Content Column (Spans 8 columns on large screens) */}
           <div className="xl:col-span-8 flex flex-col gap-6 w-full overflow-hidden">
             
-            {/* Quick Actions / Balance */}
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full bg-card rounded-2xl p-6 border border-border/30 shadow-md relative overflow-hidden shrink-0"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff] rounded-full blur-[60px] opacity-10 pointer-events-none" />
-              
-              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 relative z-10">
-                <div>
-                  <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">
-                    <AnimatedNumber value={userData?.balance || 0} prefix="$" />
-                  </h2>
-                </div>
-                
-                {/* Quick Action Bar */}
-                <div className="flex flex-wrap lg:flex-nowrap gap-2 w-full lg:w-auto">
-                  <button 
-                    onClick={() => navigate('/deposit')} 
-                    className="flex-1 lg:flex-none bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
-                  >
-                    <ArrowDownRight size={16} /> Deposit
-                  </button>
-                  <button 
-                    onClick={() => navigate('/withdraw')} 
-                    className="flex-1 lg:flex-none bg-subtle hover:bg-subtle-hover text-primary px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
-                  >
-                    <ArrowUpRight size={16} /> Withdraw
-                  </button>
-                  <button 
-                    onClick={() => navigate('/buy-hashpower')} 
-                    className="flex-1 lg:flex-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-4 md:px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
-                  >
-                    <Plus size={16} /> Mining
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-
             {/* TradingView Widget */}
             <motion.div 
               initial={{ opacity: 0, y: 10 }}

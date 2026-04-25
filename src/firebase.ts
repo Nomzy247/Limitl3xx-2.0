@@ -8,6 +8,7 @@ console.log('Initializing Firebase with config:', { ...firebaseConfig, apiKey: '
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 console.log('Firestore initialized with database ID:', firebaseConfig.firestoreDatabaseId);
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
@@ -80,5 +81,5 @@ async function testConnection() {
 testConnection();
 
 export { 
-  doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, onSnapshot, addDoc, orderBy, limit, Timestamp, runTransaction, serverTimestamp
+  doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, onSnapshot, addDoc, orderBy, limit, Timestamp, runTransaction, serverTimestamp, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber
 };

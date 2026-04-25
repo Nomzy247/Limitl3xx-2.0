@@ -1,20 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Hexagon, Mail, Lock, AlertCircle, Phone, Key, Shield } from 'lucide-react';
 import { toast } from 'sonner';
-import { auth, signInWithGoogle } from '../firebase';
-import { signInWithEmailAndPassword, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { getSupabase } from '../lib/supabase';
 import { fluidSpring } from '../components/SystemManager';
-
 import { useMediaQuery } from '../hooks/useMediaQuery';
-
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-    grecaptcha: any;
-  }
-}
 
 export default function Login() {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -22,86 +13,62 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-
+  
   // Recovery State
   const [showRecovery, setShowRecovery] = useState(false);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved
-        }
-      });
-    }
-  }, []);
-
+  // 2FA state
   const [show2FA, setShow2FA] = useState(false);
-  const [faCode, setFaCode] = useState('');
-  const [pendingUser, setPendingUser] = useState<any>(null);
+  // ...
 
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    console.log('Login attempt started:', { method: loginMethod, email, phone: !!phone });
+    const supabase = getSupabase();
+    if (!supabase) {
+      setError('Supabase not initialized');
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      let userCredential;
       if (loginMethod === 'email') {
         console.log('Signing in with email...');
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (error) throw error;
+
+        if (data.user) {
+          console.log('Sign-in successful, user:', data.user.id);
+          // Double check for 2FA (Firestore still holds this info)
+          const { getDoc, doc, db } = await import('../firebase');
+          const userDoc = await getDoc(doc(db, 'users', data.user.id));
+          
+          if (userDoc.exists() && userDoc.data().two_factor_enabled) {
+            console.log('2FA required');
+            setPendingUser(data.user);
+            setShow2FA(true);
+            setIsLoading(false);
+            return;
+          }
+
+          console.log('Navigating to dashboard...');
+          navigate(isMobile ? '/hub' : '/dashboard');
+        }
       } else {
-        if (confirmationResult) {
-          console.log('Confirming OTP...');
-          userCredential = await confirmationResult.confirm(otp);
-        } else {
-          console.log('Sending OTP...');
-          const appVerifier = window.recaptchaVerifier;
-          const result = await signInWithPhoneNumber(auth, phone, appVerifier);
-          setConfirmationResult(result);
-          console.log('OTP sent successfully');
-          toast.success('OTP sent to your phone!');
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      if (userCredential?.user) {
-        // Double check for 2FA
-        const { getDoc, doc, db } = await import('../firebase');
-        const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-        
-        if (userDoc.exists() && userDoc.data().two_factor_enabled) {
-          setPendingUser(userCredential.user);
-          setShow2FA(true);
-          setIsLoading(false);
-          return;
-        }
-
-        console.log('Sign-in successful, navigating...');
-        navigate(isMobile ? '/hub' : '/dashboard');
+        // TODO: Phone auth implementation with Supabase
+        setError('Phone auth using Supabase not yet implemented.');
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please check your credentials.');
-      // ... existing error handling ...
-      if (err.message?.includes('reCAPTCHA')) {
-        console.log('Resetting reCAPTCHA...');
-        // Reset recaptcha on error
-        if (window.recaptchaVerifier) {
-          window.recaptchaVerifier.render().then((widgetId: any) => {
-            window.grecaptcha.reset(widgetId);
-          });
-        }
-      }
+      setError(err.message || 'Login failed.');
     } finally {
       setIsLoading(false);
     }

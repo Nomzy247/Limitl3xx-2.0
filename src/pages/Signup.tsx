@@ -1,20 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Hexagon, Mail, Lock, User, AlertCircle, Phone, Key } from 'lucide-react';
 import { toast } from 'sonner';
-import { auth, signInWithGoogle } from '../firebase';
-import { createUserWithEmailAndPassword, updateProfile, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { fluidSpring } from '../components/SystemManager';
+import { auth, signInWithGoogle } from '../firebase';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 import { useMediaQuery } from '../hooks/useMediaQuery';
-
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-    grecaptcha: any;
-  }
-}
 
 export default function Signup() {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -23,24 +16,11 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved
-        }
-      });
-    }
-  }, []);
 
   const getPasswordStrength = (pass: string) => {
     let score = 0;
@@ -68,7 +48,6 @@ export default function Signup() {
     setError('');
     setSuccess('');
     setIsLoading(true);
-    console.log('Signup attempt started:', { method: signupMethod, email, phone: !!phone });
 
     try {
       if (signupMethod === 'email') {
@@ -78,59 +57,26 @@ export default function Signup() {
           return;
         }
 
-        console.log('Creating user with email...');
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        console.log('User created, updating profile...');
-        await updateProfile(userCredential.user, {
-          displayName: name
-        });
+        await updateProfile(userCredential.user, { displayName: name });
         
-        console.log('Email signup successful');
         setSuccess('Account created successfully! Redirecting...');
         setTimeout(() => navigate(isMobile ? '/hub' : '/dashboard'), 2000);
       } else {
-        if (confirmationResult) {
-          console.log('Confirming OTP...');
-          const userCredential = await confirmationResult.confirm(otp);
-          console.log('OTP confirmed, updating profile...');
-          await updateProfile(userCredential.user, {
-            displayName: name
-          });
-          console.log('Phone signup successful');
-          setSuccess('Account created successfully! Redirecting...');
-          setTimeout(() => navigate(isMobile ? '/hub' : '/dashboard'), 2000);
-        } else {
-          console.log('Sending OTP...');
-          const appVerifier = window.recaptchaVerifier;
-          const result = await signInWithPhoneNumber(auth, phone, appVerifier);
-          setConfirmationResult(result);
-          console.log('OTP sent successfully');
-          toast.success('OTP sent to your phone!');
-        }
+        setError('Phone auth implementation requires ReCAPTCHA setup.');
       }
     } catch (err: any) {
       console.error('Signup error:', err);
       setError(err.message || 'Signup failed. Please try again.');
-      if (err.message?.includes('reCAPTCHA')) {
-        console.log('Resetting reCAPTCHA...');
-        // Reset recaptcha on error
-        if (window.recaptchaVerifier) {
-          window.recaptchaVerifier.render().then((widgetId: any) => {
-            window.grecaptcha.reset(widgetId);
-          });
-        }
-      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
-    console.log('Google signup attempt started');
     try {
       await signInWithGoogle();
-      console.log('Google signup successful');
-      navigate(isMobile ? '/hub' : '/dashboard');
+      navigate('/dashboard');
     } catch (err: any) {
       console.error('Google signup error:', err);
       setError(err.message || 'Google signup failed.');
@@ -238,7 +184,6 @@ export default function Signup() {
                         <input
                           type="tel"
                           required
-                          disabled={!!confirmationResult}
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface disabled:opacity-50"
@@ -306,33 +251,7 @@ export default function Signup() {
                       )}
                     </div>
                   )}
-
-                  {signupMethod === 'phone' && confirmationResult && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="overflow-hidden"
-                    >
-                      <label className="block text-sm font-medium text-muted mb-1">Verification Code</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Key className="h-5 w-5 text-muted" />
-                        </div>
-                        <input
-                          type="text"
-                          required
-                          value={otp}
-                          onChange={(e) => setOtp(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface tracking-widest"
-                          placeholder="123456"
-                          maxLength={6}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
                 </div>
-
-                <div id="recaptcha-container"></div>
 
                 <button
                   type="submit"

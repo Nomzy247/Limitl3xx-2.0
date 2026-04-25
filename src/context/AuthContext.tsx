@@ -53,73 +53,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let unsubscribeDoc: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        
-        // Fetch user data from Firestore
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        
-        // Use onSnapshot for real-time updates
-        unsubscribeDoc = onSnapshot(userDocRef, async (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data() as UserData;
-            
-            // Update last login if it's been more than an hour
-            const lastLogin = data.last_login ? new Date(data.last_login).getTime() : 0;
-            if (Date.now() - lastLogin > 3600000) {
+      console.log('Auth state changed:', firebaseUser ? `User: ${firebaseUser.uid}` : 'Logged out');
+      try {
+        if (firebaseUser) {
+          setUser(firebaseUser);
+          
+          // Fetch user data from Firestore
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          
+          // Use onSnapshot for real-time updates
+          unsubscribeDoc = onSnapshot(userDocRef, async (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data() as UserData;
+              
+              // Update last login if it's been more than an hour
+              const lastLogin = data.last_login ? new Date(data.last_login).getTime() : 0;
+              if (Date.now() - lastLogin > 3600000) {
+                try {
+                  await updateDoc(userDocRef, { last_login: new Date().toISOString() });
+                } catch (e) {
+                  console.error("Failed to update last login", e);
+                }
+              }
+              
+              setUserData(data);
+            } else {
+              // If user doc doesn't exist, create a default one
+              const newData: UserData = {
+                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || firebaseUser.phoneNumber || 'User',
+                email: firebaseUser.email || '',
+                phone: firebaseUser.phoneNumber || '',
+                role: (firebaseUser.email === 'why.wd.ww.do@gmail.com' || firebaseUser.email === 'limitl3xx.007@gmail.com') ? 'admin' : 'user',
+                balance: 0,
+                balances: {
+                  BTC: 0,
+                  ETH: 0,
+                  USDT: 0
+                },
+                joined_date: new Date().toISOString(),
+                verification_status: 'pending',
+                referral_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                referral_count: 0,
+                referral_earnings: 0,
+                level: 1,
+                onboarding_completed: false,
+                is_blocked: false,
+                trade_enabled: true,
+                last_login: new Date().toISOString()
+              };
               try {
-                await updateDoc(userDocRef, { last_login: new Date().toISOString() });
-              } catch (e) {
-                console.error("Failed to update last login", e);
+                await setDoc(userDocRef, newData);
+                setUserData(newData);
+              } catch (error) {
+                console.error("Error creating user doc", error);
+                handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
               }
             }
-            
-            setUserData(data);
-          } else {
-            // If user doc doesn't exist, create a default one
-            const newData: UserData = {
-              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || firebaseUser.phoneNumber || 'User',
-              email: firebaseUser.email || '',
-              phone: firebaseUser.phoneNumber || '',
-              role: (firebaseUser.email === 'why.wd.ww.do@gmail.com' || firebaseUser.email === 'limitl3xx.007@gmail.com') ? 'admin' : 'user',
-              balance: 0,
-              balances: {
-                BTC: 0,
-                ETH: 0,
-                USDT: 0
-              },
-              joined_date: new Date().toISOString(),
-              verification_status: 'pending',
-              referral_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-              referral_count: 0,
-              referral_earnings: 0,
-              level: 1,
-              onboarding_completed: false,
-              is_blocked: false,
-              trade_enabled: true,
-              last_login: new Date().toISOString()
-            };
-            try {
-              await setDoc(userDocRef, newData);
-              setUserData(newData);
-            } catch (error) {
-              console.error("DEBUG: Firebase create doc error", error);
-              handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);
-            }
+            setLoading(false);
+          }, (error) => {
+            console.error("Firebase onSnapshot error", error);
+            handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
+            setLoading(false);
+          });
+        } else {
+          if (unsubscribeDoc) {
+            unsubscribeDoc();
+            unsubscribeDoc = null;
           }
+          setUser(null);
+          setUserData(null);
           setLoading(false);
-        }, (error) => {
-          console.error("DEBUG: Firebase onSnapshot error", error);
-          handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
-          setLoading(false);
-        });
-      } else {
-        if (unsubscribeDoc) {
-          unsubscribeDoc();
-          unsubscribeDoc = null;
         }
-        setUser(null);
-        setUserData(null);
+      } catch (err) {
+        console.error("Auth state handling error", err);
         setLoading(false);
       }
     });

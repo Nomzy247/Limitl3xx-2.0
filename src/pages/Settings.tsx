@@ -8,8 +8,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 import { toast } from 'sonner';
-import { db, doc, updateDoc, auth } from '../firebase';
-import { updatePassword, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { db, doc, updateDoc } from '../firebase';
 
 export default function Settings() {
   const { user, userData } = useAuth();

@@ -1,8 +1,8 @@
 import { LucideIcon, LayoutDashboard, Database, CloudRain, ChartCandlestick, ShoppingBag, Wallet, Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
 
 interface NavItem {
