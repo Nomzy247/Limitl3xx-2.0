@@ -92,16 +92,17 @@ export default function Login() {
         }
       }
     } catch (err: any) {
-      console.error('Login error:', err);
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError('Incorrect email or password. Please note: If your account was created before our system upgrade, you may need to register a new account.');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Security threshold reached. Too many failed login attempts. Please wait a few minutes and try again.');
-      } else if (err.code === 'auth/invalid-verification-code') {
+      const errString = String(err.message || err);
+      if (err.code === 'auth/invalid-credential' || errString.includes('auth/invalid-credential') || err.code === 'auth/user-not-found' || errString.includes('auth/user-not-found') || err.code === 'auth/wrong-password') {
+        setError('Incorrect email or password.');
+      } else if (err.code === 'auth/too-many-requests' || errString.includes('auth/too-many-requests')) {
+        setError('Too many failed login attempts. Please wait a few minutes and try again.');
+      } else if (err.code === 'auth/invalid-verification-code' || errString.includes('auth/invalid-verification-code')) {
         setError('The verification code you entered is incorrect. Please try again.');
-      } else if (err.code === 'auth/invalid-phone-number') {
+      } else if (err.code === 'auth/invalid-phone-number' || errString.includes('auth/invalid-phone-number')) {
         setError('The phone number provided is not valid. Please check and try again.');
       } else {
+        console.error('Login error:', err);
         setError(err.message || 'Login failed. Please try again.');
       }
     } finally {

@@ -22,46 +22,33 @@ export default function SystemManager({ children }: { children: React.ReactNode 
     let mounted = true;
 
     const manageConnection = async () => {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
+      // Re-enable network if it was somehow disabled or if we are in a failed state
+      if (systemState === 'failed' || systemState === 'reconnecting') {
+        let connected = false;
+        let currentAttempts = 0;
+        
+        setSystemState('reconnecting');
 
-      // Rule 1: 10 minute break at 9:11 AM (runs 11hrs 50mins otherwise)
-      const isCooldownTime = hours === 9 && minutes >= 11 && minutes < 21;
-
-      if (isCooldownTime) {
-        if (systemState !== 'cooldown') {
-          setSystemState('cooldown');
-          try { await disableNetwork(db); } catch (e) {}
-        }
-      } else {
-        // Rule 2 & 3: Connect and retry up to 3 times if deactivated/unresponsive
-        if (systemState === 'cooldown' || systemState === 'failed' || systemState === 'reconnecting') {
-          let connected = false;
-          let currentAttempts = 0;
-          
-          setSystemState('reconnecting');
-
-          while (currentAttempts < 3 && !connected && mounted) {
-            try {
-              currentAttempts++;
-              setAttempts(currentAttempts);
-              await enableNetwork(db);
-              connected = true;
-              if (mounted) setSystemState('running');
-            } catch (error) {
-              if (currentAttempts >= 3) {
-                if (mounted) setSystemState('failed');
-              } else {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-              }
+        while (currentAttempts < 3 && !connected && mounted) {
+          try {
+            currentAttempts++;
+            setAttempts(currentAttempts);
+            await enableNetwork(db);
+            connected = true;
+            if (mounted) setSystemState('running');
+          } catch (error) {
+            console.error("Connection attempt failed", error);
+            if (currentAttempts >= 3) {
+              if (mounted) setSystemState('failed');
+            } else {
+              await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }
         }
       }
     };
 
-    const interval = setInterval(manageConnection, 10000); // Check every 10 seconds
+    const interval = setInterval(manageConnection, 30000); // Check every 30 seconds
     manageConnection(); // Initial check
 
     return () => {
@@ -73,23 +60,6 @@ export default function SystemManager({ children }: { children: React.ReactNode 
   return (
     <>
       <AnimatePresence mode="wait">
-        {systemState === 'cooldown' && (
-          <motion.div 
-            key="cooldown"
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            transition={fluidSpring}
-            className="fixed inset-0 z-[9999] bg-background/80 flex flex-col items-center justify-center"
-          >
-            <Activity size={48} className="text-[#0052ff] mb-6 animate-pulse" />
-            <h1 className="text-4xl font-bold text-primary mb-4 tracking-tight">System Cooldown</h1>
-            <p className="text-secondary text-lg max-w-md text-center leading-relaxed">
-              The system is taking its scheduled 10-minute cooldown (9:11 AM - 9:21 AM) to ensure optimal performance.
-            </p>
-          </motion.div>
-        )}
-        
         {systemState === 'reconnecting' && (
           <motion.div 
             key="reconnecting"

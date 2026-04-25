@@ -65,12 +65,13 @@ export default function AdminLogin() {
         }
       }
     } catch (error: any) {
-      console.error('Admin login error:', error);
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        toast.error('Incorrect admin email or password. If you have an account but can\'t log in, you might need to register again on our new platform.');
-      } else if (error.code === 'auth/too-many-requests') {
-        toast.error('Security threshold reached. Too many failed attempts. Please try again later.');
+      const errString = String(error.message || error);
+      if (error.code === 'auth/invalid-credential' || errString.includes('auth/invalid-credential') || error.code === 'auth/user-not-found' || errString.includes('auth/user-not-found') || error.code === 'auth/wrong-password') {
+        toast.error('Incorrect admin email or password.');
+      } else if (error.code === 'auth/too-many-requests' || errString.includes('auth/too-many-requests')) {
+        toast.error('Too many failed attempts. Please try again later.');
       } else {
+        console.error('Admin login error:', error);
         toast.error(error.message || 'Invalid admin credentials.');
       }
     } finally {

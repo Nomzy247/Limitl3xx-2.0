@@ -61,15 +61,17 @@ export default function Signup() {
         const normalizedEmail = email.trim().toLowerCase();
         const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
         await updateProfile(userCredential.user, { displayName: name });
+        await auth.signOut();
         
-        toast.success('Account created successfully!');
-        navigate(isMobile ? '/hub' : '/dashboard');
+        toast.success('Account created successfully! Please log in.');
+        navigate('/login');
       } else {
         setError('Phone auth implementation requires ReCAPTCHA setup.');
       }
     } catch (err: any) {
       console.error('Signup error:', err);
-      if (err.code === 'auth/email-already-in-use') {
+      const errString = String(err.message || err);
+      if (err.code === 'auth/email-already-in-use' || errString.includes('auth/email-already-in-use')) {
         toast.error('This email is already registered. Redirecting to login...');
         setTimeout(() => navigate('/login'), 2000);
       } else {

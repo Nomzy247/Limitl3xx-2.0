@@ -4,10 +4,8 @@ import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where,
 import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase SDK
-console.log('Initializing Firebase with config:', { ...firebaseConfig, apiKey: '***' });
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-console.log('Firestore initialized with database ID:', firebaseConfig.firestoreDatabaseId);
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
@@ -67,18 +65,6 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
-
-// Connection test
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration. ");
-    }
-  }
-}
-testConnection();
 
 export { 
   doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, onSnapshot, addDoc, orderBy, limit, Timestamp, runTransaction, serverTimestamp, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber
