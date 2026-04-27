@@ -6,12 +6,9 @@ import { Activity, WifiOff, RefreshCw } from 'lucide-react';
 
 // Global fluid animation configuration for the entire app
 export const fluidSpring = {
-  type: "spring",
-  damping: 25,
-  stiffness: 120,
-  mass: 0.5,
-  bounce: 0.2,
-  restDelta: 0.001
+  type: "tween",
+  duration: 0.2,
+  ease: "easeInOut"
 };
 
 export default function SystemManager({ children }: { children: React.ReactNode }) {

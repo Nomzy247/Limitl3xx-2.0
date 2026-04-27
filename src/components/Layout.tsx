@@ -33,7 +33,7 @@ export default function Layout() {
             initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
-            transition={fluidSpring}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
             className={`flex-1 ${user ? 'pb-24 md:pb-0' : ''}`}
           >
             <Outlet />
