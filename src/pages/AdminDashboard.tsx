@@ -7,6 +7,7 @@ import { db, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, 
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 import UserActionModal from '../components/UserActionModal';
+import TaskManager from '../components/TaskManager';
 
 const data = [
   { name: 'Mon', revenue: 4000, users: 2400 },
@@ -32,6 +33,12 @@ export default function AdminDashboard() {
     crypto: 200
   });
   const [globalProfitMargin, setGlobalProfitMargin] = useState(15);
+  const [systemStats, setSystemStats] = useState({
+    tvl: '$0',
+    miners: '0',
+    countries: '0',
+    uptime: '0%'
+  });
   const [logs, setLogs] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [adminEmailInput, setAdminEmailInput] = useState('');
@@ -64,6 +71,25 @@ export default function AdminDashboard() {
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'settings/global');
       setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch System Stats
+  useEffect(() => {
+    const statsDoc = doc(db, 'system', 'stats');
+    
+    const unsubscribe = onSnapshot(statsDoc, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setSystemStats({
+          tvl: data.tvl || '$0',
+          miners: data.miners || '0',
+          countries: data.countries || '0',
+          uptime: data.uptime || '0%'
+        });
+      }
     });
 
     return () => unsubscribe();
@@ -167,10 +193,6 @@ export default function AdminDashboard() {
   const isSuperUser = currentUser?.email === 'why.wd.ww.do@gmail.com' || currentUser?.email === 'limitl3xx.007@gmail.com';
 
   const handlePromoteToAdmin = async (userId: string) => {
-    if (!isSuperUser) {
-      toast.error('Only the Super User can allocate administrator roles.');
-      return;
-    }
     try {
       await updateDoc(doc(db, 'users', userId), { role: 'admin' });
       await logAdminAction(`Promoted user ${userId} to admin`);
@@ -182,12 +204,8 @@ export default function AdminDashboard() {
   };
 
   const handleDemoteFromAdmin = async (userId: string, userEmail: string) => {
-    if (!isSuperUser) {
-      toast.error('Only the Super User can revoke administrator roles.');
-      return;
-    }
-    if (userEmail === 'why.wd.ww.do@gmail.com' || userEmail === 'limitl3xx.007@gmail.com') {
-      toast.error('Root admin cannot be demoted');
+    if (userEmail === 'why.wd.ww.do@gmail.com' || userEmail === 'limitl3xx.007@gmail.com' || userEmail === currentUser?.email) {
+      toast.error('Cannot demote root admins or yourself');
       return;
     }
 
@@ -202,10 +220,6 @@ export default function AdminDashboard() {
   };
 
   const handlePromoteByEmail = async () => {
-    if (!isSuperUser) {
-      toast.error('Only the Super User can allocate administrator roles.');
-      return;
-    }
     if (!adminEmailInput) return;
     setIsPromoting(true);
     try {
@@ -320,6 +334,21 @@ export default function AdminDashboard() {
     } catch (error: any) {
       console.error('Error saving settings:', error);
       toast.error('Failed to save settings');
+    }
+  };
+
+  const handleSaveStats = async () => {
+    try {
+      await setDoc(doc(db, 'system', 'stats'), {
+        ...systemStats,
+        updated_at: serverTimestamp()
+      }, { merge: true });
+      
+      toast.success('Public statistics updated successfully!');
+      await logAdminAction(`Updated public platform statistics.`);
+    } catch (error: any) {
+      console.error('Error saving stats:', error);
+      toast.error('Failed to save public statistics');
     }
   };
 
@@ -517,7 +546,7 @@ export default function AdminDashboard() {
                         <Settings size={14} /> Action Panel
                       </button>
                       
-                      {isSuperUser && user.role !== 'admin' && (
+                      {user.role !== 'admin' && (
                         <button
                           onClick={() => handlePromoteToAdmin(user.id)}
                           className="text-[10px] text-[#00f0ff] hover:text-white hover:bg-[#00f0ff]/20 px-2 py-1 rounded transition-colors flex items-center gap-1 font-bold uppercase"
@@ -526,7 +555,7 @@ export default function AdminDashboard() {
                         </button>
                       )}
                       
-                      {isSuperUser && user.role === 'admin' && user.email !== 'why.wd.ww.do@gmail.com' && user.email !== 'limitl3xx.007@gmail.com' && (
+                      {user.role === 'admin' && user.email !== 'why.wd.ww.do@gmail.com' && user.email !== 'limitl3xx.007@gmail.com' && user.email !== currentUser?.email && (
                         <button
                           onClick={() => handleDemoteFromAdmin(user.id, user.email)}
                           className="text-[10px] text-red-400 hover:text-white hover:bg-red-400/20 px-2 py-1 rounded transition-colors flex items-center gap-1 font-bold uppercase"
@@ -654,12 +683,76 @@ export default function AdminDashboard() {
           </button>
         </motion.div>
 
-        {/* Add Admin by Email (Super User Only) */}
+        {/* Public Stats Management */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...fluidSpring, delay: 0.72 }}
+          className="bg-surface border border-border rounded-3xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-blue-500/10 rounded-xl">
+              <Activity className="text-blue-500" size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold">Public Statistics</h3>
+              <p className="text-sm text-secondary">Manage site-wide display statistics</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Total Value Locked</label>
+              <input 
+                type="text" 
+                value={systemStats.tvl}
+                onChange={(e) => setSystemStats({...systemStats, tvl: e.target.value})}
+                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Active Miners</label>
+              <input 
+                type="text" 
+                value={systemStats.miners}
+                onChange={(e) => setSystemStats({...systemStats, miners: e.target.value})}
+                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Countries</label>
+              <input 
+                type="text" 
+                value={systemStats.countries}
+                onChange={(e) => setSystemStats({...systemStats, countries: e.target.value})}
+                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Uptime</label>
+              <input 
+                type="text" 
+                value={systemStats.uptime}
+                onChange={(e) => setSystemStats({...systemStats, uptime: e.target.value})}
+                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+          </div>
+
+          <button 
+            onClick={handleSaveStats}
+            className="w-full mt-6 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium transition-colors"
+          >
+            Save Statistics
+          </button>
+        </motion.div>
+
+        {/* Add Admin by Email */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...fluidSpring, delay: 0.75 }}
-          className={`bg-surface border border-border rounded-3xl p-6 ${!isSuperUser ? 'opacity-50 pointer-events-none' : ''}`}
+          className="bg-surface border border-border rounded-3xl p-6"
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-primary/10 rounded-xl">
@@ -668,7 +761,7 @@ export default function AdminDashboard() {
             <div>
               <h3 className="text-xl font-bold">Add Administrator</h3>
               <p className="text-sm text-secondary">
-                {isSuperUser ? 'Promote any user by their email address' : 'Super User access required'}
+                Promote any user by their email address
               </p>
             </div>
           </div>
@@ -697,6 +790,14 @@ export default function AdminDashboard() {
               Note: The user must already have an account on the platform to be promoted.
             </p>
           </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...fluidSpring, delay: 0.8 }}
+        >
+          <TaskManager />
         </motion.div>
       </div>
 

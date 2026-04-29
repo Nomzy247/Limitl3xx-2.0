@@ -185,5 +185,10 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAdmin() && isValidSettings(request.resource.data);
     }
+    
+    match /system/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

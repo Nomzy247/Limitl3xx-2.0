@@ -26,15 +26,30 @@ export default function SmartNavbar() {
   // Parallax effect for the bubble
   const bubbleY = useTransform(scrollY, [0, 2000], [0, -60]);
 
+  const [isAuthMenuOpen, setIsAuthMenuOpen] = useState(false);
+  const authMenuRef = useRef<HTMLDivElement>(null);
+  const mainNavRef = useRef<HTMLElement>(null);
+  const isAuthPage = ['/login', '/signup', '/admin/login'].includes(location.pathname);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      // Close profile menu if clicked outside
+      if (isProfileMenuOpen && profileMenuRef.current && !profileMenuRef.current.contains(target)) {
         setIsProfileMenuOpen(false);
+      }
+      // Close auth menu if clicked outside
+      if (isAuthMenuOpen && authMenuRef.current && !authMenuRef.current.contains(target)) {
+        setIsAuthMenuOpen(false);
+      }
+      // Close main mobile menu if clicked outside
+      if (isMobileMenuOpen && mainNavRef.current && !mainNavRef.current.contains(target)) {
+        setIsMobileMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isProfileMenuOpen, isAuthMenuOpen, isMobileMenuOpen]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -188,9 +203,61 @@ export default function SmartNavbar() {
     );
   }
 
+  if (isAuthPage && !user) {
+    return (
+      <motion.div 
+        ref={authMenuRef}
+        style={{ y: bubbleY }}
+        className="fixed top-6 right-6 z-50 flex flex-col items-end pointer-events-auto"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsAuthMenuOpen(!isAuthMenuOpen)}
+          className="w-12 h-12 rounded-full bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 shadow-2xl flex items-center justify-center z-10 mb-2"
+        >
+          {isAuthMenuOpen ? <X size={20} className="text-slate-800 dark:text-slate-200" /> : <Menu size={20} className="text-slate-800 dark:text-slate-200" />}
+        </motion.button>
+        
+        <AnimatePresence>
+          {isAuthMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95, originY: 0, originX: 1 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={fluidSpring}
+              className="overflow-hidden flex flex-col bg-white/[0.85] dark:bg-black/[0.85] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl min-w-[200px]"
+            >
+              <div className="flex flex-col p-2 whitespace-nowrap">
+                <Link to="/about" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">About</Link>
+                <Link to="/locations" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Mining Pools</Link>
+                <Link to="/services" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Pricing</Link>
+                <Link to="/contact" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Contact</Link>
+                
+                <div className="w-full h-px bg-black/10 dark:bg-white/10 my-1" />
+                
+                <div className="flex items-center justify-between p-3">
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Theme</span>
+                  <button 
+                    onClick={toggleTheme} 
+                    className="p-2 text-slate-800 dark:text-slate-200 hover:bg-black/10 dark:hover:bg-white/20 transition-colors bg-black/5 dark:bg-white/10 rounded-full"
+                    title="Toggle Theme"
+                  >
+                    {isDark ? <Sun size={14} /> : <Moon size={14} />}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }
+
   return (
     <div className={`fixed top-0 left-0 right-0 z-50 flex pt-4 pointer-events-none ${isMobile ? 'justify-end pr-4' : 'justify-center'}`}>
       <motion.nav
+        ref={mainNavRef}
         onMouseEnter={handleMouseEnterNav}
         onMouseLeave={handleMouseLeaveNav}
         initial={false}
@@ -262,7 +329,6 @@ export default function SmartNavbar() {
                 </a>
 
                 <div className="hidden md:flex items-center gap-6">
-                  <Link to="/" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</Link>
                   {user ? (
                     <>
                       <Link to="/dashboard" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Dashboard</Link>
@@ -270,7 +336,7 @@ export default function SmartNavbar() {
                       <Link to="/referrals" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Referrals</Link>
                       <Link to="/support" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Support</Link>
                       {isAdmin && (
-                        <Link to="/admin" className="text-sm font-bold text-sky-400 hover:text-sky-300 transition-colors">Admin</Link>
+                        <Link to="/admin/dashboard" className="text-sm font-bold text-sky-400 hover:text-sky-300 transition-colors">Admin</Link>
                       )}
                     </>
                   ) : (
@@ -319,7 +385,6 @@ export default function SmartNavbar() {
                     exit={{ opacity: 0, height: 0 }}
                     className="flex flex-col px-6 py-6 gap-4 md:hidden border-t border-white/5"
                   >
-                    <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium">Home</Link>
                     {user ? (
                       <>
                         <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium">Dashboard</Link>

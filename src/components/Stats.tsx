@@ -1,16 +1,32 @@
 import { motion } from 'motion/react';
 import { useIsDark } from '../hooks/useIsDark';
 import { fluidSpring } from './SystemManager';
-
-const stats = [
-  { label: 'Total Value Locked', value: '$142M+' },
-  { label: 'Active Miners', value: '14,205' },
-  { label: 'Countries Supported', value: '140+' },
-  { label: 'Uptime', value: '99.99%' },
-];
+import { useState, useEffect } from 'react';
+import { db, doc, onSnapshot } from '../firebase';
 
 export default function Stats() {
   const isDark = useIsDark();
+  const [stats, setStats] = useState([
+    { id: 'tvl', label: 'Total Value Locked', value: '$0' },
+    { id: 'miners', label: 'Active Miners', value: '0' },
+    { id: 'countries', label: 'Countries Supported', value: '0' },
+    { id: 'uptime', label: 'Uptime', value: '0%' },
+  ]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'system', 'stats'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setStats([
+          { id: 'tvl', label: 'Total Value Locked', value: data.tvl || '$0' },
+          { id: 'miners', label: 'Active Miners', value: data.miners || '0' },
+          { id: 'countries', label: 'Countries Supported', value: data.countries || '0' },
+          { id: 'uptime', label: 'Uptime', value: data.uptime || '0%' },
+        ]);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   return (
     <section className="py-24 bg-background border-y border-border/50 relative overflow-hidden">
@@ -30,7 +46,7 @@ export default function Stats() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 md:gap-12">
           {stats.map((stat, index) => (
             <motion.div 
-              key={index}
+              key={stat.id}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
