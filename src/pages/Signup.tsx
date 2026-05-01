@@ -12,7 +12,6 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 export default function Signup() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [signupMethod, setSignupMethod] = useState<'email' | 'phone'>('email');
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -60,7 +59,6 @@ export default function Signup() {
 
         const normalizedEmail = email.trim().toLowerCase();
         const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
-        await updateProfile(userCredential.user, { displayName: name });
         await auth.signOut();
         
         toast.success('Account created successfully! Please log in.');
@@ -140,23 +138,6 @@ export default function Signup() {
 
               <form className="space-y-6" onSubmit={handleInitialSubmit}>
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-muted mb-1">Full Name</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-muted" />
-                      </div>
-                      <input
-                        type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-3 border border-border/50 rounded-xl bg-background/50 text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 focus:border-[#0052ff] transition-all hover:border-border hover:bg-surface"
-                        placeholder="John Doe"
-                      />
-                    </div>
-                  </div>
-
                   {signupMethod === 'email' ? (
                     <div>
                       <label className="block text-sm font-medium text-muted mb-1">Email Address</label>

@@ -11,6 +11,7 @@ import LoadingScreen from './LoadingScreen';
 import ScrollDots from './ScrollDots';
 import ScrollToTopButton from './ScrollToTopButton';
 import PWAInstallPrompt from './PWAInstallPrompt';
+import OnboardingModal from './OnboardingModal';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
 
@@ -24,6 +25,7 @@ export default function Layout() {
       <MouseTracker />
       <ScrollDots />
       <Toaster theme="system" position="top-right" />
+      <OnboardingModal />
       {user && <Sidebar />}
       <div className="flex-1 flex flex-col min-h-screen">
         <SmartNavbar />

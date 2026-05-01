@@ -32,6 +32,7 @@ import PoolMining from './pages/PoolMining';
 import CloudMining from './pages/CloudMining';
 import CryptoTrading from './pages/CryptoTrading';
 import Marketplace from './pages/Marketplace';
+import Assets from './pages/Assets';
 import EarnOverview from './pages/overviews/EarnOverview';
 import MenuOverview from './pages/overviews/MenuOverview';
 import WalletOverview from './pages/overviews/WalletOverview';
@@ -76,6 +77,7 @@ export default function App() {
             <Route path="cloud-mining" element={<ProtectedRoute><CloudMining /></ProtectedRoute>} />
             <Route path="live-trading" element={<ProtectedRoute><LiveTrading /></ProtectedRoute>} />
             <Route path="crypto-trading" element={<ProtectedRoute><CryptoTrading /></ProtectedRoute>} />
+            <Route path="assets" element={<ProtectedRoute><Assets /></ProtectedRoute>} />
             <Route path="marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="support" element={<ProtectedRoute><Support /></ProtectedRoute>} />

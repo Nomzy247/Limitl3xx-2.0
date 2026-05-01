@@ -181,6 +181,24 @@ export default function Wallet() {
               <motion.button 
                 whileHover={{ x: 5, backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
                 transition={fluidSpring}
+                onClick={() => navigate('/profile')} 
+                className="w-full p-3 rounded-xl bg-surface border border-border/50 transition-all text-left flex items-center justify-between group"
+              >
+                <span className="text-sm font-medium">Client Info & Identity</span>
+                <ArrowUpRight size={16} className="text-muted group-hover:text-primary transition-colors" />
+              </motion.button>
+              <motion.button 
+                whileHover={{ x: 5, backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                transition={fluidSpring}
+                onClick={() => navigate('/settings')} 
+                className="w-full p-3 rounded-xl bg-surface border border-border/50 transition-all text-left flex items-center justify-between group"
+              >
+                <span className="text-sm font-medium">Settings & Security</span>
+                <ArrowUpRight size={16} className="text-muted group-hover:text-primary transition-colors" />
+              </motion.button>
+              <motion.button 
+                whileHover={{ x: 5, backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                transition={fluidSpring}
                 onClick={() => navigate('/support')} 
                 className="w-full p-3 rounded-xl bg-surface border border-border/50 transition-all text-left flex items-center justify-between group"
               >

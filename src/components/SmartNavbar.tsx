@@ -142,56 +142,13 @@ export default function SmartNavbar() {
       <motion.div 
         ref={profileMenuRef}
         style={{ y: bubbleY }}
-        className="fixed top-6 right-6 z-50 flex items-center justify-end pointer-events-auto"
+        className="fixed top-6 right-6 z-50 flex flex-col items-end pointer-events-auto"
       >
-        <AnimatePresence>
-          {isProfileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, width: 0, scale: 0.9, originX: 1 }}
-              animate={{ opacity: 1, width: 'auto', scale: 1 }}
-              exit={{ opacity: 0, width: 0, scale: 0.9 }}
-              transition={fluidSpring}
-              className="overflow-hidden flex items-center mr-3 bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-full shadow-2xl"
-            >
-              <div className="flex items-center gap-2 px-4 py-2 whitespace-nowrap">
-                <Link to="/dashboard" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:text-[#0052ff] dark:hover:text-[#00f0ff] transition-colors p-2">Dashboard</Link>
-                <Link to="/wallet" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:text-[#0052ff] dark:hover:text-[#00f0ff] transition-colors p-2">Wallet</Link>
-                <Link to="/profile" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:text-[#0052ff] dark:hover:text-[#00f0ff] transition-colors p-2">Settings</Link>
-                {isAdmin && (
-                  <>
-                    <Link to="/admin/dashboard" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-bold text-sky-600 dark:text-sky-400 hover:text-sky-500 transition-colors p-2">Dashboard</Link>
-                    <Link to="/admin/settings" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-bold text-sky-600 dark:text-sky-400 hover:text-sky-500 transition-colors p-2">Settings</Link>
-                  </>
-                )}
-                <div className="w-px h-4 bg-black/20 dark:bg-white/20 mx-1" />
-                <button 
-                  onClick={toggleTheme} 
-                  className="p-2 text-slate-800 dark:text-slate-200 hover:text-[#0052ff] dark:hover:text-[#00f0ff] transition-colors"
-                  title="Toggle Theme"
-                >
-                  {isDark ? <Sun size={16} /> : <Moon size={16} />}
-                </button>
-                <button 
-                  onClick={() => {
-                    import('../firebase').then(({ logOut }) => {
-                      logOut();
-                    });
-                  }} 
-                  className="p-2 text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition-colors flex items-center gap-1"
-                  title="Logout"
-                >
-                  <Power size={16} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-          className="w-12 h-12 rounded-full bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 shadow-2xl flex items-center justify-center overflow-hidden z-10"
+          className="w-12 h-12 rounded-full bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 shadow-2xl flex items-center justify-center overflow-hidden z-10 mb-2"
         >
           {user.photoURL ? (
             <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
@@ -199,6 +156,52 @@ export default function SmartNavbar() {
             <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{userData?.name?.charAt(0) || user.email?.charAt(0) || 'U'}</span>
           )}
         </motion.button>
+        <AnimatePresence>
+          {isProfileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95, originY: 0, originX: 1 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={fluidSpring}
+              className="overflow-hidden flex flex-col bg-white/[0.85] dark:bg-black/[0.85] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl min-w-[200px]"
+            >
+              <div className="flex flex-col p-2 whitespace-nowrap">
+                <Link to="/dashboard" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Dashboard</Link>
+                <Link to="/wallet" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Wallet</Link>
+                <Link to="/profile" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Settings</Link>
+                {isAdmin && (
+                  <>
+                    <Link to="/admin/dashboard" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Admin Dashboard</Link>
+                    <Link to="/admin/settings" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Admin Settings</Link>
+                  </>
+                )}
+                
+                <div className="w-full h-px bg-black/10 dark:bg-white/10 my-1" />
+                
+                <div className="flex flex-row justify-between w-full">
+                  <button 
+                    onClick={toggleTheme} 
+                    className="p-3 text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex-1 flex justify-center items-center"
+                    title="Toggle Theme"
+                  >
+                    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      import('../firebase').then(({ logOut }) => {
+                        logOut();
+                      });
+                    }} 
+                    className="p-3 text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-xl transition-colors flex-1 flex justify-center items-center"
+                    title="Logout"
+                  >
+                    <Power size={18} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     );
   }

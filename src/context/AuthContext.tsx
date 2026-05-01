@@ -80,9 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } else {
               // If user doc doesn't exist, create a default one
               const newData: UserData = {
-                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || firebaseUser.phoneNumber || 'User',
+                name: '',
                 email: firebaseUser.email || '',
-                phone: firebaseUser.phoneNumber || '',
+                phone: '',
                 role: (firebaseUser.email === 'why.wd.ww.do@gmail.com' || firebaseUser.email === 'limitl3xx.007@gmail.com') ? 'admin' : 'user',
                 balance: 0,
                 balances: {
@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 level: 1,
                 onboarding_completed: false,
                 is_blocked: false,
-                trade_enabled: true,
+                trade_enabled: false,
                 last_login: new Date().toISOString()
               };
               try {
