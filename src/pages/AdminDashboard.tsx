@@ -199,7 +199,7 @@ export default function AdminDashboard() {
       toast.success('User promoted to admin successfully');
     } catch (error: any) {
       console.error('Error promoting user:', error);
-      toast.error('Failed to promote user');
+      toast.error(error.message || 'Failed to promote user');
     }
   };
 
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
       toast.success('Admin privileges revoked');
     } catch (error: any) {
       console.error('Error demoting user:', error);
-      toast.error('Failed to demote user');
+      toast.error(error.message || 'Failed to demote user');
     }
   };
 
@@ -243,7 +243,7 @@ export default function AdminDashboard() {
       }
     } catch (error: any) {
       console.error('Error promoting user by email:', error);
-      toast.error('Failed to promote user');
+      toast.error(error.message || 'Failed to promote user');
     } finally {
       setIsPromoting(false);
     }

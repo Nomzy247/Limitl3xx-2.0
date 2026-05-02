@@ -18,42 +18,18 @@ export default function Footer() {
               Automated wealth generation through advanced crypto mining protocols and institutional-grade security.
             </p>
             <div className="flex gap-4">
-              <motion.a 
-                whileHover={{ scale: 1.2, color: '#00f0ff' }}
-                whileTap={{ scale: 0.9 }}
-                transition={fluidSpring}
-                href="#" 
-                className="text-secondary transition-colors"
-              >
+              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Twitter size={20} />
-              </motion.a>
-              <motion.a 
-                whileHover={{ scale: 1.2, color: '#00f0ff' }}
-                whileTap={{ scale: 0.9 }}
-                transition={fluidSpring}
-                href="#" 
-                className="text-secondary transition-colors"
-              >
+              </a>
+              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Github size={20} />
-              </motion.a>
-              <motion.a 
-                whileHover={{ scale: 1.2, color: '#00f0ff' }}
-                whileTap={{ scale: 0.9 }}
-                transition={fluidSpring}
-                href="#" 
-                className="text-secondary transition-colors"
-              >
+              </a>
+              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Linkedin size={20} />
-              </motion.a>
-              <motion.a 
-                whileHover={{ scale: 1.2, color: '#00f0ff' }}
-                whileTap={{ scale: 0.9 }}
-                transition={fluidSpring}
-                href="#" 
-                className="text-secondary transition-colors"
-              >
+              </a>
+              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Mail size={20} />
-              </motion.a>
+              </a>
             </div>
           </div>
           
@@ -67,44 +43,24 @@ export default function Footer() {
             </motion.h3>
             <ul className="space-y-2">
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/services" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/services" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Services
-                </motion.a>
+                </Link>
               </li>
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/locations" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/locations" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Locations
-                </motion.a>
+                </Link>
               </li>
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/live-trading" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/live-trading" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Live Trading
-                </motion.a>
+                </Link>
               </li>
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/marketplace" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/marketplace" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Marketplace
-                </motion.a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -119,44 +75,24 @@ export default function Footer() {
             </motion.h3>
             <ul className="space-y-2">
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/faq" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/faq" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   FAQ
-                </motion.a>
+                </Link>
               </li>
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/support" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/support" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Help Center
-                </motion.a>
+                </Link>
               </li>
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/profile" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/profile" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Account Profile
-                </motion.a>
+                </Link>
               </li>
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/referrals" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/referrals" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Referral Program
-                </motion.a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -171,24 +107,24 @@ export default function Footer() {
             </motion.h3>
             <ul className="space-y-2">
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/about" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/about" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   About Us
-                </motion.a>
+                </Link>
               </li>
               <li>
-                <motion.a 
-                  whileHover={{ x: 5, color: '#00f0ff' }}
-                  transition={fluidSpring}
-                  href="/contact" 
-                  className="text-secondary text-sm block"
-                >
+                <Link to="/contact" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   Contact
-                </motion.a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
+                  Sign In
+                </Link>
+              </li>
+              <li>
+                <Link to="/signup" className="text-secondary text-sm block hover:text-[#0052ff] transition-all hover:translate-x-1 block">
+                  Create Account
+                </Link>
               </li>
               <li>
                 <motion.a 

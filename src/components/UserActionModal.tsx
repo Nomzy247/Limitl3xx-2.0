@@ -181,6 +181,10 @@ export default function UserActionModal({ user, onClose, isSuperUser, onUpdateUs
                           <span className="text-secondary">USDT</span>
                           <span className="font-mono font-bold">{(user.balances?.USDT || 0).toFixed(2)}</span>
                         </div>
+                        <div className="p-3 bg-subtle rounded-xl flex justify-between items-center bg-purple-500/5">
+                          <span className="text-secondary">SOL</span>
+                          <span className="font-mono font-bold">{(user.balances?.SOL || 0).toFixed(2)}</span>
+                        </div>
                       </div>
 
                       <div className="p-4 border border-border rounded-2xl space-y-4">
@@ -188,24 +192,52 @@ export default function UserActionModal({ user, onClose, isSuperUser, onUpdateUs
                         <div className="flex gap-2">
                           <select 
                             value={currency} 
-                            onChange={(e) => setCurrency(e.target.value as any)}
+                            onChange={(e) => {
+                              setCurrency(e.target.value as any);
+                              setAmount('');
+                            }}
                             className="bg-background border border-border rounded-xl px-3 py-2 text-sm focus:outline-none"
                           >
                             <option value="USD">USD</option>
                             <option value="BTC">BTC</option>
                             <option value="ETH">ETH</option>
                             <option value="USDT">USDT</option>
+                            <option value="SOL">SOL</option>
                           </select>
                           <input 
                             type="number" 
-                            placeholder="Amount to add/remove" 
+                            placeholder={currency === 'USD' ? "Amount in USD" : `Amount in ${currency}`}
                             value={amount} 
                             onChange={(e) => setAmount(e.target.value)}
                             className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none"
                             step="any"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        
+                        {currency !== 'USD' && currency !== 'USDT' && (
+                          <div className="flex items-center gap-2 mt-2 bg-subtle p-2 rounded-xl border border-border">
+                            <span className="text-sm text-secondary font-medium w-32">Auto Convert from USD:</span>
+                            <input
+                              type="number"
+                              placeholder="$0.00"
+                              className="flex-1 bg-background border border-border rounded-xl px-3 py-1.5 text-sm focus:outline-none"
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                if (!isNaN(val) && val > 0) {
+                                  const rates: any = { BTC: 65000, ETH: 3500, SOL: 150 };
+                                  setAmount((val / rates[currency]).toFixed(8).replace(/\.?0+$/, ''));
+                                } else {
+                                  setAmount('');
+                                }
+                              }}
+                            />
+                            <span className="text-xs text-secondary px-2">
+                              Rate: 1 {currency} = ${currency === 'BTC' ? '65K' : currency === 'ETH' ? '3.5K' : '150'}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2 mt-4">
                           <button onClick={() => setConfirmAction({ type: 'credit' })} disabled={!amount} className="p-3 bg-emerald-500 text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-emerald-600 transition-colors">Credit (Add)</button>
                           <button onClick={() => setConfirmAction({ type: 'debit' })} disabled={!amount} className="p-3 bg-red-500 text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-red-600 transition-colors">Debit (Remove)</button>
                         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent, useTransform } from 'motion/react';
-import { Hexagon, ArrowUp, Menu, X, LayoutDashboard, User, Activity, Bell, Sun, Moon, Power } from 'lucide-react';
+import { Hexagon, ArrowUp, Menu, X, LayoutDashboard, User, Activity, Bell, Sun, Moon, Power, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from './SystemManager';
 import { toast } from 'sonner';
@@ -32,7 +32,7 @@ export default function SmartNavbar() {
   const isAuthPage = ['/login', '/signup', '/admin/login'].includes(location.pathname);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node;
       // Close profile menu if clicked outside
       if (isProfileMenuOpen && profileMenuRef.current && !profileMenuRef.current.contains(target)) {
@@ -48,7 +48,11 @@ export default function SmartNavbar() {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, [isProfileMenuOpen, isAuthMenuOpen, isMobileMenuOpen]);
 
   useEffect(() => {
@@ -135,141 +139,23 @@ export default function SmartNavbar() {
     }
   };
 
-  const effectivelyShrunken = isShrunken && !isHovered && !isMobileMenuOpen;
+  const effectivelyShrunken = isShrunken && !isHovered && !isMobileMenuOpen && !user;
 
-  if (user) {
-    return (
-      <motion.div 
-        ref={profileMenuRef}
-        style={{ y: bubbleY }}
-        className="fixed top-6 right-6 z-50 flex flex-col items-end pointer-events-auto"
-      >
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-          className="w-12 h-12 rounded-full bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 shadow-2xl flex items-center justify-center overflow-hidden z-10 mb-2"
-        >
-          {user.photoURL ? (
-            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{userData?.name?.charAt(0) || user.email?.charAt(0) || 'U'}</span>
-          )}
-        </motion.button>
-        <AnimatePresence>
-          {isProfileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95, originY: 0, originX: 1 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={fluidSpring}
-              className="overflow-hidden flex flex-col bg-white/[0.85] dark:bg-black/[0.85] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl min-w-[200px]"
-            >
-              <div className="flex flex-col p-2 whitespace-nowrap">
-                <Link to="/dashboard" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Dashboard</Link>
-                <Link to="/wallet" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Wallet</Link>
-                <Link to="/profile" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Settings</Link>
-                {isAdmin && (
-                  <>
-                    <Link to="/admin/dashboard" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Admin Dashboard</Link>
-                    <Link to="/admin/settings" onClick={() => setIsProfileMenuOpen(false)} className="text-sm font-bold text-sky-600 dark:text-sky-400 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Admin Settings</Link>
-                  </>
-                )}
-                
-                <div className="w-full h-px bg-black/10 dark:bg-white/10 my-1" />
-                
-                <div className="flex flex-row justify-between w-full">
-                  <button 
-                    onClick={toggleTheme} 
-                    className="p-3 text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors flex-1 flex justify-center items-center"
-                    title="Toggle Theme"
-                  >
-                    {isDark ? <Sun size={18} /> : <Moon size={18} />}
-                  </button>
-                  <button 
-                    onClick={() => {
-                      import('../firebase').then(({ logOut }) => {
-                        logOut();
-                      });
-                    }} 
-                    className="p-3 text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded-xl transition-colors flex-1 flex justify-center items-center"
-                    title="Logout"
-                  >
-                    <Power size={18} />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  }
-
-  if (isAuthPage && !user) {
-    return (
-      <motion.div 
-        ref={authMenuRef}
-        style={{ y: bubbleY }}
-        className="fixed top-6 right-6 z-50 flex flex-col items-end pointer-events-auto"
-      >
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsAuthMenuOpen(!isAuthMenuOpen)}
-          className="w-12 h-12 rounded-full bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 shadow-2xl flex items-center justify-center z-10 mb-2"
-        >
-          {isAuthMenuOpen ? <X size={20} className="text-slate-800 dark:text-slate-200" /> : <Menu size={20} className="text-slate-800 dark:text-slate-200" />}
-        </motion.button>
-        
-        <AnimatePresence>
-          {isAuthMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95, originY: 0, originX: 1 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={fluidSpring}
-              className="overflow-hidden flex flex-col bg-white/[0.85] dark:bg-black/[0.85] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl min-w-[200px]"
-            >
-              <div className="flex flex-col p-2 whitespace-nowrap">
-                <Link to="/about" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">About</Link>
-                <Link to="/locations" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Mining Pools</Link>
-                <Link to="/services" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Pricing</Link>
-                <Link to="/contact" onClick={() => setIsAuthMenuOpen(false)} className="text-sm font-medium text-slate-800 dark:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors p-3">Contact</Link>
-                
-                <div className="w-full h-px bg-black/10 dark:bg-white/10 my-1" />
-                
-                <div className="flex items-center justify-between p-3">
-                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Theme</span>
-                  <button 
-                    onClick={toggleTheme} 
-                    className="p-2 text-slate-800 dark:text-slate-200 hover:bg-black/10 dark:hover:bg-white/20 transition-colors bg-black/5 dark:bg-white/10 rounded-full"
-                    title="Toggle Theme"
-                  >
-                    {isDark ? <Sun size={14} /> : <Moon size={14} />}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  }
-
+  // Let the main navbar render always.
+  
   return (
-    <div className={`fixed top-0 left-0 right-0 z-50 flex pt-4 pointer-events-none ${isMobile ? 'justify-end pr-4' : 'justify-center'}`}>
+    <div className={`fixed top-0 left-0 right-0 z-50 flex pt-4 pointer-events-none ${isMobile ? 'justify-center px-4' : 'justify-center'}`}>
       <motion.nav
         ref={mainNavRef}
         onMouseEnter={handleMouseEnterNav}
         onMouseLeave={handleMouseLeaveNav}
         initial={false}
         animate={{
-          height: effectivelyShrunken ? 40 : (isMobileMenuOpen ? 'auto' : 80),
+          height: effectivelyShrunken ? 40 : (isMobileMenuOpen ? 'auto' : (user ? 60 : 80)),
           width: effectivelyShrunken 
             ? (isMobile ? 260 : 200) 
-            : (isMobile ? 'calc(100% - 32px)' : '92%'),
-          maxWidth: effectivelyShrunken ? (isMobile ? 260 : 200) : 1200,
+            : (user ? (isMobile ? '100%' : 'fit-content') : (isMobile ? 'calc(100% - 32px)' : '92%')),
+          maxWidth: effectivelyShrunken ? (isMobile ? 260 : 200) : (user ? 900 : 1200),
           borderRadius: effectivelyShrunken ? 9999 : 32,
           backgroundColor: effectivelyShrunken 
             ? 'rgba(15, 23, 42, 0.8)' 
@@ -319,11 +205,11 @@ export default function SmartNavbar() {
               transition={{ duration: 0.15 }}
               className="flex flex-col w-full h-full"
             >
-              <div className="flex items-center justify-between w-full px-6 md:px-8 h-20 min-h-[80px]">
+              <div className={`flex items-center justify-between w-full px-6 md:px-8 ${user ? 'h-[60px] gap-8' : 'h-20 min-h-[80px]'}`}>
                 <a 
                   href="/" 
                   onClick={handleHomeClick}
-                  className="flex items-center gap-1.5 group"
+                  className={`flex items-center gap-1.5 group ${user ? 'mr-0' : ''}`}
                 >
                   <Hexagon className="text-[#00f0ff] size-6 sm:size-7 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.5)] transition-all" strokeWidth={2} />
                   <span className="text-base sm:text-xl font-semibold text-slate-100 tracking-tight">
@@ -357,9 +243,20 @@ export default function SmartNavbar() {
                     {isDark ? <Sun size={18} /> : <Moon size={18} />}
                   </button>
                   {user ? (
-                    <Link to="/profile" className="flex items-center gap-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-colors border border-white/10">
-                      <User size={16} /> Profile
-                    </Link>
+                    <>
+                      <Link to="/profile" className="flex items-center gap-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-colors border border-white/10">
+                        <User size={16} /> Profile
+                      </Link>
+                      <button
+                        onClick={() => {
+                          import('../firebase').then(({ logOut }) => logOut());
+                        }}
+                        className="p-2 text-rose-500 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                        title="Logout"
+                      >
+                        <Power size={18} />
+                      </button>
+                    </>
                   ) : (
                     <>
                       <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
@@ -395,6 +292,15 @@ export default function SmartNavbar() {
                         <Link to="/referrals" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium">Referrals</Link>
                         <Link to="/support" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium">Support</Link>
                         <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium">Profile</Link>
+                        <button 
+                          onClick={() => {
+                            setIsMobileMenuOpen(false);
+                            import('../firebase').then(({ logOut }) => logOut());
+                          }} 
+                          className="text-left text-rose-500 font-medium"
+                        >
+                          Log out
+                        </button>
                       </>
                     ) : (
                       <>

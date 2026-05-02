@@ -72,7 +72,7 @@ export default function OnboardingModal() {
               <div className="mx-auto w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6">
                 <Zap className="text-blue-500 w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-bold mb-3">Welcome to LimitLess!</h2>
+              <h2 className="text-2xl font-bold mb-3">Welcome to poolmining.cloud!</h2>
               <p className="text-secondary leading-relaxed mb-8">
                 We noticed your account is new. Let's finish setting up your profile before we get started.
               </p>

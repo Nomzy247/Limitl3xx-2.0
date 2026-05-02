@@ -58,11 +58,18 @@ export default function App() {
       <AuthProvider>
         <Router>
           <ScrollToTop/>
-          <Toaster position="top-right" richColors />
+          <Toaster 
+            theme="system" 
+            position="top-center" 
+            toastOptions={{
+              className: 'rounded-full border border-border/50 bg-card text-primary px-6 py-3 shadow-lg flex items-center justify-center text-sm font-semibold'
+            }}
+          />
           <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="overview/earn" element={<EarnOverview />} />
+            <Route path="/admin/poolmining.cloud" element={<AdminLogin />} />
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="overview/earn" element={<EarnOverview />} />
             <Route path="overview/menu" element={<MenuOverview />} />
             <Route path="overview/wallet" element={<WalletOverview />} />
             <Route path="login" element={<Login />} />
@@ -91,7 +98,6 @@ export default function App() {
             <Route path="faq" element={<FAQ />} />
             <Route path="contact" element={<Contact />} />
             <Route path="admin" element={<Navigate to="/admin/poolmining.cloud" replace />} />
-            <Route path="admin/poolmining.cloud" element={<AdminLogin />} />
             <Route path="admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
           </Route>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hexagon, Mail, Lock, AlertCircle, Phone, Key, Shield } from 'lucide-react';
+import { Hexagon, Mail, Lock, AlertCircle, Phone, Key, Shield, TrendingUp, Activity, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { auth, signInWithGoogle, db } from '../firebase';
 import { signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult } from 'firebase/auth';
@@ -156,27 +156,75 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0052ff] rounded-full blur-[150px] opacity-20 pointer-events-none" />
-      
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={fluidSpring}
-        className="max-w-md w-full space-y-8 bg-card p-8 rounded-3xl border border-border relative z-10 shadow-2xl"
-      >
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6 group">
-            <Hexagon className="text-[#00f0ff] transition-transform duration-500 group-hover:rotate-180" size={36} />
-            <span className="text-2xl font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
-          </Link>
-          <h2 className="text-2xl font-semibold text-primary">
-            {showRecovery ? 'Account Recovery' : 'Welcome back'}
-          </h2>
-          <p className="mt-1 text-sm text-secondary">
-            {showRecovery ? 'Enter your details to recover your account' : 'Sign in to access your dashboard'}
-          </p>
+    <div className="min-h-screen flex w-full">
+      {/* Left Panel: Rich Design */}
+      <div className="hidden lg:flex flex-col flex-1 bg-surface-dark border-r border-border/50 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/4 -left-1/4 w-[150%] h-[150%] bg-[#0052ff] rounded-full blur-[200px] opacity-10 pointer-events-none" />
+          <div className="absolute bottom-1/4 right-1/4 w-[100%] h-[100%] bg-[#00f0ff] rounded-full blur-[200px] opacity-5 pointer-events-none" />
         </div>
+        
+        <div className="relative z-10 flex flex-col justify-between h-full p-12">
+          <Link to="/" className="inline-flex items-center gap-3 w-fit group">
+            <Hexagon className="text-[#00f0ff] transition-transform duration-500 group-hover:rotate-180" size={40} />
+            <span className="text-3xl font-bold tracking-tight text-white">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
+          </Link>
+
+          <div className="max-w-md">
+            <h1 className="text-5xl font-bold tracking-tighter text-white mb-6">
+              Welcome back to your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0052ff] to-[#00f0ff]">financial hub</span>
+            </h1>
+            <p className="text-secondary text-lg leading-relaxed mb-12">
+              Log in to seamlessly track your hashpower returns, monitor market movements, and manage your assets with institutional-grade security.
+            </p>
+
+            <div className="space-y-6">
+              {[
+                { title: 'Secure access', desc: 'Enterprise-grade encryption and 2FA protection for total peace of mind.', icon: <Shield size={20} className="text-[#00f0ff]" /> },
+                { title: 'Real-time analytics', desc: 'Instantly view your live mining returns and profitability metrics.', icon: <TrendingUp size={20} className="text-[#0052ff]" /> },
+                { title: 'Global accessibility', desc: 'Manage your operations anywhere, anytime across all your devices.', icon: <Activity size={20} className="text-emerald-400" /> }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-200 mb-1">{item.title}</h3>
+                    <p className="text-sm text-slate-400">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 uppercase tracking-widest hover:text-slate-400 cursor-pointer w-fit mt-12">
+            <ArrowLeft size={14} /> Back to main site
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel: Login Form */}
+      <div className="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative bg-background overflow-y-auto">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0052ff] rounded-full blur-[150px] opacity-10 pointer-events-none lg:hidden" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={fluidSpring}
+          className="max-w-md w-full space-y-8 p-6 sm:p-10 rounded-[2.5rem] relative z-10"
+        >
+          <div className="text-left mb-10">
+            <Link to="/" className="inline-flex items-center gap-2 mb-8 group lg:hidden">
+              <Hexagon className="text-[#00f0ff] transition-transform duration-500 group-hover:rotate-180" size={32} />
+              <span className="text-2xl font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
+            </Link>
+            <h2 className="text-4xl font-extrabold text-primary tracking-tight">
+              {showRecovery ? 'Account Recovery' : 'Sign In'}
+            </h2>
+            <p className="mt-3 text-secondary text-sm">
+              {showRecovery ? 'Enter your details to recover your account' : 'Enter your credentials to access your dashboard.'}
+            </p>
+          </div>
         
         <AnimatePresence mode="wait">
           {show2FA ? (
@@ -431,6 +479,7 @@ export default function Login() {
           </Link>
         </p>
       </motion.div>
+      </div>
     </div>
   );
 }

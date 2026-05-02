@@ -12,6 +12,7 @@ interface UserData {
     BTC: number;
     ETH: number;
     USDT: number;
+    SOL: number;
   };
   joined_date: string;
   verification_status: 'pending' | 'verified' | 'rejected';
@@ -88,7 +89,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 balances: {
                   BTC: 0,
                   ETH: 0,
-                  USDT: 0
+                  USDT: 0,
+                  SOL: 0
                 },
                 joined_date: new Date().toISOString(),
                 verification_status: 'pending',

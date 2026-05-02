@@ -34,6 +34,19 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    font-size: 16px;
+  }
+  
+  @media (max-width: 1024px) {
+    html { font-size: 15px; } /* Scales down tailwind rem units */
+  }
+
+  @media (max-width: 768px) {
+    html { font-size: 14px; }
+  }
+
+  @media (max-width: 480px) {
+    html { font-size: 13.5px; }
   }
 
   :root {

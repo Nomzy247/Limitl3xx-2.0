@@ -17,8 +17,7 @@ export default function Assets() {
     { name: 'Emergency Funds', value: 5 },
   ];
 
-  const totalBalance = (userData?.balance || 0) + 
-    Object.values(userData?.balances || {}).reduce((acc, val) => acc + (val as number), 0) * 50000; // rough estimation for dummy total if needed, or stick to static for visuals
+  // Asset details logic
 
   // Static rich layout values
   const totalAssets = 145200.50;

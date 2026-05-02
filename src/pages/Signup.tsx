@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hexagon, Mail, Lock, User, AlertCircle, Phone, Key } from 'lucide-react';
+import { Hexagon, Mail, Lock, User, AlertCircle, Phone, Key, Zap, TrendingUp, Activity, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 import { auth, signInWithGoogle } from '../firebase';
@@ -91,27 +91,74 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#00f0ff] rounded-full blur-[150px] opacity-10 pointer-events-none" />
-      
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={fluidSpring}
-        className="max-w-md w-full space-y-8 bg-card p-8 rounded-3xl border border-border relative z-10 shadow-2xl"
-      >
-        <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <Hexagon className="text-[#00f0ff]" size={32} />
-            <span className="text-2xl font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
-          </Link>
-          <h2 className="text-3xl font-bold text-primary">
-            Create Account
-          </h2>
-          <p className="mt-2 text-sm text-secondary">
-            Start your journey to automated wealth
-          </p>
+    <div className="min-h-screen flex w-full">
+      {/* Left Panel: Rich Design */}
+      <div className="hidden lg:flex flex-col flex-1 bg-surface-dark border-r border-border/50 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/2 left-1/4 w-[120%] h-[120%] bg-[#00f0ff] rounded-full blur-[200px] opacity-10 pointer-events-none -translate-y-1/2 -translate-x-1/2" />
         </div>
+        
+        <div className="relative z-10 flex flex-col justify-between h-full p-12">
+          <Link to="/" className="inline-flex items-center gap-3 w-fit group">
+            <Hexagon className="text-[#00f0ff] transition-transform duration-500 group-hover:rotate-180" size={40} />
+            <span className="text-3xl font-bold tracking-tight text-white">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
+          </Link>
+
+          <div className="max-w-md">
+            <h1 className="text-5xl font-bold tracking-tighter text-white mb-6">
+              Start building your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0052ff] to-[#00f0ff]">mining empire</span>
+            </h1>
+            <p className="text-secondary text-lg leading-relaxed mb-12">
+              Join thousands of investors maximizing their cryptocurrency yields through our optimized institutional mining pools.
+            </p>
+
+            <div className="space-y-6">
+              {[
+                { title: 'Instant deployment', desc: 'Hashpower contracts go live immediately upon confirmation.', icon: <Zap size={20} className="text-[#00f0ff]" /> },
+                { title: 'Maximized yields', desc: 'Proprietary algorithms switch to the most profitable coin automatically.', icon: <TrendingUp size={20} className="text-[#0052ff]" /> },
+                { title: 'Zero maintenance', desc: 'We handle the hardware, cooling, and upkeep. You earn the pure profit.', icon: <Activity size={20} className="text-emerald-400" /> }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-200 mb-1">{item.title}</h3>
+                    <p className="text-sm text-slate-400">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 uppercase tracking-widest hover:text-slate-400 cursor-pointer w-fit mt-12">
+            <ArrowLeft size={14} /> Back to main site
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel: Signup Form */}
+      <div className="flex-1 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative bg-background overflow-y-auto">
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#00f0ff] rounded-full blur-[150px] opacity-10 pointer-events-none lg:hidden" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={fluidSpring}
+          className="max-w-md w-full space-y-8 p-6 sm:p-10 rounded-[2.5rem] relative z-10"
+        >
+          <div className="text-left">
+            <Link to="/" className="inline-flex items-center gap-2 mb-8 group lg:hidden">
+              <Hexagon className="text-[#00f0ff] transition-transform duration-500 group-hover:rotate-180" size={32} />
+              <span className="text-2xl font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
+            </Link>
+            <h2 className="text-4xl font-extrabold text-primary tracking-tight">
+              Create Account
+            </h2>
+            <p className="mt-3 text-sm text-secondary">
+              Start your journey to automated wealth.
+            </p>
+          </div>
         
         <AnimatePresence mode="wait">
             <motion.div
@@ -288,6 +335,7 @@ export default function Signup() {
           </Link>
         </p>
       </motion.div>
+      </div>
     </div>
   );
 }

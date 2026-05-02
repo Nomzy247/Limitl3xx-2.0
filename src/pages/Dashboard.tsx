@@ -184,6 +184,7 @@ export default function Dashboard() {
   };
 
   const { currentLevel, nextLevel, progress } = getLevelInfo(totalInvestment);
+  const pendingWithdrawal = transactions.some(tx => tx.type === 'withdrawal' && tx.status === 'pending');
 
   return (
     <div className="relative min-h-screen bg-background text-primary p-4 md:p-8">
@@ -194,6 +195,16 @@ export default function Dashboard() {
       </div>
 
       <div className="max-w-[1440px] mx-auto pt-8 pb-8 relative z-10 w-full">
+        {pendingWithdrawal && (
+          <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3 w-full">
+            <Activity className="text-amber-500 shrink-0 mt-0.5" size={20} />
+            <div>
+              <h4 className="font-bold text-amber-500 text-sm">Withdrawal Pending</h4>
+              <p className="text-amber-500/80 text-xs mt-1">Your recent withdrawal request is currently being processed by our system. You will be notified once it is completed.</p>
+            </div>
+          </div>
+        )}
+
         <header className="mb-6 px-2 flex justify-between items-end">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">Welcome back, {userData?.name}</h1>
@@ -263,6 +274,43 @@ export default function Dashboard() {
               }>
                 <TradingViewWidget />
               </Suspense>
+            </motion.div>
+
+            {/* Performance Chart */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="w-full bg-card rounded-2xl p-6 border border-border/50 shadow-md shrink-0"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-bold">Growth Overview</h3>
+                  <p className="text-sm text-secondary">Your estimated yield and hashrate trajectory.</p>
+                </div>
+              </div>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00f0ff" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#00f0ff" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorHashrate" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0052ff" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#0052ff" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                    <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="value" stroke="#00f0ff" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                    <Area type="monotone" dataKey="hashrate" stroke="#0052ff" strokeWidth={3} fillOpacity={1} fill="url(#colorHashrate)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </motion.div>
 
             {/* Mining Stats & App Market */}
@@ -370,7 +418,14 @@ export default function Dashboard() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="py-6 text-center text-muted text-xs">No active contracts found.</td>
+                      <td colSpan={4} className="py-12 text-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <p className="text-secondary text-sm mb-4">You don't have any active contracts right now.</p>
+                          <button onClick={() => navigate('/buy-hashpower')} className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform active:scale-95">
+                            Buy Hashpower
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   )}
                 </tbody>

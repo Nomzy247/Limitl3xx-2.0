@@ -1,5 +1,4 @@
 import { Outlet, useLocation } from 'react-router';
-import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import SmartNavbar from './SmartNavbar';
 import BottomNav from './BottomNav';
@@ -20,34 +19,37 @@ export default function Layout() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-surface text-primary flex">
+    <div className="min-h-screen bg-surface text-primary flex flex-col items-center">
       <LoadingScreen />
       <MouseTracker />
       <ScrollDots />
-      <Toaster theme="system" position="top-right" />
       <OnboardingModal />
-      {user && <Sidebar />}
-      <div className="flex-1 flex flex-col min-h-screen">
-        <SmartNavbar />
-        <AnimatePresence mode="wait">
-          <motion.main 
-            key={location.pathname}
-            initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className={`flex-1 ${user ? 'pb-24 md:pb-0' : ''}`}
-          >
-            <Outlet />
-          </motion.main>
-        </AnimatePresence>
-        <Chatbot />
-        <Footer />
-        <div className="md:hidden">
-            <BottomNav />
+      <div className="w-full flex justify-center">
+        <div className="flex w-full max-w-[1920px] relative">
+          {user && <Sidebar />}
+          <div className="flex-1 flex flex-col min-h-screen w-full relative overflow-hidden">
+            <SmartNavbar />
+            <AnimatePresence mode="wait">
+              <motion.main 
+                key={location.pathname}
+                initial={{ opacity: 0, scale: 0.99, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 1.01, filter: 'blur(4px)' }}
+                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                className={`flex-1 w-full mx-auto ${user ? 'pb-24 md:pb-0' : ''}`}
+              >
+                <Outlet />
+              </motion.main>
+            </AnimatePresence>
+            <Chatbot />
+            <Footer />
+            <div className="md:hidden">
+                <BottomNav />
+            </div>
+            <ScrollToTopButton />
+            <PWAInstallPrompt />
+          </div>
         </div>
-        <ScrollToTopButton />
-        <PWAInstallPrompt />
       </div>
     </div>
   );

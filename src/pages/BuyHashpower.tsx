@@ -215,7 +215,7 @@ export default function BuyHashpower() {
               <motion.div 
                 key={plan.id}
                 whileHover={{ y: -5, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.96 }}
                 transition={fluidSpring}
                 onClick={() => setSelectedPlan(plan.id)}
                 className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${selectedPlan === plan.id ? 'border-[#0052ff] bg-[#0052ff]/5' : 'border-border bg-background hover:border-muted'}`}

@@ -18,20 +18,29 @@ export default function Withdraw() {
   const [show2FA, setShow2FA] = useState(false);
   const [pin, setPin] = useState('');
 
+  const [currency, setCurrency] = useState('BTC');
+
   const initiateWithdrawal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !userData) return;
 
     const withdrawAmount = parseFloat(amount);
-    const currentBtcBalance = userData.balance || 0;
+    // Since everything is denominated in USD or BTC, we might need a conversion, but let's assume balance is what we use.
+    // In a real application, you handle balances per currency. Here we'll treat `balance` as the primary account value.
+    const currentBalance = userData.balance || 0;
 
-    if (withdrawAmount > currentBtcBalance) {
-      toast.error('Insufficient BTC balance');
+    if (withdrawAmount < 500) {
+      toast.error('Minimum withdrawal amount is $500.');
+      return;
+    }
+
+    if (withdrawAmount > currentBalance) {
+      toast.error('Insufficient balance');
       return;
     }
     
-    if (!address || address.length < 26) {
-      toast.error('Please enter a valid BTC destination address');
+    if (!address || address.length < 10) {
+      toast.error(`Please enter a valid ${currency} destination address`);
       return;
     }
 
@@ -43,7 +52,7 @@ export default function Withdraw() {
   };
 
   const executeWithdrawal = async () => {
-    if (pin.length < 6) {
+    if (show2FA && pin.length < 6) {
       toast.error('Please enter the 6-digit confirmation code.');
       return;
     }
@@ -70,6 +79,7 @@ export default function Withdraw() {
           user_id: user!.uid,
           type: 'withdrawal',
           amount: withdrawAmount,
+          currency: currency,
           status: 'pending',
           address: address,
           timestamp: serverTimestamp()
@@ -79,7 +89,7 @@ export default function Withdraw() {
         transaction.update(userRef, { balance: currentBalance - withdrawAmount });
       });
 
-      toast.success('Withdrawal request submitted securely!');
+      toast.success('Withdrawal request submitted securely! Admin will review for approval.');
       setAmount('');
       setAddress('');
       setPin('');
@@ -172,23 +182,38 @@ export default function Withdraw() {
 
           <form onSubmit={initiateWithdrawal} className="space-y-6">
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-secondary mb-2">Amount (BTC)</label>
+              <label className="block text-sm font-medium text-secondary mb-2">Select Asset</label>
+              <select 
+                value={currency} 
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full bg-background border border-border rounded-full px-4 py-3 text-primary text-sm focus:outline-none mb-6"
+              >
+                <option value="BTC">Bitcoin (BTC)</option>
+                <option value="ETH">Ethereum (ETH)</option>
+                <option value="USDT">Tether (USDT ERC-20)</option>
+                <option value="SOL">Solana (SOL)</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="amount" className="block text-sm font-medium text-secondary mb-2">Amount (USD)</label>
               <input 
                 type="number" 
                 id="amount"
-                step="0.00000001"
-                min="0.001"
+                step="any"
+                min="500"
                 required
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="w-full bg-background border border-border rounded-full px-4 py-3 text-primary focus:outline-none focus:border-[#0052ff] transition-colors font-mono"
                 placeholder="0.00"
               />
-              <p className="text-xs text-muted mt-2">Minimum withdrawal: 0.001 BTC</p>
+              <p className="text-xs text-muted mt-2">Available Balance: {userData?.balance || 0} USD</p>
+              <p className="text-xs text-secondary mt-1">Minimum withdrawal amounts to 500 USD equivalent.</p>
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-secondary mb-2">Destination BTC Address</label>
+              <label htmlFor="address" className="block text-sm font-medium text-secondary mb-2">Destination {currency} Address</label>
               <input 
                 type="text" 
                 id="address"
@@ -196,7 +221,7 @@ export default function Withdraw() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="w-full bg-background border border-border rounded-full px-4 py-3 text-primary font-mono text-sm focus:outline-none focus:border-[#0052ff] transition-colors"
-                placeholder="Enter a valid Bitcoin address"
+                placeholder={`Enter a valid ${currency} address`}
               />
             </div>
 

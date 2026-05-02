@@ -1,16 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { User, Mail, Calendar, Shield, Award, TrendingUp, Wallet, ArrowRight, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db, collection, query, where, orderBy, onSnapshot, limit, handleFirestoreError, OperationType } from '../firebase';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 
 export default function Profile() {
-  const { userData } = useAuth();
+  const { user, userData } = useAuth();
   const navigate = useNavigate();
+  const [recentTxs, setRecentTxs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(
+      collection(db, 'transactions'),
+      where('user_id', '==', user.uid),
+      orderBy('timestamp', 'desc'),
+      limit(4)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setRecentTxs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'transactions'));
+    return () => unsubscribe();
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -139,21 +154,32 @@ export default function Profile() {
             transition={{ ...fluidSpring, delay: 0.4 }}
             className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl"
           >
-            <h3 className="text-xl font-bold mb-6">Recent Mining Activity</h3>
+            <h3 className="text-xl font-bold mb-6">Recent Transactions</h3>
             <div className="space-y-4">
-              {[
-                { title: 'Daily Mining Reward', amount: '+0.00042 BTC', date: 'Today, 10:45 AM' },
-                { title: 'Daily Mining Reward', amount: '+0.00041 BTC', date: 'Yesterday, 10:45 AM' },
-                { title: 'Daily Mining Reward', amount: '+0.00043 BTC', date: 'Mar 22, 10:45 AM' },
-              ].map((activity, i) => (
+              {recentTxs.length > 0 ? recentTxs.map((activity, i) => (
                 <div key={i} className="flex items-center justify-between p-4 bg-surface rounded-2xl border border-border/50">
                   <div>
-                    <p className="font-semibold text-primary">{activity.title}</p>
-                    <p className="text-xs text-muted mt-1">{activity.date}</p>
+                    <p className="font-semibold text-primary capitalize flex items-center gap-2">
+                      {activity.type === 'deposit' ? 'Deposit' : activity.type === 'withdraw' ? 'Withdrawal' : activity.type}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                        activity.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
+                        activity.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
+                        'bg-red-500/10 text-red-500'
+                      }`}>{activity.status}</span>
+                    </p>
+                    <p className="text-xs text-muted mt-1">{new Date(activity.timestamp).toLocaleString()}</p>
                   </div>
-                  <span className="text-emerald-400 font-bold">{activity.amount}</span>
+                  <div className="text-right">
+                    <span className={`font-bold ${activity.type === 'withdraw' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {activity.type === 'withdraw' ? '-' : '+'}{activity.currency === 'USD' ? '$' : ''}{parseFloat(activity.amount).toFixed(activity.currency === 'USD' ? 2 : 6)} {activity.currency !== 'USD' ? activity.currency : ''}
+                    </span>
+                  </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center p-6 bg-surface rounded-2xl border border-border/50 text-muted text-sm">
+                  No recent transactions
+                </div>
+              )}
               <button 
                 onClick={() => navigate('/transactions')}
                 className="w-full py-3 text-sm font-bold text-[#0052ff] hover:underline flex items-center justify-center gap-2"

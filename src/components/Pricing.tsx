@@ -130,7 +130,9 @@ export default function Pricing() {
                 boxShadow: isDark ? '0 0 30px rgba(0, 240, 255, 0.15)' : '0 0 30px rgba(0, 82, 255, 0.1)',
                 borderColor: isDark ? 'rgba(0, 240, 255, 0.3)' : 'rgba(0, 82, 255, 0.3)'
               }}
-              className={`relative p-8 rounded-[2rem] border flex-shrink-0 w-[85vw] md:w-full snap-center ${
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setSelectedPlan(plan)}
+              className={`relative p-8 rounded-[2rem] border flex-shrink-0 w-[85vw] md:w-full snap-center cursor-pointer ${
                 plan.recommended 
                   ? 'bg-gradient-to-b from-[#111827] to-[#0a0e17] border-[#0052ff]/50 shadow-[0_0_40px_rgba(0,82,255,0.15)] transform md:-translate-y-4' 
                   : 'bg-surface border-border/50 transition-all group'
@@ -177,11 +179,10 @@ export default function Pricing() {
               </ul>
               
               <button
-                onClick={() => setSelectedPlan(plan)}
-                className={`w-full py-4 rounded-full text-center font-bold transition-all flex items-center justify-center gap-2 ${
+                className={`w-full py-4 rounded-full text-center font-bold transition-all flex items-center justify-center gap-2 pointer-events-none ${
                   plan.recommended
-                    ? 'bg-primary text-background hover:scale-105'
-                    : 'bg-subtle hover:bg-subtle-hover text-primary border border-border'
+                    ? 'bg-primary text-background group-hover:scale-105'
+                    : 'bg-subtle group-hover:bg-subtle-hover text-primary border border-border'
                 }`}
               >
                 View Breakdown <ArrowRight size={18} className={plan.recommended ? 'group-hover:translate-x-1 transition-transform' : ''} />
