@@ -110,7 +110,7 @@ service cloud.firestore {
       return hasRequiredFields(['type', 'action', 'timestamp']) &&
              data.type in ['ai', 'admin', 'system'] &&
              data.action is string && data.action.size() > 0 && data.action.size() < 1000 &&
-             data.timestamp is string && data.timestamp.size() < 50 &&
+             (data.timestamp is timestamp || (data.timestamp is string && data.timestamp.size() < 50)) &&
              (!('user_id' in data) || (data.user_id is string && data.user_id.size() < 50));
     }
 
@@ -123,7 +123,7 @@ service cloud.firestore {
              data.costings.pool is number &&
              data.costings.cloud is number &&
              data.costings.crypto is number &&
-             (!('updated_at' in data) || (data.updated_at is string && data.updated_at.size() < 50));
+             (!('updated_at' in data) || (data.updated_at is timestamp || (data.updated_at is string && data.updated_at.size() < 50)));
     }
 
     // ===============================================================
