@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
-import { auth, db, doc, getDoc, setDoc, updateDoc, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, doc, getDoc, setDoc, updateDoc, onSnapshot, handleFirestoreError, OperationType, addDoc, collection, serverTimestamp } from '../firebase';
 
 interface UserData {
   name: string;
@@ -58,6 +58,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         if (firebaseUser) {
           setUser(firebaseUser);
+          
+          // Log a visit notification
+          try {
+            await addDoc(collection(db, 'notifications'), {
+                type: 'visit',
+                userId: firebaseUser.uid,
+                message: `User ${firebaseUser.email} visited the site`,
+                timestamp: serverTimestamp(),
+                read: false
+            });
+          } catch (e) {
+            console.error("Failed to log visit notification", e);
+          }
           
           // Fetch user data from Firestore
           const userDocRef = doc(db, 'users', firebaseUser.uid);

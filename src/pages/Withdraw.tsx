@@ -64,6 +64,7 @@ export default function Withdraw() {
     
     try {
       const withdrawAmount = parseFloat(amount);
+      const toastId = toast.loading('Submitting withdrawal request...');
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, 'users', user!.uid);
         const userSnap = await transaction.get(userRef);
@@ -85,10 +86,24 @@ export default function Withdraw() {
           timestamp: serverTimestamp()
         });
 
+        // Add Admin Notification
+        transaction.set(doc(collection(db, 'notifications')), {
+          type: 'withdrawal',
+          userId: user!.uid,
+          userName: user!.email || 'Unknown User',
+          message: `New withdrawal of $${withdrawAmount} ${currency} initiated by ${user!.email}`,
+          amount: withdrawAmount,
+          currency: currency,
+          address: address,
+          timestamp: serverTimestamp(),
+          read: false
+        });
+
         // Deduct balance immediately
         transaction.update(userRef, { balance: currentBalance - withdrawAmount });
       });
 
+      toast.dismiss(toastId);
       toast.success('Withdrawal request submitted securely! Admin will review for approval.');
       setAmount('');
       setAddress('');

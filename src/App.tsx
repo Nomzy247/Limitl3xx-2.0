@@ -26,7 +26,7 @@ import Settings from './pages/Settings';
 import Support from './pages/Support';
 import Referrals from './pages/Referrals';
 import Profile from './pages/Profile';
-import MobileHub from './pages/MobileHub';
+import Hub from './pages/Hub';
 import LiveTrading from './pages/LiveTrading';
 import PoolMining from './pages/PoolMining';
 import CloudMining from './pages/CloudMining';
@@ -90,7 +90,7 @@ export default function App() {
             <Route path="support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="hub" element={<ProtectedRoute><MobileHub /></ProtectedRoute>} />
+            <Route path="hub" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
             <Route path="integration/e-payment" element={<ProtectedRoute><EPaymentIntegration /></ProtectedRoute>} />
             <Route path="locations" element={<Locations />} />
             <Route path="services" element={<Services />} />

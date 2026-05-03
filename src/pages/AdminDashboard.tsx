@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   });
   const [logs, setLogs] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [adminNotifications, setAdminNotifications] = useState<any[]>([]);
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [isPromoting, setIsPromoting] = useState(false);
   const [selectedUserForAction, setSelectedUserForAction] = useState<any>(null);
@@ -136,6 +137,20 @@ export default function AdminDashboard() {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  // Fetch Notifications
+  useEffect(() => {
+    const q = query(
+      collection(db, 'notifications'),
+      orderBy('timestamp', 'desc'),
+      limit(10)
+    );
+    const unsubscribe = onSnapshot(q, snapshot => {
+      setAdminNotifications(snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})));
+    }, error => handleFirestoreError(error, OperationType.LIST, 'notifications'));
+    
+    return unsubscribe;
   }, []);
 
   // Fetch Recent Users
@@ -577,6 +592,30 @@ export default function AdminDashboard() {
         </motion.div>
       </div>
 
+      {/* Notifications Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...fluidSpring, delay: 0.55 }}
+        className="bg-surface border border-border rounded-3xl p-6 mb-8"
+      >
+        <h3 className="text-xl font-bold mb-6">Recent Activity Notifications</h3>
+        <div className="space-y-4">
+          {adminNotifications.map((notif: any) => (
+            <div key={notif.id} className="p-4 bg-background border border-border rounded-xl flex justify-between items-center">
+              <div>
+                <p className="font-medium text-sm">{notif.message}</p>
+                <p className="text-xs text-secondary">{notif.timestamp ? new Date(notif.timestamp.toDate()).toLocaleString() : 'Just now'}</p>
+              </div>
+              <button className="text-xs bg-primary text-background rounded-full px-3 py-1 font-bold">
+                View
+              </button>
+            </div>
+          ))}
+          {adminNotifications.length === 0 && <p className="text-sm text-secondary">No recent notifications</p>}
+        </div>
+      </motion.div>
+      
       {/* Admin Controls Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* AI & Profit Control */}

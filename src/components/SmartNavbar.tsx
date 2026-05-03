@@ -139,7 +139,7 @@ export default function SmartNavbar() {
     }
   };
 
-  const effectivelyShrunken = isShrunken && !isHovered && !isMobileMenuOpen && !user;
+  const effectivelyShrunken = isShrunken && !isHovered && !isMobileMenuOpen;
 
   // Let the main navbar render always.
   
@@ -151,11 +151,11 @@ export default function SmartNavbar() {
         onMouseLeave={handleMouseLeaveNav}
         initial={false}
         animate={{
-          height: effectivelyShrunken ? 40 : (isMobileMenuOpen ? 'auto' : (user ? 60 : 80)),
+          height: effectivelyShrunken ? 40 : (isMobileMenuOpen ? 'auto' : 80),
           width: effectivelyShrunken 
             ? (isMobile ? 260 : 200) 
-            : (user ? (isMobile ? '100%' : 'fit-content') : (isMobile ? 'calc(100% - 32px)' : '92%')),
-          maxWidth: effectivelyShrunken ? (isMobile ? 260 : 200) : (user ? 900 : 1200),
+            : (isMobile ? 'calc(100% - 32px)' : '92%'),
+          maxWidth: effectivelyShrunken ? (isMobile ? 260 : 200) : 1200,
           borderRadius: effectivelyShrunken ? 9999 : 32,
           backgroundColor: effectivelyShrunken 
             ? 'rgba(15, 23, 42, 0.8)' 
@@ -205,11 +205,11 @@ export default function SmartNavbar() {
               transition={{ duration: 0.15 }}
               className="flex flex-col w-full h-full"
             >
-              <div className={`flex items-center justify-between w-full px-6 md:px-8 ${user ? 'h-[60px] gap-8' : 'h-20 min-h-[80px]'}`}>
+              <div className="flex items-center justify-between w-full px-6 md:px-8 h-20 min-h-[80px]">
                 <a 
                   href="/" 
                   onClick={handleHomeClick}
-                  className={`flex items-center gap-1.5 group ${user ? 'mr-0' : ''}`}
+                  className="flex items-center gap-1.5 group"
                 >
                   <Hexagon className="text-[#00f0ff] size-6 sm:size-7 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.5)] transition-all" strokeWidth={2} />
                   <span className="text-base sm:text-xl font-semibold text-slate-100 tracking-tight">

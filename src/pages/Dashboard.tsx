@@ -1,10 +1,11 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router';
-import { motion, animate } from 'motion/react';
+import { motion, animate, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { 
   Wallet, ArrowUpRight, ArrowDownRight, Activity, 
-  History, Plus, LogOut, TrendingUp, Users, Shield, DollarSign
+  History, Plus, LogOut, TrendingUp, Users, Shield, DollarSign,
+  Zap, Globe, RefreshCcw
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Brush 
@@ -15,6 +16,8 @@ import WalletWidget from '../components/WalletWidget';
 import NewsFeed from '../components/NewsFeed';
 import MarketOverview from '../components/MarketOverview';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
+import FinancialPlanner from '../components/FinancialPlanner';
+import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
 import { fluidSpring } from '../components/SystemManager';
 import { signOut } from 'firebase/auth';
 
@@ -88,6 +91,9 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  
+  // Real-time market feed via WebSockets
+  const market = useMarketWatch(['btcusdt', 'ethusdt', 'solusdt', 'bnbusdt']);
 
   useEffect(() => {
     if (authLoading) return;
@@ -205,50 +211,61 @@ export default function Dashboard() {
           </div>
         )}
 
-        <header className="mb-6 px-2 flex justify-between items-end">
+        <header className="mb-6 px-2 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">Welcome back, {userData?.name}</h1>
             <p className="text-secondary mt-1 text-sm leading-relaxed">Here is the update on your crypto operations.</p>
           </div>
-          <div className="hidden md:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted">
+          
+          {/* Real-time Ticker */}
+          <div className="flex items-center gap-4 overflow-x-auto pb-2 no-scrollbar">
+            {(Object.values(market) as MarketData[]).map((coin) => (
+              <motion.div 
+                key={coin.symbol}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-card/50 border border-border/30 rounded-lg whitespace-nowrap"
+              >
+                <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${coin.change >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                <span className="text-[10px] font-black uppercase text-secondary">{coin.symbol.replace('USDT', '')}</span>
+                <span className="text-xs font-bold text-primary">${coin.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span className={`text-[10px] font-bold ${coin.change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {coin.change > 0 ? '+' : ''}{coin.change.toFixed(2)}%
+                </span>
+              </motion.div>
+            ))}
           </div>
         </header>
 
-        {/* Quick Actions / Balance (Moved to Top) */}
+        {/* Quick Actions / Balance (Moved to Top Right) */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full bg-card rounded-2xl p-4 sm:p-6 md:p-8 border border-border/30 shadow-md relative overflow-hidden shrink-0 mb-6"
+          className="w-full max-w-sm ml-auto bg-card rounded-2xl p-4 sm:p-6 border border-border/30 shadow-md relative overflow-hidden shrink-0 mb-6"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff] rounded-full blur-[60px] opacity-10 pointer-events-none" />
           
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 relative z-10">
+          <div className="flex flex-col gap-4 relative z-10">
             <div>
               <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tighter">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tighter">
                 <AnimatedNumber value={userData?.balance || 0} prefix="$" />
               </h2>
             </div>
             
             {/* Quick Action Bar */}
-            <div className="flex flex-wrap lg:flex-nowrap gap-2 w-full lg:w-auto">
+            <div className="flex flex-col gap-2 w-full">
               <button 
                 onClick={() => navigate('/deposit')} 
-                className="flex-1 lg:flex-none bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
+                className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-6 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
               >
-                <ArrowDownRight size={18} /> Deposit
+                <ArrowDownRight size={16} /> Deposit
               </button>
               <button 
                 onClick={() => navigate('/withdraw')} 
-                className="flex-1 lg:flex-none bg-subtle hover:bg-subtle-hover text-primary px-4 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
+                className="bg-subtle hover:bg-subtle-hover text-primary px-6 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
               >
-                <ArrowUpRight size={18} /> Withdraw
-              </button>
-              <button 
-                onClick={() => navigate('/buy-hashpower')} 
-                className="flex-1 lg:flex-none bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-4 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
-              >
-                <Plus size={18} /> Mining
+                <ArrowUpRight size={16} /> Withdraw
               </button>
             </div>
           </div>
@@ -287,6 +304,10 @@ export default function Dashboard() {
                 <div>
                   <h3 className="text-lg font-bold">Growth Overview</h3>
                   <p className="text-sm text-secondary">Your estimated yield and hashrate trajectory.</p>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                  <RefreshCcw size={12} className="text-emerald-400 animate-spin-slow" />
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live Feed Active</span>
                 </div>
               </div>
               <div className="h-[300px] w-full">
@@ -379,6 +400,23 @@ export default function Dashboard() {
             {/* Financial Dashboard Module (Stock & Crypto) */}
             <div className="shrink-0 max-w-full overflow-hidden">
                <MarketOverview />
+            </div>
+
+            {/* NEW: Financial Plans Display Section */}
+            <div id="financial-plans-display" className="shrink-0 max-w-full">
+              <FinancialPlanner />
+            </div>
+            
+            {/* Quick Hub/Profile Links */}
+            <div className="grid grid-cols-2 gap-6">
+              <button onClick={() => navigate('/hub')} className="bg-card p-6 rounded-2xl border border-border/50 hover:border-[#0052ff] transition-all text-left">
+                <h3 className="font-bold">Operations Hub</h3>
+                <p className="text-sm text-secondary">Manage platform features</p>
+              </button>
+              <button onClick={() => navigate('/profile')} className="bg-card p-6 rounded-2xl border border-border/50 hover:border-[#0052ff] transition-all text-left">
+                <h3 className="font-bold">User Profile</h3>
+                <p className="text-sm text-secondary">Manage your settings</p>
+              </button>
             </div>
             
             {/* Active Contracts Summary */}

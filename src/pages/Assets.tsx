@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Shield, TrendingUp, DollarSign, Activity, Wallet, PieChart as PieChartIcon } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 export default function Assets() {
   const { userData } = useAuth();
+  const navigate = useNavigate();
   
   const COLORS = ['#0052ff', '#00f0ff', '#8b5cf6', '#10b981'];
 
@@ -43,8 +45,8 @@ export default function Assets() {
         transition={fluidSpring}
         className="mb-8"
       >
-        <h1 className="text-3xl font-bold tracking-tight mb-2">My Assets</h1>
-        <p className="text-secondary">Comprehensive breakdown of your total wealth and current allocations.</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">Assets: Earnings and profits</h1>
+        <p className="text-secondary">Comprehensive breakdown of your total wealth and current allocations. Click a category to view details.</p>
       </motion.div>
 
       {/* Top Value Cards */}
@@ -53,7 +55,8 @@ export default function Assets() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...fluidSpring, delay: 0.1 }}
-          className="bg-surface border border-border rounded-3xl p-6 shadow-sm"
+          className="bg-surface border border-border rounded-3xl p-6 shadow-sm cursor-pointer hover:border-blue-500 transition-colors"
+          onClick={() => navigate('/assets/trades')}
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-secondary font-medium">Current Trades</h3>
@@ -69,7 +72,8 @@ export default function Assets() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...fluidSpring, delay: 0.2 }}
-          className="bg-surface border border-border rounded-3xl p-6 shadow-sm"
+          className="bg-surface border border-border rounded-3xl p-6 shadow-sm cursor-pointer hover:border-purple-500 transition-colors"
+          onClick={() => navigate('/assets/investments')}
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-secondary font-medium">Long-Term Investments</h3>
@@ -85,7 +89,8 @@ export default function Assets() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...fluidSpring, delay: 0.3 }}
-          className="bg-surface border border-border rounded-3xl p-6 shadow-sm"
+          className="bg-surface border border-border rounded-3xl p-6 shadow-sm cursor-pointer hover:border-[#00f0ff] transition-colors"
+          onClick={() => navigate('/assets/retirement')}
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-secondary font-medium">Retirement Funds</h3>

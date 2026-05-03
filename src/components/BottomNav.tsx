@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { Home, Search, MessageSquare, PlusSquare, Activity, Wallet, User, PieChart, TrendingUp } from 'lucide-react';
+import { Home, Search, MessageSquare, PlusSquare, Activity, Wallet, User, PieChart, TrendingUp, LayoutDashboard } from 'lucide-react';
 import { motion } from 'motion/react';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
@@ -13,8 +13,8 @@ export default function BottomNav() {
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Home' },
-    { path: '/live-trading', icon: TrendingUp, label: 'Markets' },
-    { path: '/assets', icon: PieChart, label: 'Assets' },
+    { path: '/hub', icon: LayoutDashboard, label: 'Hub' },
+    { path: '/profile', icon: User, label: 'Profile' },
     { path: '/wallet', icon: Wallet, label: 'Wallet' },
   ];
 

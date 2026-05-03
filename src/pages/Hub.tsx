@@ -5,13 +5,14 @@ import {
   ArrowDownRight, Shield, Users, TrendingUp,
   Cpu, Cloud, Zap, Globe, Mail, Phone, Share2
 } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 import { useAuth } from '../context/AuthContext';
 
-export default function MobileHub() {
+export default function Hub() {
   const { userData, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -53,7 +54,7 @@ export default function MobileHub() {
   ];
 
   return (
-    <div className="md:hidden min-h-screen bg-surface px-4 py-8 pb-24">
+    <div className="min-h-screen bg-surface px-4 py-8 pb-24 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -72,7 +73,7 @@ export default function MobileHub() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {quickActions.map((action, i) => (
           <Link key={i} to={action.path}>
             <motion.div
@@ -91,7 +92,7 @@ export default function MobileHub() {
       </div>
 
       {/* Main Grid */}
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {menuItems.map((item, i) => (
           <Link key={i} to={item.path}>
             <motion.div

@@ -186,6 +186,12 @@ service cloud.firestore {
       allow write: if isAdmin() && isValidSettings(request.resource.data);
     }
     
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+
     match /system/{docId} {
       allow read: if true;
       allow write: if isAdmin();

@@ -53,6 +53,18 @@ export default function Deposit() {
         timestamp: serverTimestamp()
       });
 
+      // Add Admin Notification
+      await addDoc(collection(db, 'notifications'), {
+        type: 'deposit',
+        userId: user.uid,
+        userName: user.email || 'Unknown User',
+        message: `New deposit of $${depositAmount} initiated by ${user.email}`,
+        amount: depositAmount,
+        currency: currency,
+        timestamp: serverTimestamp(),
+        read: false
+      });
+
       toast.success('Deposit notification sent! Admin will verify your transaction.');
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (error: any) {

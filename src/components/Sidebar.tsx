@@ -1,4 +1,4 @@
-import { LucideIcon, LayoutDashboard, Database, CloudRain, ChartCandlestick, ShoppingBag, Wallet, Settings as SettingsIcon, LogOut } from 'lucide-react';
+import { LucideIcon, LayoutDashboard, Database, CloudRain, ChartCandlestick, ShoppingBag, Wallet, Settings as SettingsIcon, LogOut, Home, User } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../firebase';
@@ -24,6 +24,8 @@ const miningNav: NavItem[] = [
 ];
 
 const userNav: NavItem[] = [
+    { name: 'Hub', icon: Home, path: '/hub' },
+    { name: 'Profile', icon: User, path: '/profile' },
     { name: 'Wallet', icon: Wallet, path: '/wallet' },
     { name: 'Settings', icon: SettingsIcon, path: '/settings' },
 ];
