@@ -237,35 +237,35 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Quick Actions / Balance (Moved to Top Right) */}
+        {/* Quick Actions / Balance (Full Width Top Banner) */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm ml-auto bg-card rounded-2xl p-4 sm:p-6 border border-border/30 shadow-md relative overflow-hidden shrink-0 mb-6"
+          className="w-full bg-card rounded-2xl p-6 border border-border/30 shadow-md relative overflow-hidden shrink-0 mb-8"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff] rounded-full blur-[60px] opacity-10 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#0052ff] rounded-full blur-[80px] opacity-10 pointer-events-none" />
           
-          <div className="flex flex-col gap-4 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div>
               <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tighter">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter">
                 <AnimatedNumber value={userData?.balance || 0} prefix="$" />
               </h2>
             </div>
             
             {/* Quick Action Bar */}
-            <div className="flex flex-col gap-2 w-full">
+            <div className="flex items-center gap-3 w-full md:w-auto">
               <button 
                 onClick={() => navigate('/deposit')} 
-                className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-6 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap"
+                className="flex-1 md:flex-none bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-6 md:px-8 py-3 w-full sm:w-auto rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap shadow-lg shadow-[#0052ff]/20"
               >
-                <ArrowDownRight size={16} /> Deposit
+                <ArrowDownRight size={18} /> Deposit
               </button>
               <button 
                 onClick={() => navigate('/withdraw')} 
-                className="bg-subtle hover:bg-subtle-hover text-primary px-6 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
+                className="flex-1 md:flex-none bg-subtle hover:bg-subtle-hover text-primary px-6 md:px-8 py-3 w-full sm:w-auto rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
               >
-                <ArrowUpRight size={16} /> Withdraw
+                <ArrowUpRight size={18} /> Withdraw
               </button>
             </div>
           </div>
