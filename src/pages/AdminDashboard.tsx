@@ -287,11 +287,12 @@ export default function AdminDashboard() {
         
         const userData = userSnap.data();
         const currentBalance = userData.balance || 0;
-        const newBalance = tx.type === 'deposit' 
-          ? currentBalance + tx.amount 
-          : currentBalance - tx.amount;
-
-        if (newBalance < 0) throw new Error('Insufficient user balance');
+        
+        // Deposit increases balance upon approval
+        if (tx.type === 'deposit') {
+          transaction.update(userRef, { balance: currentBalance + tx.amount });
+        }
+        // For withdrawals, balance was already deducted when created. No balance action.
 
         transaction.update(txRef, { 
           status: 'approved',
@@ -299,13 +300,11 @@ export default function AdminDashboard() {
           approved_by: currentUser?.uid
         });
 
-        transaction.update(userRef, { balance: newBalance });
-
         // Log action
         transaction.set(doc(collection(db, 'logs')), {
           user_id: currentUser?.uid,
           type: 'admin',
-          action: `Approved ${tx.type} of ${tx.amount} BTC for user ${tx.user_id}`,
+          action: `Approved ${tx.type} of $${tx.amount} for user ${tx.user_id}`,
           timestamp: serverTimestamp()
         });
       });
@@ -319,14 +318,37 @@ export default function AdminDashboard() {
 
   const handleRejectTransaction = async (tx: any) => {
     try {
-      await updateDoc(doc(db, 'transactions', tx.id), {
-        status: 'rejected',
-        rejected_at: serverTimestamp(),
-        rejected_by: currentUser?.uid
+      await runTransaction(db, async (transaction) => {
+        const userRef = doc(db, 'users', tx.user_id);
+        const txRef = doc(db, 'transactions', tx.id);
+        
+        const userSnap = await transaction.get(userRef);
+        if (!userSnap.exists()) throw new Error('User not found');
+        
+        const userData = userSnap.data();
+        const currentBalance = userData.balance || 0;
+
+        // If reversing a withdrawal, refund the balance
+        if (tx.type === 'withdrawal') {
+          transaction.update(userRef, { balance: currentBalance + tx.amount });
+        }
+        
+        transaction.update(txRef, {
+          status: 'rejected',
+          rejected_at: serverTimestamp(),
+          rejected_by: currentUser?.uid
+        });
+        
+        // Log action
+        transaction.set(doc(collection(db, 'logs')), {
+          user_id: currentUser?.uid,
+          type: 'admin',
+          action: `Rejected ${tx.type} of $${tx.amount} for user ${tx.user_id}`,
+          timestamp: serverTimestamp()
+        });
       });
 
       toast.info('Transaction rejected');
-      await logAdminAction(`Rejected ${tx.type} of ${tx.amount} BTC for user ${tx.user_id}`);
     } catch (error: any) {
       console.error('Rejection error:', error);
       toast.error(error.message || 'Failed to reject transaction');

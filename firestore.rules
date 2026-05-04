@@ -96,8 +96,9 @@ service cloud.firestore {
              data.type in ['deposit', 'withdrawal', 'purchase'] &&
              data.amount is number && data.amount > 0 &&
              data.status in ['pending', 'approved', 'rejected', 'completed'] &&
-             data.timestamp is string && data.timestamp.size() < 50 &&
+             (data.timestamp is timestamp || (data.timestamp is string && data.timestamp.size() < 50)) &&
              (!('method' in data) || (data.method is string && data.method.size() < 50)) &&
+             (!('currency' in data) || (data.currency is string && data.currency.size() < 50)) &&
              (!('address' in data) || (data.address is string && data.address.size() < 200)) &&
              (!('description' in data) || (data.description is string && data.description.size() < 500)) &&
              (!('approved_at' in data) || (data.approved_at is string && data.approved_at.size() < 50)) &&
