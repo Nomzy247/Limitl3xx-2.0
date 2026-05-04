@@ -72,6 +72,33 @@ export default function Hub() {
         </Link>
       </div>
 
+      {/* Stats Summary */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...fluidSpring, delay: 0.5 }}
+        className="mb-8 bg-gradient-to-br from-[#0052ff] to-[#00f0ff] p-6 rounded-3xl text-white shadow-2xl relative overflow-hidden"
+      >
+        <div className="relative z-10">
+          <p className="text-white/70 text-sm font-medium mb-1">Current Balance</p>
+          <h3 className="text-3xl font-bold mb-4">${userData?.balance?.toLocaleString() || '0.00'}</h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md">
+              <TrendingUp size={14} />
+              +12.5% this week
+            </div>
+            <button 
+              onClick={handleShare}
+              className="flex items-center gap-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-1.5 rounded-full backdrop-blur-md transition-colors"
+            >
+              <Share2 size={14} />
+              Share App
+            </button>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24" />
+      </motion.div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {quickActions.map((action, i) => (
@@ -112,33 +139,6 @@ export default function Hub() {
           </Link>
         ))}
       </div>
-
-      {/* Stats Summary */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...fluidSpring, delay: 0.5 }}
-        className="mt-8 bg-gradient-to-br from-[#0052ff] to-[#00f0ff] p-6 rounded-3xl text-white shadow-2xl relative overflow-hidden"
-      >
-        <div className="relative z-10">
-          <p className="text-white/70 text-sm font-medium mb-1">Current Balance</p>
-          <h3 className="text-3xl font-bold mb-4">${userData?.balance?.toLocaleString() || '0.00'}</h3>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md">
-              <TrendingUp size={14} />
-              +12.5% this week
-            </div>
-            <button 
-              onClick={handleShare}
-              className="flex items-center gap-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-1.5 rounded-full backdrop-blur-md transition-colors"
-            >
-              <Share2 size={14} />
-              Share App
-            </button>
-          </div>
-        </div>
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24" />
-      </motion.div>
     </div>
   );
 }
