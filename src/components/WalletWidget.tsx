@@ -31,7 +31,8 @@ export default function WalletWidget() {
   const fetchPrices = async () => {
     setIsSyncing(true);
     try {
-      const response = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT"]');
+      const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent('["BTCUSDT","ETHUSDT"]')}`);
+      if (!response.ok) throw new Error('Binance fetch failed');
       const data = await response.json();
       
       const newMarketData = { ...marketData };
@@ -44,7 +45,28 @@ export default function WalletWidget() {
       });
       setMarketData(newMarketData);
     } catch (error) {
-      console.error('Error fetching market data:', error);
+      try {
+        console.warn('Binance API failed, falling back to CoinGecko', error);
+        const cgResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true');
+        const cgData = await cgResponse.json();
+        
+        const newMarketData = { ...marketData };
+        if (cgData.bitcoin) {
+          newMarketData['BTC'] = {
+            price: cgData.bitcoin.usd,
+            change: cgData.bitcoin.usd_24h_change || 0
+          };
+        }
+        if (cgData.ethereum) {
+          newMarketData['ETH'] = {
+            price: cgData.ethereum.usd,
+            change: cgData.ethereum.usd_24h_change || 0
+          };
+        }
+        setMarketData(newMarketData);
+      } catch (fallbackError) {
+        console.error('Error fetching market data:', fallbackError);
+      }
     } finally {
       setTimeout(() => setIsSyncing(false), 800);
     }
