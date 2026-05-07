@@ -79,14 +79,15 @@ export default function Support() {
           </div>
           <h3 className="text-xl font-bold mb-2">Email Support</h3>
           <p className="text-secondary text-sm mb-6 leading-relaxed">Send us a detailed message and we'll reply via email.</p>
-          <motion.button 
+          <motion.a 
+            href="mailto:support@poolmining.cloud"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}
-            className="w-full py-3 bg-emerald-500 text-white rounded-full font-bold hover:bg-emerald-600 transition-colors"
+            className="w-full py-3 bg-emerald-500 text-white rounded-full font-bold hover:bg-emerald-600 transition-colors block text-center"
           >
             Send Email
-          </motion.button>
+          </motion.a>
         </motion.div>
 
         <motion.div 
@@ -101,14 +102,15 @@ export default function Support() {
           </div>
           <h3 className="text-xl font-bold mb-2">Phone Support</h3>
           <p className="text-secondary text-sm mb-6 leading-relaxed">Call our international support line for urgent matters.</p>
-          <motion.button 
+          <motion.a 
+            href="tel:+18001234567"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}
-            className="w-full py-3 bg-purple-500 text-white rounded-full font-bold hover:bg-purple-600 transition-colors"
+            className="w-full py-3 bg-purple-500 text-white rounded-full font-bold hover:bg-purple-600 transition-colors block text-center"
           >
             Call Now
-          </motion.button>
+          </motion.a>
         </motion.div>
       </div>
 

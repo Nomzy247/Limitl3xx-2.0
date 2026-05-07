@@ -79,10 +79,28 @@ export default function AdminSettings() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-secondary mb-2">Global Client Profit Margin (%)</label>
+          <label htmlFor="globalProfitMargin" className="block text-sm font-medium text-secondary mb-2">Global Client Profit Margin (%)</label>
           <div className="flex items-center gap-4">
-            <input type="range" min="1" max="50" value={globalProfitMargin} onChange={(e) => setGlobalProfitMargin(Number(e.target.value))} className="w-full accent-[#0052ff]" />
-            <span className="font-mono text-primary font-bold w-12 text-right">{globalProfitMargin}%</span>
+            <input type="range" min="1" max="100" value={globalProfitMargin} onChange={(e) => setGlobalProfitMargin(Number(e.target.value))} className="flex-1 accent-[#0052ff]" />
+            <div className="relative">
+              <input 
+                id="globalProfitMargin"
+                type="number" 
+                min="0" 
+                step="0.1"
+                value={globalProfitMargin} 
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  if (!isNaN(val) && val >= 0) {
+                    setGlobalProfitMargin(val);
+                  } else if (e.target.value === '') {
+                    setGlobalProfitMargin(0); // Allow clearing temporarily
+                  }
+                }} 
+                className="w-24 bg-background border border-border rounded-xl pl-3 pr-6 py-2 text-primary text-right font-mono focus:outline-none focus:ring-2 focus:ring-[#0052ff]" 
+              />
+              <span className="absolute right-2 top-2.5 text-secondary text-sm pointer-events-none">%</span>
+            </div>
           </div>
         </div>
 
