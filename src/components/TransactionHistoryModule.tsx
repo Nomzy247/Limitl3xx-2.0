@@ -108,7 +108,9 @@ export default function TransactionHistoryModule({ transactions, miningRevenue }
                 }`}>
                   {tx.type === 'withdrawal' || tx.type === 'sell' ? '-' : '+'}${tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
-                <p className="text-xs text-muted mt-0.5 capitalize">{tx.status}</p>
+                <p className="text-xs text-muted mt-0.5 capitalize">
+                  {tx.status} {tx.status === 'approved' && tx.approved_by ? 'by Admin' : ''}
+                </p>
               </div>
             </motion.div>
           ))

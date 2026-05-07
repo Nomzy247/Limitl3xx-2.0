@@ -317,7 +317,14 @@ export default function AdminDashboard() {
         if (tx.type === 'deposit') {
           transaction.update(userRef, { balance: currentBalance + tx.amount });
         }
-        // For withdrawals, balance was already deducted when created. No balance action.
+        
+        // For withdrawals, check balance and deduct upon approval
+        if (tx.type === 'withdrawal') {
+          if (currentBalance < tx.amount) {
+            throw new Error(`Insufficient user balance for withdrawal. Has $${currentBalance}, needs $${tx.amount}`);
+          }
+          transaction.update(userRef, { balance: currentBalance - tx.amount });
+        }
 
         transaction.update(txRef, { 
           status: 'approved',
@@ -350,13 +357,7 @@ export default function AdminDashboard() {
         const userSnap = await transaction.get(userRef);
         if (!userSnap.exists()) throw new Error('User not found');
         
-        const userData = userSnap.data();
-        const currentBalance = userData.balance || 0;
-
-        // If reversing a withdrawal, refund the balance
-        if (tx.type === 'withdrawal') {
-          transaction.update(userRef, { balance: currentBalance + tx.amount });
-        }
+        // Neither deposit nor withdrawal needs balance refunded or updated on rejection
         
         transaction.update(txRef, {
           status: 'rejected',
@@ -1067,7 +1068,16 @@ export default function AdminDashboard() {
               <div key={tx.id} className="p-4 bg-background border border-border/50 rounded-2xl hover:border-border transition-all">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <p className="font-semibold text-primary capitalize">{tx.type}</p>
+                    <p className="font-semibold text-primary capitalize">
+                      {tx.type}
+                      <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        tx.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
+                        tx.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                        'bg-yellow-500/10 text-yellow-500'
+                      }`}>
+                        {tx.status} {tx.approved_by ? '(by Admin)' : ''}
+                      </span>
+                    </p>
                     <p className="text-[10px] text-muted font-mono mt-1">{tx.user_id}</p>
                     {tx.address && <p className="text-[10px] text-secondary font-mono mt-0.5">{tx.address}</p>}
                   </div>
@@ -1080,20 +1090,22 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleApproveTransaction(tx)}
-                    className="flex-1 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-full text-xs font-bold transition-colors"
-                  >
-                    Approve
-                  </button>
-                  <button 
-                    onClick={() => handleRejectTransaction(tx)}
-                    className="flex-1 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-full text-xs font-bold transition-colors"
-                  >
-                    Reject
-                  </button>
-                </div>
+                {tx.status === 'pending' && (
+                  <div className="flex gap-2 mt-3">
+                    <button 
+                      onClick={() => handleApproveTransaction(tx)}
+                      className="flex-1 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-full text-xs font-bold transition-colors"
+                    >
+                      Approve
+                    </button>
+                    <button 
+                      onClick={() => handleRejectTransaction(tx)}
+                      className="flex-1 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-full text-xs font-bold transition-colors"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
             {transactions.length === 0 && (

@@ -99,8 +99,8 @@ export default function Withdraw() {
           read: false
         });
 
-        // Deduct balance immediately
-        transaction.update(userRef, { balance: currentBalance - withdrawAmount });
+        // Do not deduct balance immediately. Wait for admin approval.
+        // transaction.update(userRef, { balance: currentBalance - withdrawAmount });
       });
 
       toast.dismiss(toastId);
