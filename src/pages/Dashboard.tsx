@@ -29,7 +29,6 @@ const TradingViewWidget = lazy(() => Promise.resolve({
       width="100%" 
       height="100%" 
       frameBorder="0" 
-      allowTransparency={true} 
       scrolling="no" 
       allowFullScreen
     ></iframe>
