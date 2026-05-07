@@ -16,7 +16,7 @@ export default function NewsFeed() {
           setNews(data.Data.slice(0, 5));
         }
       } catch (err) {
-        console.error("Failed to fetch news", err);
+        // Suppress console error on blocked fetch
       } finally {
         setLoading(false);
       }

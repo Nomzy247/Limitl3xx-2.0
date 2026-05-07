@@ -101,9 +101,9 @@ service cloud.firestore {
              (!('currency' in data) || (data.currency is string && data.currency.size() < 50)) &&
              (!('address' in data) || (data.address is string && data.address.size() < 200)) &&
              (!('description' in data) || (data.description is string && data.description.size() < 500)) &&
-             (!('approved_at' in data) || (data.approved_at is string && data.approved_at.size() < 50)) &&
+             (!('approved_at' in data) || (data.approved_at is timestamp || (data.approved_at is string && data.approved_at.size() < 50))) &&
              (!('approved_by' in data) || (data.approved_by is string && data.approved_by.size() < 50)) &&
-             (!('rejected_at' in data) || (data.rejected_at is string && data.rejected_at.size() < 50)) &&
+             (!('rejected_at' in data) || (data.rejected_at is timestamp || (data.rejected_at is string && data.rejected_at.size() < 50))) &&
              (!('rejected_by' in data) || (data.rejected_by is string && data.rejected_by.size() < 50));
     }
 

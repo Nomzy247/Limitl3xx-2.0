@@ -65,7 +65,8 @@ export default function WalletWidget() {
         }
         setMarketData(newMarketData);
       } catch (fallbackError) {
-        console.error('Error fetching market data:', fallbackError);
+        // Suppress console error to avoid cluttering or alarming user on network block
+        // console.warn('Market data APIs currently unreachable.');
       }
     } finally {
       setTimeout(() => setIsSyncing(false), 800);

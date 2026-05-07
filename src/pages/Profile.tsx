@@ -167,7 +167,7 @@ export default function Profile() {
                         'bg-red-500/10 text-red-500'
                       }`}>{activity.status}</span>
                     </p>
-                    <p className="text-xs text-muted mt-1">{new Date(activity.timestamp).toLocaleString()}</p>
+                    <p className="text-xs text-muted mt-1">{activity.timestamp ? (typeof activity.timestamp.toDate === 'function' ? activity.timestamp.toDate() : new Date(activity.timestamp)).toLocaleString() : 'Pending...'}</p>
                   </div>
                   <div className="text-right">
                     <span className={`font-bold ${activity.type === 'withdraw' ? 'text-rose-400' : 'text-emerald-400'}`}>

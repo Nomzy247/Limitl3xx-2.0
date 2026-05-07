@@ -113,13 +113,13 @@ export default function Transactions() {
                       </div>
                     </td>
                     <td className="p-6 text-muted text-sm">
-                      {new Date(tx.timestamp).toLocaleDateString('en-US', { 
+                      {tx.timestamp ? (typeof tx.timestamp.toDate === 'function' ? tx.timestamp.toDate() : new Date(tx.timestamp)).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric', 
                         year: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
-                      })}
+                      }) : 'Pending...'}
                     </td>
                     <td className="p-6">
                       <div className="flex items-center gap-2">
