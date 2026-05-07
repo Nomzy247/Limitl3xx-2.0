@@ -88,6 +88,12 @@ export default function Dashboard() {
   const { user, userData, loading: authLoading } = useAuth();
   const [contracts, setContracts] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [liveFeed, setLiveFeed] = useState({
+    performance: '99',
+    hashrate: '500', 
+    revenue: '45000',
+    chartData: '4000, 3000, 4500, 5000, 4800, 6000'
+  });
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   
@@ -131,9 +137,26 @@ export default function Dashboard() {
       handleFirestoreError(error, OperationType.LIST, 'transactions');
     });
 
+    // Live Feed Listener
+    const liveFeedRef = collection(db, 'system');
+    const unsubscribeFeed = onSnapshot(query(liveFeedRef, limit(10)), (snapshot) => {
+      snapshot.forEach(doc => {
+        if (doc.id === 'live_feed') {
+          const data = doc.data();
+          setLiveFeed({
+            performance: data.performance || '99',
+            hashrate: data.hashrate || '500',
+            revenue: data.revenue || '45000',
+            chartData: data.chartData || '4000, 3000, 4500, 5000, 4800, 6000'
+          });
+        }
+      });
+    });
+
     return () => {
       unsubscribeContracts();
       unsubscribeTransactions();
+      unsubscribeFeed();
     };
   }, [user, authLoading, navigate]);
 
@@ -275,6 +298,39 @@ export default function Dashboard() {
           
           {/* Main Content Column (Spans 8 columns on large screens) */}
           <div className="xl:col-span-8 flex flex-col gap-6 w-full overflow-hidden">
+
+            {/* Global Network Live Feed */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full bg-card rounded-2xl p-6 border border-border/50 shadow-md relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-1 h-full bg-fuchsia-500 rounded-l-2xl"></div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Activity className="text-fuchsia-500" size={20} />
+                  <h3 className="text-lg font-bold">Global Network Status</h3>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-full">
+                  <RefreshCcw size={12} className="text-fuchsia-400 animate-spin-slow" />
+                  <span className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-wider">Syncing</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Mining Performance</p>
+                  <p className="text-2xl font-bold text-primary">{liveFeed.performance}% <span className="text-xs text-emerald-500 ml-1">▲</span></p>
+                </div>
+                <div>
+                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Total Client Hashrate</p>
+                  <p className="text-2xl font-bold text-[#0052ff]">{liveFeed.hashrate} TH/s</p>
+                </div>
+                <div>
+                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Total Client Revenue</p>
+                  <p className="text-2xl font-bold text-emerald-400">${Number(liveFeed.revenue).toLocaleString()}</p>
+                </div>
+              </div>
+            </motion.div>
             
             {/* TradingView Widget */}
             <motion.div 

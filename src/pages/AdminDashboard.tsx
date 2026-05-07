@@ -39,6 +39,12 @@ export default function AdminDashboard() {
     countries: '0',
     uptime: '0%'
   });
+  const [liveFeed, setLiveFeed] = useState({
+    performance: '99',
+    hashrate: '500',
+    revenue: '45000',
+    chartData: '4000, 3000, 4500, 5000, 4800, 6000'
+  });
   const [logs, setLogs] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [adminNotifications, setAdminNotifications] = useState<any[]>([]);
@@ -89,6 +95,25 @@ export default function AdminDashboard() {
           miners: data.miners || '0',
           countries: data.countries || '0',
           uptime: data.uptime || '0%'
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch Live Feed
+  useEffect(() => {
+    const feedDoc = doc(db, 'system', 'live_feed');
+    
+    const unsubscribe = onSnapshot(feedDoc, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setLiveFeed({
+          performance: data.performance || '99',
+          hashrate: data.hashrate || '500',
+          revenue: data.revenue || '45000',
+          chartData: data.chartData || '4000, 3000, 4500, 5000, 4800, 6000'
         });
       }
     });
@@ -389,6 +414,29 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSaveLiveFeed = async () => {
+    try {
+      await setDoc(doc(db, 'system', 'live_feed'), {
+        ...liveFeed,
+        updated_at: serverTimestamp()
+      }, { merge: true });
+      
+      toast.success('Live feed updated successfully!');
+      await logAdminAction(`Updated global live feed.`);
+    } catch (error: any) {
+      console.error('Error saving live feed:', error);
+      toast.error('Failed to save live feed');
+    }
+  };
+
+  const parsedChartData = liveFeed.chartData.split(',').map((val, index) => {
+    const days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Day 8'];
+    return {
+      name: days[index % days.length],
+      revenue: Number(val.trim()) || 0
+    };
+  });
+
   return (
     <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -495,10 +543,10 @@ export default function AdminDashboard() {
           transition={{ ...fluidSpring, delay: 0.4 }}
           className="lg:col-span-2 bg-surface border border-border rounded-3xl p-6"
         >
-          <h3 className="text-xl font-bold mb-6">Revenue & User Growth</h3>
+          <h3 className="text-xl font-bold mb-6">Total Revenue Generated</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={parsedChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
@@ -805,6 +853,71 @@ export default function AdminDashboard() {
             className="w-full mt-6 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium transition-colors"
           >
             Save Statistics
+          </button>
+        </motion.div>
+
+        {/* Global Live Feed Management */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...fluidSpring, delay: 0.74 }}
+          className="bg-surface border border-border rounded-3xl p-6 lg:col-span-1"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-fuchsia-500/10 rounded-xl">
+              <Activity className="text-fuchsia-500" size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold">Client Real-Time Feed</h3>
+              <p className="text-sm text-secondary">Manage site-wide real time feeds</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Mining Performance (%)</label>
+              <input 
+                type="text" 
+                value={liveFeed.performance}
+                onChange={(e) => setLiveFeed({...liveFeed, performance: e.target.value})}
+                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Total Hashrate</label>
+              <input 
+                type="text" 
+                value={liveFeed.hashrate}
+                onChange={(e) => setLiveFeed({...liveFeed, hashrate: e.target.value})}
+                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-secondary">Total Revenue</label>
+              <input 
+                type="text" 
+                value={liveFeed.revenue}
+                onChange={(e) => setLiveFeed({...liveFeed, revenue: e.target.value})}
+                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-secondary">Chart Data (comma separated)</label>
+              <input 
+                type="text" 
+                value={liveFeed.chartData}
+                placeholder="e.g. 4000, 3000, 4500"
+                onChange={(e) => setLiveFeed({...liveFeed, chartData: e.target.value})}
+                className="w-full bg-background border border-border rounded-full px-3 py-2 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+              />
+            </div>
+          </div>
+
+          <button 
+            onClick={handleSaveLiveFeed}
+            className="w-full mt-6 bg-fuchsia-600 hover:bg-fuchsia-500 text-white py-3 rounded-full font-medium transition-colors"
+          >
+            Broadcast to Clients
           </button>
         </motion.div>
 
