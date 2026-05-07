@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { User, Mail, Calendar, Shield, Award, TrendingUp, Wallet, ArrowRight, Settings, LogOut } from 'lucide-react';
+import { User, Mail, Calendar, Shield, Award, TrendingUp, Wallet, ArrowRight, Settings, LogOut, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router';
 import { signOut } from 'firebase/auth';
-import { auth, db, collection, query, where, orderBy, onSnapshot, limit, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, collection, query, where, orderBy, onSnapshot, limit, handleFirestoreError, OperationType, doc, updateDoc } from '../firebase';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 
@@ -12,6 +12,59 @@ export default function Profile() {
   const { user, userData } = useAuth();
   const navigate = useNavigate();
   const [recentTxs, setRecentTxs] = useState<any[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) { // 2MB
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 256;
+        const MAX_HEIGHT = 256;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+        try {
+          if (!user) return;
+          await updateDoc(doc(db, 'users', user.uid), {
+            avatar_url: dataUrl
+          });
+          toast.success('Profile picture updated successfully!');
+        } catch (error) {
+          toast.error('Failed to update profile picture');
+          console.error(error);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -56,9 +109,23 @@ export default function Profile() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff]/10 rounded-full blur-[60px] pointer-events-none" />
             
-            <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#0052ff] to-[#00f0ff] p-1 shadow-2xl mb-6 relative">
-              <div className="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-white font-bold text-5xl border-4 border-card overflow-hidden">
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleImageUpload} 
+            />
+            <div 
+              className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#0052ff] to-[#00f0ff] p-1 shadow-2xl mb-6 relative cursor-pointer group"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-white font-bold text-5xl border-4 border-card overflow-hidden relative">
                 {userData?.avatar_url ? <img src={userData.avatar_url} alt="Avatar" className="w-full h-full object-cover" /> : userData?.name?.charAt(0) || 'U'}
+                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera size={24} className="text-white mb-1" />
+                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">Change</span>
+                </div>
               </div>
               <div className="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-card" />
             </div>

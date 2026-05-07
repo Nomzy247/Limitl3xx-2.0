@@ -12,6 +12,7 @@ export default function PoolMining() {
   const [contracts, setContracts] = useState<any[]>([]);
   const [settings, setSettings] = useState({ global_profit_margin: 15, costings: { pool: 150 } });
   const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
+  const [confirmPlan, setConfirmPlan] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function PoolMining() {
     { id: 'p3', name: 'Elite Pool', hashpower: '100 TH/s', price: settings.costings.pool * 8, dailyReturn: (settings.global_profit_margin / 6).toFixed(1) }
   ];
 
-  const handlePurchase = async (plan: any) => {
+  const handlePurchase = (plan: any) => {
     if (!user || !userData) {
       toast.error('Please login to purchase hashpower.');
       return;
@@ -61,6 +62,14 @@ export default function PoolMining() {
       return;
     }
 
+    setConfirmPlan(plan);
+  };
+
+  const executePurchase = async () => {
+    if (!user || !userData || !confirmPlan) return;
+    const plan = confirmPlan;
+    const price = Number(plan.price);
+    
     setIsPurchasing(plan.id);
     try {
       await runTransaction(db, async (transaction) => {
@@ -100,11 +109,13 @@ export default function PoolMining() {
       });
 
       toast.success('Hashpower purchased successfully!');
+      setConfirmPlan(null);
     } catch (error: any) {
       console.error('Purchase error:', error);
       toast.error(error.message || 'Failed to complete purchase.');
     } finally {
       setIsPurchasing(null);
+      setConfirmPlan(null);
     }
   };
 
@@ -222,6 +233,64 @@ export default function PoolMining() {
           ))}
         </div>
       </div>
+
+      {confirmPlan && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card border border-border/50 rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
+          >
+            <h2 className="text-2xl font-bold mb-6">Confirm Purchase</h2>
+            
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center pb-4 border-b border-border/50">
+                <span className="text-secondary">Plan</span>
+                <span className="font-bold text-primary">{confirmPlan.name}</span>
+              </div>
+              <div className="flex justify-between items-center pb-4 border-b border-border/50">
+                <span className="text-secondary">Hashpower</span>
+                <span className="font-bold text-primary">{confirmPlan.hashpower}</span>
+              </div>
+              <div className="flex justify-between items-center pb-4 border-b border-border/50">
+                <span className="text-secondary">Est. Daily Return</span>
+                <span className="font-bold text-[#00f0ff]">~{confirmPlan.dailyReturn}%</span>
+              </div>
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-secondary">Total Cost</span>
+                <span className="text-xl font-bold text-emerald-400">
+                  ${confirmPlan.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-secondary mb-8 text-center pb-4 border-b border-border/10">
+              The amount will be deducted from your current dashboard balance.
+            </p>
+
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setConfirmPlan(null)}
+                disabled={isPurchasing !== null}
+                className="flex-1 py-3 px-4 rounded-xl border border-border text-primary hover:bg-subtle transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executePurchase}
+                disabled={isPurchasing !== null}
+                className="flex-1 py-3 px-4 rounded-xl bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold transition-colors disabled:opacity-50 flex justify-center items-center"
+              >
+                {isPurchasing !== null ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  'Confirm Order'
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
