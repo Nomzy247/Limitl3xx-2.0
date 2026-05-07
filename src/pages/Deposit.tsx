@@ -16,10 +16,12 @@ export default function Deposit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const walletAddresses: any = {
-    BTC: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-    ETH: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    USDT: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    SOL: 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH'
+    BTC: 'bc1qftqgamhv7hgs6msxfpwc0aawj5kn0mrjl3j4u7',
+    ETH: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
+    SOL: 'CS5onmGF5eUUCzLU4UJAqiBHh9ZP7KTpk5rgfVqXQy4A',
+    LTC: 'LVRXy4jvsBK2rLLerjEohrKK1Pkem9nFzq',
+    BCH: 'qrhe43zzq5rdn4wvgsre0j09j3phhj7zxsl4nq9p3p',
+    USDT: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525' // Defaulting to the Ethereum network
   };
   
   const walletAddress = walletAddresses[currency];
@@ -104,6 +106,8 @@ export default function Deposit() {
                 <option value="ETH">Ethereum (ETH)</option>
                 <option value="USDT">Tether (USDT ERC-20)</option>
                 <option value="SOL">Solana (SOL)</option>
+                <option value="LTC">Litecoin (LTC)</option>
+                <option value="BCH">Bitcoin Cash (BCH)</option>
               </select>
             </div>
 

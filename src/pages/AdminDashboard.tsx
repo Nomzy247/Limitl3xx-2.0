@@ -627,7 +627,7 @@ export default function AdminDashboard() {
             <div key={notif.id} className="p-4 bg-background border border-border rounded-xl flex justify-between items-center">
               <div>
                 <p className="font-medium text-sm">{notif.message}</p>
-                <p className="text-xs text-secondary">{notif.timestamp ? new Date(notif.timestamp.toDate()).toLocaleString() : 'Just now'}</p>
+                <p className="text-xs text-secondary">{notif.timestamp ? (typeof notif.timestamp.toDate === 'function' ? notif.timestamp.toDate() : notif.timestamp.seconds ? new Date(notif.timestamp.seconds * 1000) : new Date(notif.timestamp)).toLocaleString() : 'Just now'}</p>
               </div>
               <button className="text-xs bg-primary text-background rounded-full px-3 py-1 font-bold">
                 View
@@ -900,7 +900,7 @@ export default function AdminDashboard() {
               <div key={log.id} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/50 hover:border-border transition-all">
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-mono text-muted">
-                    {log.timestamp ? (typeof log.timestamp.toDate === 'function' ? log.timestamp.toDate() : new Date(log.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '00:00'}
+                    {log.timestamp ? (typeof log.timestamp.toDate === 'function' ? log.timestamp.toDate() : log.timestamp.seconds ? new Date(log.timestamp.seconds * 1000) : new Date(log.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '00:00'}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                     log.type === 'ai' ? 'bg-[#0052ff]/10 text-[#0052ff]' :
@@ -963,7 +963,7 @@ export default function AdminDashboard() {
                       {tx.type === 'deposit' ? '+' : '-'}{tx.amount.toFixed(8)} BTC
                     </p>
                     <p className="text-[10px] text-muted">
-                      {tx.timestamp ? (typeof tx.timestamp.toDate === 'function' ? tx.timestamp.toDate() : new Date(tx.timestamp)).toLocaleDateString() : 'Unknown Date'}
+                      {tx.timestamp ? (typeof tx.timestamp.toDate === 'function' ? tx.timestamp.toDate() : tx.timestamp.seconds ? new Date(tx.timestamp.seconds * 1000) : new Date(tx.timestamp)).toLocaleDateString() : 'Unknown Date'}
                     </p>
                   </div>
                 </div>

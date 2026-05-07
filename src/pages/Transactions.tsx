@@ -113,7 +113,10 @@ export default function Transactions() {
                       </div>
                     </td>
                     <td className="p-6 text-muted text-sm">
-                      {tx.timestamp ? (typeof tx.timestamp.toDate === 'function' ? tx.timestamp.toDate() : new Date(tx.timestamp)).toLocaleDateString('en-US', { 
+                      {tx.timestamp ? 
+                        (typeof tx.timestamp.toDate === 'function' ? tx.timestamp.toDate() : 
+                         tx.timestamp.seconds ? new Date(tx.timestamp.seconds * 1000) : 
+                         new Date(tx.timestamp)).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric', 
                         year: 'numeric',
