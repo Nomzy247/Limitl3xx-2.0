@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Send, ShieldAlert, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { db, doc, collection, runTransaction, serverTimestamp } from '../firebase';
+import { db, doc, collection, runTransaction, serverTimestamp, addDoc } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 
@@ -86,21 +86,21 @@ export default function Withdraw() {
           timestamp: serverTimestamp()
         });
 
-        // Add Admin Notification
-        transaction.set(doc(collection(db, 'notifications')), {
-          type: 'withdrawal',
-          userId: user!.uid,
-          userName: user!.email || 'Unknown User',
-          message: `New withdrawal of $${withdrawAmount} ${currency} initiated by ${user!.email}`,
-          amount: withdrawAmount,
-          currency: currency,
-          address: address,
-          timestamp: serverTimestamp(),
-          read: false
-        });
+        // Deduct balance immediately
+        transaction.update(userRef, { balance: currentBalance - withdrawAmount });
+      });
 
-        // Do not deduct balance immediately. Wait for admin approval.
-        // transaction.update(userRef, { balance: currentBalance - withdrawAmount });
+      // Add Admin Notification outside transaction
+      await addDoc(collection(db, 'notifications'), {
+        type: 'withdrawal',
+        userId: user!.uid,
+        userName: user!.email || 'Unknown User',
+        message: `New withdrawal of $${withdrawAmount} ${currency} initiated by ${user!.email}`,
+        amount: withdrawAmount,
+        currency: currency,
+        address: address,
+        timestamp: serverTimestamp(),
+        read: false
       });
 
       toast.dismiss(toastId);

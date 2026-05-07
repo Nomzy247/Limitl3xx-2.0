@@ -84,10 +84,10 @@ service cloud.firestore {
              data.type in ['pool', 'cloud', 'crypto'] &&
              data.hashpower is string && data.hashpower.size() > 0 && data.hashpower.size() < 50 &&
              data.price is number && data.price >= 0 &&
-             (data.start_date is timestamp || (data.start_date is string && data.start_date.size() < 50)) &&
+             data.start_date is string && data.start_date.size() < 50 &&
              data.status in ['active', 'completed', 'expired', 'pending'] &&
              (!('daily_return' in data) || data.daily_return is number) &&
-             (!('next_payout' in data) || (data.next_payout is timestamp || (data.next_payout is string && data.next_payout.size() < 50)));
+             (!('next_payout' in data) || (data.next_payout is string && data.next_payout.size() < 50));
     }
 
     function isValidTransaction(data) {
@@ -139,7 +139,7 @@ service cloud.firestore {
         isAdmin() || 
         (isOwner(userId) && 
          request.resource.data.role == resource.data.role &&
-         request.resource.data.balance <= resource.data.balance &&
+         request.resource.data.balance == resource.data.balance &&
          (!('balances' in request.resource.data) || request.resource.data.balances == resource.data.balances) &&
          (!('verification_status' in request.resource.data) || request.resource.data.verification_status == resource.data.verification_status) &&
          (!('referral_count' in request.resource.data) || request.resource.data.referral_count == resource.data.referral_count) &&
@@ -154,7 +154,7 @@ service cloud.firestore {
     match /contracts/{contractId} {
       allow read: if isAuthenticated() && (isOwner(resource.data.user_id) || isAdmin());
       allow create: if isAuthenticated() && isOwner(request.resource.data.user_id) && isValidContract(request.resource.data) &&
-                    (request.resource.data.status == 'pending' || request.resource.data.status == 'active' || isAdmin());
+                    (request.resource.data.status == 'pending' || isAdmin());
       allow update: if isAuthenticated() && isValidContract(request.resource.data) && (
         isAdmin() ||
         (isOwner(resource.data.user_id) && 
@@ -170,7 +170,7 @@ service cloud.firestore {
     match /transactions/{transactionId} {
       allow read: if isAuthenticated() && (isOwner(resource.data.user_id) || isAdmin());
       allow create: if isAuthenticated() && isOwner(request.resource.data.user_id) && isValidTransaction(request.resource.data) &&
-                    (request.resource.data.status == 'pending' || request.resource.data.status == 'completed' || isAdmin());
+                    (request.resource.data.status == 'pending' || isAdmin());
       allow update: if isAuthenticated() && isValidTransaction(request.resource.data) && isAdmin();
       allow delete: if isAdmin();
     }

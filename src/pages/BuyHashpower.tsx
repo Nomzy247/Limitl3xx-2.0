@@ -80,6 +80,9 @@ export default function BuyHashpower() {
     
     setIsPurchasing(true);
     try {
+      const contractRef = doc(collection(db, 'contracts'));
+      const txRef = doc(collection(db, 'transactions'));
+      
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await transaction.get(userRef);
@@ -93,7 +96,6 @@ export default function BuyHashpower() {
         transaction.update(userRef, { balance: currentBalance - price });
 
         // Create contract
-        const contractRef = doc(collection(db, 'contracts'));
         transaction.set(contractRef, {
           user_id: user.uid,
           plan_id: plan.id,
@@ -108,7 +110,6 @@ export default function BuyHashpower() {
         });
 
         // Create transaction record
-        const txRef = doc(collection(db, 'transactions'));
         transaction.set(txRef, {
           user_id: user.uid,
           type: 'purchase',
