@@ -188,8 +188,9 @@ service cloud.firestore {
     }
     
     match /notifications/{notificationId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
       allow create: if isAuthenticated();
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
       allow delete: if isAdmin();
     }
 

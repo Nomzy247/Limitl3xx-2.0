@@ -59,19 +59,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (firebaseUser) {
           setUser(firebaseUser);
           
-          // Log a visit notification
-          try {
-            await addDoc(collection(db, 'notifications'), {
-                type: 'visit',
-                userId: firebaseUser.uid,
-                message: `User ${firebaseUser.email} visited the site`,
-                timestamp: serverTimestamp(),
-                read: false
-            });
-          } catch (e) {
-            console.error("Failed to log visit notification", e);
-          }
-          
           // Fetch user data from Firestore
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           
@@ -85,8 +72,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (Date.now() - lastLogin > 3600000) {
                 try {
                   await updateDoc(userDocRef, { last_login: new Date().toISOString() });
+                  
+                  // Log a visit notification only when last_login is updated (max once per hour)
+                  await addDoc(collection(db, 'notifications'), {
+                      type: 'visit',
+                      userId: firebaseUser.uid,
+                      message: `User ${firebaseUser.email} visited the site`,
+                      timestamp: serverTimestamp(),
+                      read: false
+                  });
                 } catch (e) {
-                  console.error("Failed to update last login", e);
+                  console.error("Failed to update last login or log visit", e);
                 }
               }
               
