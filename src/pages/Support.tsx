@@ -58,6 +58,7 @@ export default function Support() {
           <h3 className="text-xl font-bold mb-2">Live Chat</h3>
           <p className="text-secondary text-sm mb-6 leading-relaxed">Speak directly with our support agents in real-time.</p>
           <motion.button 
+            onClick={() => window.dispatchEvent(new Event('open-chat'))}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}

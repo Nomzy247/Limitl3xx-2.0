@@ -30,6 +30,12 @@ export default function Chatbot() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    window.addEventListener('open-chat', handleOpenChat);
+    return () => window.removeEventListener('open-chat', handleOpenChat);
+  }, []);
+
   const handleClearHistory = () => {
     setMessages([{ role: 'model', text: 'Hello! I am your PoolMining.cloud AI assistant. How can I help you today?' }]);
     chatRef.current = null;
