@@ -1,15 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { motion, animate } from 'motion/react';
-import { Activity, Server } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Server, CheckCircle2, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
+import { db, doc, collection, query, where, orderBy, onSnapshot, runTransaction, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
 
 export default function PoolMining() {
   const { user, userData } = useAuth();
   const [contracts, setContracts] = useState<any[]>([]);
+  const [settings, setSettings] = useState({ global_profit_margin: 15, costings: { pool: 150 } });
+  const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setSettings({
+          global_profit_margin: data.global_profit_margin || 15,
+          costings: data.costings || { pool: 150 }
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -26,6 +42,71 @@ export default function PoolMining() {
     }, (error) => handleFirestoreError(error, OperationType.LIST, 'contracts'));
     return () => unsubscribe();
   }, [user]);
+
+  const plans = [
+    { id: 'p1', name: 'Starter Pool', hashpower: '10 TH/s', price: settings.costings.pool, dailyReturn: (settings.global_profit_margin / 10).toFixed(1) },
+    { id: 'p2', name: 'Pro Pool', hashpower: '50 TH/s', price: settings.costings.pool * 4.3, dailyReturn: (settings.global_profit_margin / 8).toFixed(1) },
+    { id: 'p3', name: 'Elite Pool', hashpower: '100 TH/s', price: settings.costings.pool * 8, dailyReturn: (settings.global_profit_margin / 6).toFixed(1) }
+  ];
+
+  const handlePurchase = async (plan: any) => {
+    if (!user || !userData) {
+      toast.error('Please login to purchase hashpower.');
+      return;
+    }
+
+    const price = Number(plan.price);
+    if ((userData.balance || 0) < price) {
+      toast.error('Insufficient balance. Please deposit funds first.');
+      return;
+    }
+
+    setIsPurchasing(plan.id);
+    try {
+      await runTransaction(db, async (transaction) => {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await transaction.get(userRef);
+        
+        if (!userSnap.exists()) throw new Error('User not found');
+        
+        const currentBalance = userSnap.data().balance || 0;
+        if (currentBalance < price) throw new Error('Insufficient balance');
+
+        transaction.update(userRef, { balance: currentBalance - price });
+
+        const contractRef = doc(collection(db, 'contracts'));
+        transaction.set(contractRef, {
+          user_id: user.uid,
+          plan_id: plan.id,
+          plan_name: plan.name,
+          type: 'pool',
+          hashpower: plan.hashpower,
+          price: price,
+          daily_return: Number(plan.dailyReturn),
+          status: 'active',
+          start_date: serverTimestamp(),
+          next_payout: new Date(Date.now() + 86400000)
+        });
+
+        const txRef = doc(collection(db, 'transactions'));
+        transaction.set(txRef, {
+          user_id: user.uid,
+          type: 'purchase',
+          amount: price,
+          status: 'completed',
+          description: `Purchased ${plan.name} (${plan.hashpower})`,
+          timestamp: serverTimestamp()
+        });
+      });
+
+      toast.success('Hashpower purchased successfully!');
+    } catch (error: any) {
+      console.error('Purchase error:', error);
+      toast.error(error.message || 'Failed to complete purchase.');
+    } finally {
+      setIsPurchasing(null);
+    }
+  };
 
   const totalHashrate = contracts.reduce((acc, curr) => acc + parseFloat(curr.hashpower || '0'), 0);
   const totalMined = contracts.reduce((acc, curr) => acc + (curr.mined || 0), 0);
@@ -54,12 +135,9 @@ export default function PoolMining() {
         </motion.div>
       </div>
 
-      <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-lg">
+      <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-lg mb-10">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold">Active Pool Allocations</h3>
-          <button onClick={() => navigate('/buy-hashpower')} className="bg-[#0052ff] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#0052ff]/90 transition">
-             Connect New Worker
-          </button>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -77,7 +155,7 @@ export default function PoolMining() {
                     <tr key={plan.id} className="border-b border-border/50 last:border-0 hover:bg-subtle transition-colors">
                       <td className="py-4 font-semibold text-primary capitalize">{plan.type} #{(plan.id).substring(0,6)}</td>
                       <td className="py-4 text-muted">{plan.hashpower}</td>
-                      <td className="py-4 text-[#00f0ff] font-medium">+{plan.dailyReturn || 0}%</td>
+                      <td className="py-4 text-[#00f0ff] font-medium">+{plan.daily_return || plan.dailyReturn || 0}%</td>
                       <td className="py-4">
                         <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${
                           plan.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-muted/20 text-muted'
@@ -95,6 +173,54 @@ export default function PoolMining() {
               </tbody>
             </table>
           </div>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold mb-6">Purchase Hash Power</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {plans.map((plan) => (
+            <motion.div 
+              key={plan.id}
+              whileHover={{ y: -5, scale: 1.02 }}
+              transition={fluidSpring}
+              className="p-6 rounded-2xl border-2 border-border bg-card shadow-lg flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-xl font-bold text-primary">{plan.name}</h3>
+                  <Zap className="text-[#0052ff]" size={24} />
+                </div>
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between border-b border-border/50 pb-2">
+                    <span className="text-secondary text-sm">Hashpower:</span> 
+                    <span className="font-bold text-primary">{plan.hashpower}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-border/50 pb-2">
+                    <span className="text-secondary text-sm">Est. Daily Return:</span> 
+                    <span className="font-bold text-[#00f0ff]">~{plan.dailyReturn}%</span>
+                  </div>
+                  <div className="flex justify-between pb-2">
+                    <span className="text-secondary text-sm">Price:</span> 
+                    <span className="font-bold text-emerald-400">${plan.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  </div>
+                </div>
+              </div>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handlePurchase(plan)}
+                disabled={isPurchasing === plan.id}
+                className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPurchasing === plan.id ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  'Buy Now'
+                )}
+              </motion.button>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
