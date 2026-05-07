@@ -65,6 +65,9 @@ export default function Withdraw() {
     try {
       const withdrawAmount = parseFloat(amount);
       const toastId = toast.loading('Submitting withdrawal request...');
+      
+      const txRef = doc(collection(db, 'transactions'));
+      
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, 'users', user!.uid);
         const userSnap = await transaction.get(userRef);
@@ -75,7 +78,6 @@ export default function Withdraw() {
         if (withdrawAmount > currentBalance) throw new Error('Insufficient balance');
 
         // Create transaction record
-        const txRef = doc(collection(db, 'transactions'));
         transaction.set(txRef, {
           user_id: user!.uid,
           type: 'withdrawal',
