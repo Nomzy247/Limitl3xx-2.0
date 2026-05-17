@@ -20,6 +20,7 @@ import FinancialPlanner from '../components/FinancialPlanner';
 import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
 import { fluidSpring } from '../components/SystemManager';
 import { signOut } from 'firebase/auth';
+import { formatFirebaseDate } from '../utils/date';
 
 // Lazy load TradingView widget
 const TradingViewWidget = lazy(() => Promise.resolve({
@@ -578,7 +579,7 @@ export default function Dashboard() {
                  <div className="flex justify-between text-xs pt-2">
                   <span className="text-secondary">Member Since</span>
                   <span className="text-primary">
-                    {userData?.joined_date ? new Date(userData.joined_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '2024'}
+                    {formatFirebaseDate(userData?.joined_date, { month: 'short', year: 'numeric' })}
                   </span>
                 </div>
               </div>

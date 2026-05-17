@@ -7,6 +7,7 @@ import { signOut } from 'firebase/auth';
 import { auth, db, collection, query, where, orderBy, onSnapshot, limit, handleFirestoreError, OperationType } from '../firebase';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
+import { formatFirebaseDate } from '../utils/date';
 
 export default function Profile() {
   const { user, userData } = useAuth();
@@ -119,7 +120,7 @@ export default function Profile() {
                   <span className="text-sm font-medium">Member Since</span>
                 </div>
                 <span className="text-primary font-bold text-xs">
-                  {userData?.joined_date ? new Date(userData.joined_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Jan 2024'}
+                  {formatFirebaseDate(userData?.joined_date, { month: 'short', year: 'numeric' })}
                 </span>
               </div>
             </div>
@@ -167,7 +168,9 @@ export default function Profile() {
                         'bg-red-500/10 text-red-500'
                       }`}>{activity.status}</span>
                     </p>
-                    <p className="text-xs text-muted mt-1">{activity.timestamp ? (typeof activity.timestamp.toDate === 'function' ? activity.timestamp.toDate() : activity.timestamp.seconds ? new Date(activity.timestamp.seconds * 1000) : new Date(activity.timestamp)).toLocaleString() : 'Pending...'}</p>
+                    <p className="text-xs text-muted mt-1">
+                      {formatFirebaseDate(activity.timestamp)}
+                    </p>
                   </div>
                   <div className="text-right">
                     <span className={`font-bold ${activity.type === 'withdraw' ? 'text-rose-400' : 'text-emerald-400'}`}>

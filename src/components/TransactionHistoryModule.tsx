@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowDownRight, ArrowUpRight, Activity, DollarSign, History } from 'lucide-react';
 import { fluidSpring } from './SystemManager';
+import { formatFirebaseDate } from '../utils/date';
 
 interface TransactionHistoryModuleProps {
   transactions: any[];
@@ -98,7 +99,7 @@ export default function TransactionHistoryModule({ transactions, miningRevenue }
                 <div>
                   <p className="text-sm font-semibold capitalize text-primary group-hover:text-primary transition-colors">{tx.type}</p>
                   <p className="text-xs text-muted mt-0.5">
-                    {new Date(tx.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {formatFirebaseDate(tx.timestamp, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>
               </div>

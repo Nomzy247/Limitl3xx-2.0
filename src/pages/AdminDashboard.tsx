@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { db, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, runTransaction, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
+import { formatFirebaseDate } from '../utils/date';
 import UserActionModal from '../components/UserActionModal';
 import TaskManager from '../components/TaskManager';
 
@@ -428,7 +429,12 @@ export default function AdminDashboard() {
   });
 
   return (
-    <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="relative z-0 pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Abstract Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-5%] left-[-10%] w-[400px] h-[400px] bg-[#0052ff]/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-5%] right-[-10%] w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[120px]" />
+      </div>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold">Admin Overview</h1>
@@ -665,7 +671,9 @@ export default function AdminDashboard() {
             <div key={notif.id} className="p-4 bg-background border border-border rounded-xl flex justify-between items-center">
               <div>
                 <p className="font-medium text-sm">{notif.message}</p>
-                <p className="text-xs text-secondary">{notif.timestamp ? (typeof notif.timestamp.toDate === 'function' ? notif.timestamp.toDate() : notif.timestamp.seconds ? new Date(notif.timestamp.seconds * 1000) : new Date(notif.timestamp)).toLocaleString() : 'Just now'}</p>
+                <p className="text-xs text-secondary">
+                  {formatFirebaseDate(notif.timestamp, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+                </p>
               </div>
               <button className="text-xs bg-primary text-background rounded-full px-3 py-1 font-bold">
                 View
@@ -1003,7 +1011,7 @@ export default function AdminDashboard() {
               <div key={log.id} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/50 hover:border-border transition-all">
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-mono text-muted">
-                    {log.timestamp ? (typeof log.timestamp.toDate === 'function' ? log.timestamp.toDate() : log.timestamp.seconds ? new Date(log.timestamp.seconds * 1000) : new Date(log.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '00:00'}
+                    {formatFirebaseDate(log.timestamp, { hour: '2-digit', minute: '2-digit', hour12: false })}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                     log.type === 'ai' ? 'bg-[#0052ff]/10 text-[#0052ff]' :
@@ -1066,7 +1074,7 @@ export default function AdminDashboard() {
                       {tx.type === 'deposit' ? '+' : '-'}{tx.amount.toFixed(8)} BTC
                     </p>
                     <p className="text-[10px] text-muted">
-                      {tx.timestamp ? (typeof tx.timestamp.toDate === 'function' ? tx.timestamp.toDate() : tx.timestamp.seconds ? new Date(tx.timestamp.seconds * 1000) : new Date(tx.timestamp)).toLocaleDateString() : 'Unknown Date'}
+                      {formatFirebaseDate(tx.timestamp)}
                     </p>
                   </div>
                 </div>

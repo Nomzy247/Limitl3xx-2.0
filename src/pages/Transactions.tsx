@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
+import { formatFirebaseDate } from '../utils/date';
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -113,16 +114,7 @@ export default function Transactions() {
                       </div>
                     </td>
                     <td className="p-6 text-muted text-sm">
-                      {tx.timestamp ? 
-                        (typeof tx.timestamp.toDate === 'function' ? tx.timestamp.toDate() : 
-                         tx.timestamp.seconds ? new Date(tx.timestamp.seconds * 1000) : 
-                         new Date(tx.timestamp)).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : 'Pending...'}
+                      {formatFirebaseDate(tx.timestamp)}
                     </td>
                     <td className="p-6">
                       <div className="flex items-center gap-2">

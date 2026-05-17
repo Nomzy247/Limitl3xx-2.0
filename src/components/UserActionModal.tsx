@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Shield, DollarSign, Power, User as UserIcon, Mail, CheckCircle, ArrowUpCircle, ArrowDownCircle, LogIn, ChevronRight, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { db, doc, updateDoc, addDoc, collection, serverTimestamp } from '../firebase';
+import { formatFirebaseDate } from '../utils/date';
 
 interface UserActionModalProps {
   user: any;
@@ -146,7 +147,7 @@ export default function UserActionModal({ user, onClose, isSuperUser, onUpdateUs
                         <div className="flex justify-between"><span className="text-secondary text-sm">Email</span> <span className="font-medium text-sm">{user.email}</span></div>
                         <div className="flex justify-between"><span className="text-secondary text-sm">User ID</span> <span className="font-mono text-xs">{user.id}</span></div>
                         <div className="flex justify-between"><span className="text-secondary text-sm">Role</span> <span className="font-medium text-sm capitalize">{user.role}</span></div>
-                        <div className="flex justify-between"><span className="text-secondary text-sm">Joined</span> <span className="font-medium text-sm">{new Date(user.joined_date || Date.now()).toLocaleDateString()}</span></div>
+                        <div className="flex justify-between"><span className="text-secondary text-sm">Joined</span> <span className="font-medium text-sm">{formatFirebaseDate(user.joined_date)}</span></div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
