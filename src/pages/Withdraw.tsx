@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Send, ShieldAlert, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { db, doc, collection, runTransaction, serverTimestamp, addDoc } from '../firebase';
+import { db, collection, serverTimestamp, addDoc } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 
@@ -58,30 +58,14 @@ export default function Withdraw() {
       const withdrawAmount = parseFloat(amount);
       const toastId = toast.loading('Submitting withdrawal request...');
       
-      const txRef = doc(collection(db, 'transactions'));
-      
-      await runTransaction(db, async (transaction) => {
-        const userRef = doc(db, 'users', user!.uid);
-        const userSnap = await transaction.get(userRef);
-        
-        if (!userSnap.exists()) throw new Error('User not found');
-        
-        const currentBalance = userSnap.data().balance || 0;
-        if (withdrawAmount > currentBalance) throw new Error('Insufficient balance');
-
-        // Create transaction record
-        transaction.set(txRef, {
-          user_id: user!.uid,
-          type: 'withdrawal',
-          amount: withdrawAmount,
-          currency: currency,
-          status: 'pending',
-          address: address,
-          timestamp: serverTimestamp()
-        });
-
-        // Deduct balance immediately
-        transaction.update(userRef, { balance: currentBalance - withdrawAmount });
+      await addDoc(collection(db, 'transactions'), {
+        user_id: user!.uid,
+        type: 'withdrawal',
+        amount: withdrawAmount,
+        currency: currency,
+        status: 'pending',
+        address: address,
+        timestamp: serverTimestamp()
       });
 
       // Add Admin Notification outside transaction
