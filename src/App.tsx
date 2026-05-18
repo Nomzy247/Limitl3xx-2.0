@@ -17,6 +17,7 @@ import FAQ from './pages/FAQ';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminSettings from './pages/AdminSettings';
+import AdminSupport from './pages/AdminSupport';
 import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw';
 import BuyHashpower from './pages/BuyHashpower';
@@ -99,6 +100,7 @@ export default function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="admin" element={<Navigate to="/admin/poolmining.cloud" replace />} />
             <Route path="admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="admin/support" element={<ProtectedRoute requireAdmin><AdminSupport /></ProtectedRoute>} />
             <Route path="admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
           </Route>
         </Routes>

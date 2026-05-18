@@ -3,6 +3,9 @@ import { motion } from 'motion/react';
 import { MessageCircle, Mail, Phone, HelpCircle, Search, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
+import { db } from '../firebase';
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 export default function Support() {
   const [message, setMessage] = useState('');
@@ -15,16 +18,51 @@ export default function Support() {
     { q: 'How long do contracts last?', a: 'Mining contracts typically last for 12 months, but we also offer flexible short-term options.' },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !user) return;
     
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const chatRef = doc(db, 'support_chats', user.uid);
+      const chatDoc = await getDoc(chatRef);
+      
+      const userMessage = `[Ticket] ${message}`;
+      
+      if (!chatDoc.exists()) {
+        await setDoc(chatRef, {
+            userEmail: user.email,
+            lastMessage: userMessage,
+            lastMessageTime: serverTimestamp(),
+            unreadCountAdmin: 1,
+            unreadCountClient: 0,
+            status: 'open'
+        });
+      } else {
+        await updateDoc(chatRef, {
+            lastMessage: userMessage,
+            lastMessageTime: serverTimestamp(),
+            status: 'open',
+            unreadCountAdmin: increment(1)
+        });
+      }
+      
+      await addDoc(collection(db, 'support_chats', user.uid, 'messages'), {
+        sender: 'user',
+        text: userMessage,
+        timestamp: serverTimestamp()
+      });
+
       setMessage('');
-      toast.success('Support ticket created! We will get back to you within 24 hours.');
-    }, 1500);
+      toast.success('Support ticket created! We will get back to you soon.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to create ticket.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

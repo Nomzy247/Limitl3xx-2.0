@@ -1,24 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, X, Send, Bot, User, Trash2, Mic, Square } from 'lucide-react';
-import { GoogleGenAI } from '@google/genai';
+import { MessageSquare, X, Send, User, Headset, Mic, Square } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, serverTimestamp, setDoc, getDoc, increment } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from './SystemManager';
 import { toast } from 'sonner';
 
-// @ts-ignore
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 'dummy-key';
-const ai = new GoogleGenAI({ apiKey });
-
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string }[]>([
-    { role: 'model', text: 'Hello! I am your PoolMining.cloud AI assistant. How can I help you today?' },
-  ]);
+  const [messages, setMessages] = useState<{ id?: string, sender: 'user' | 'admin'; text: string }[]>([]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatRef = useRef<any>(null);
+  
+  const { user } = useAuth();
+  
+  // Audio state
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -28,7 +26,7 @@ export default function Chatbot() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages]);
 
   useEffect(() => {
     const handleOpenChat = () => setIsOpen(true);
@@ -36,107 +34,99 @@ export default function Chatbot() {
     return () => window.removeEventListener('open-chat', handleOpenChat);
   }, []);
 
-  const handleClearHistory = () => {
-    setMessages([{ role: 'model', text: 'Hello! I am your PoolMining.cloud AI assistant. How can I help you today?' }]);
-    chatRef.current = null;
-  };
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Read unread count on startup
+  useEffect(() => {
+     if (!user) return;
+     const unsub = onSnapshot(doc(db, 'support_chats', user.uid), (doc) => {
+         if (doc.exists()) {
+             setUnreadCount(doc.data().unreadCountClient || 0);
+         }
+     });
+     return () => unsub();
+  }, [user]);
+
+  // Sync messages
+  useEffect(() => {
+    if (!user || !isOpen) return;
+
+    // Reset client unread
+    updateDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }).catch(() => {});
+
+    const q = query(
+      collection(db, 'support_chats', user.uid, 'messages'),
+      orderBy('timestamp', 'asc')
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs: any[] = [];
+      snapshot.forEach(d => {
+        msgs.push({ id: d.id, ...d.data() });
+      });
+      setMessages(msgs);
+      
+      if (msgs.length > 0 && msgs[msgs.length-1].sender === 'admin' && isOpen) {
+         updateDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }).catch(() => {});
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user, isOpen]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !user) return;
 
     const userText = input.trim();
-    setMessages((prev) => [...prev, { role: 'user', text: userText }]);
     setInput('');
-    setIsLoading(true);
-
+    
+    // Optimistic push
+    // setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
+    
     try {
-      if (!chatRef.current) {
-        chatRef.current = ai.chats.create({
-          model: 'gemini-3.1-pro-preview',
-          config: {
-            systemInstruction: 'You are a helpful customer support AI for PoolMining.cloud, a cryptocurrency cloud mining and pool mining platform. Be concise, professional, and helpful. We have 4 main mining locations: Iceland, Texas, Kazakhstan, and Norway. We offer Cloud Mining, Pool Mining, and Crypto Mining features. Keep responses under 3 sentences if possible.',
-          },
-        });
-      }
-
-      const response = await chatRef.current.sendMessage({ message: userText });
+      const chatRef = doc(db, 'support_chats', user.uid);
+      const chatDoc = await getDoc(chatRef);
       
-      setMessages((prev) => [...prev, { role: 'model', text: response.text || 'I am sorry, I could not process that.' }]);
+      if (!chatDoc.exists()) {
+         await setDoc(chatRef, {
+             userEmail: user.email,
+             lastMessage: userText,
+             lastMessageTime: serverTimestamp(),
+             unreadCountAdmin: 1,
+             unreadCountClient: 0,
+             status: 'open'
+         });
+      } else {
+         await updateDoc(chatRef, {
+             lastMessage: userText,
+             lastMessageTime: serverTimestamp(),
+             status: 'open',
+             unreadCountAdmin: increment(1)
+         });
+      }
+      
+      await addDoc(collection(db, 'support_chats', user.uid, 'messages'), {
+        sender: 'user',
+        text: userText,
+        timestamp: serverTimestamp()
+      });
+      
     } catch (error) {
       console.error('Chat error:', error);
-      setMessages((prev) => [...prev, { role: 'model', text: 'Sorry, I am having trouble connecting right now. Please try again later.' }]);
-    } finally {
-      setIsLoading(false);
+      toast.error('Failed to send message.');
     }
   };
 
   const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          audioChunksRef.current.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await transcribeAudio(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      toast.error('Could not access microphone. Please check permissions.');
-    }
+    // Basic fallback for recording that just types a mock message if real STT is gone
+    toast.error('Voice input requires AI integration which is disabled in Live Support Mode.');
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
+      // Stub
   };
 
-  const transcribeAudio = async (audioBlob: Blob) => {
-    setIsLoading(true);
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
-      reader.onloadend = async () => {
-        const base64data = (reader.result as string).split(',')[1];
-        
-        const response = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: 'Transcribe this audio accurately. Only output the transcription, nothing else.' },
-                { inlineData: { data: base64data, mimeType: audioBlob.type } }
-              ]
-            }
-          ]
-        });
-        
-        const transcribedText = response.text?.trim() || '';
-        if (transcribedText) {
-          setInput(prev => prev + (prev ? ' ' : '') + transcribedText);
-        }
-        setIsLoading(false);
-      };
-    } catch (error) {
-      console.error('Transcription error:', error);
-      toast.error('Failed to transcribe audio');
-      setIsLoading(false);
-    }
-  };
+  if (!user) return null; // Only show for logged in
 
   return (
     <>
@@ -150,6 +140,11 @@ export default function Chatbot() {
         whileTap={{ scale: 0.9 }}
       >
         <MessageSquare size={24} />
+        {unreadCount > 0 && !isOpen && (
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold border-2 border-surface animate-bounce">
+                {unreadCount}
+            </div>
+        )}
       </motion.button>
 
       {/* Chat Window */}
@@ -165,13 +160,10 @@ export default function Chatbot() {
             {/* Header */}
             <div className="bg-primary text-background p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Bot size={20} />
-                <h3 className="font-semibold">AI Support</h3>
+                <Headset size={20} />
+                <h3 className="font-semibold">Live Support</h3>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={handleClearHistory} className="hover:bg-background/20 p-1 rounded-full transition-colors" title="Clear History">
-                  <Trash2 size={18} />
-                </button>
                 <button onClick={() => setIsOpen(false)} className="hover:bg-background/20 p-1 rounded-full transition-colors">
                   <X size={20} />
                 </button>
@@ -180,22 +172,18 @@ export default function Chatbot() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
+              {messages.length === 0 && (
+                  <div className="text-center text-muted text-sm mt-4">
+                      How can we help you today? Send a message to speak to a representative.
+                  </div>
+              )}
               {messages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] p-3 rounded-2xl ${msg.role === 'user' ? 'bg-primary text-background rounded-tr-sm' : 'bg-surface border border-border rounded-tl-sm'}`}>
-                    <p className="text-sm">{msg.text}</p>
+                <div key={msg.id || idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] p-3 rounded-2xl ${msg.sender === 'user' ? 'bg-primary text-background rounded-tr-sm shadow-md' : 'bg-surface border border-border rounded-tl-sm shadow-sm'}`}>
+                    <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                   </div>
                 </div>
               ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-surface border border-border p-3 rounded-2xl rounded-tl-sm flex items-center gap-2">
-                    <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-                  </div>
-                </div>
-              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -207,21 +195,13 @@ export default function Chatbot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder={isRecording ? "Listening..." : "Type your message..."}
-                  disabled={isRecording}
+                  placeholder={"Type your message..."}
                   className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
                 />
                 <button
-                  onClick={isRecording ? stopRecording : startRecording}
-                  className={`p-2 rounded-full transition-colors ${isRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-surface border border-border text-muted hover:text-primary'}`}
-                  title={isRecording ? "Stop Recording" : "Voice Input"}
-                >
-                  {isRecording ? <Square size={18} fill="currentColor" /> : <Mic size={18} />}
-                </button>
-                <button
                   onClick={handleSend}
-                  disabled={isLoading || !input.trim() || isRecording}
-                  className="bg-primary text-background p-2 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  disabled={!input.trim()}
+                  className="bg-primary text-background p-2 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity flex-shrink-0 shadow-md"
                 >
                   <Send size={18} />
                 </button>

@@ -1,4 +1,4 @@
-import { LucideIcon, LayoutDashboard, Database, CloudRain, ChartCandlestick, ShoppingBag, Wallet, Settings as SettingsIcon, LogOut, Home, User } from 'lucide-react';
+import { LucideIcon, LayoutDashboard, Database, CloudRain, ChartCandlestick, ShoppingBag, Wallet, Settings as SettingsIcon, LogOut, Home, User, MessageSquare } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../firebase';
@@ -80,6 +80,7 @@ export default function Sidebar() {
                 
                 {isAdmin && renderNavGroup('Admin', [
                     { name: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+                    { name: 'Live Support', icon: MessageSquare, path: '/admin/support' },
                     { name: 'Admin Settings', icon: SettingsIcon, path: '/admin/settings' },
                 ])}
             </nav>

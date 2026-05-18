@@ -198,5 +198,19 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    
+    match /support_chats/{chatId} {
+      allow read: if isOwner(chatId) || isAdmin();
+      allow create: if isOwner(chatId) || isAdmin();
+      allow update: if isOwner(chatId) || isAdmin();
+      allow delete: if isAdmin();
+      
+      match /messages/{messageId} {
+        allow read: if isOwner(chatId) || isAdmin();
+        allow create: if isOwner(chatId) || isAdmin();
+        allow update: if isAdmin();
+        allow delete: if isAdmin();
+      }
+    }
   }
 }
