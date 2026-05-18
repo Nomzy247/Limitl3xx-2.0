@@ -119,7 +119,7 @@ export default function Support() {
           <h3 className="text-xl font-bold mb-2">Email Support</h3>
           <p className="text-secondary text-sm mb-6 leading-relaxed">Send us a detailed message and we'll reply via email.</p>
           <motion.a 
-            href="mailto:support@poolmining.cloud"
+            href="mailto:poolmining@poolmining.cloud"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}

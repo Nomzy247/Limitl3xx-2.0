@@ -76,7 +76,7 @@ export default function Contact() {
                 >
                   Email Us
                 </motion.h4>
-                <p className="text-secondary">support@poolmining.cloud</p>
+                <p className="text-secondary">poolmining@poolmining.cloud</p>
                 <p className="text-secondary">sales@poolmining.cloud</p>
               </div>
             </div>
