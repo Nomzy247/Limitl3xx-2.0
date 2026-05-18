@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Send, ShieldAlert, X, UploadCloud, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Send, ShieldAlert, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { db, doc, collection, runTransaction, serverTimestamp, addDoc } from '../firebase';
@@ -13,28 +13,12 @@ export default function Withdraw() {
   const [amount, setAmount] = useState('');
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [screenshot, setScreenshot] = useState<string | null>(null);
   
   // 2FA and Confirmation variables
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pin, setPin] = useState('');
 
   const [currency, setCurrency] = useState('BTC');
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('Image must be less than 2MB');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setScreenshot(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const initiateWithdrawal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,11 +39,6 @@ export default function Withdraw() {
     
     if (!address || address.length < 10) {
       toast.error(`Please enter a valid ${currency} destination address`);
-      return;
-    }
-
-    if (!screenshot) {
-      toast.error('Please upload a screenshot of your wallet address');
       return;
     }
 
@@ -98,7 +77,6 @@ export default function Withdraw() {
           currency: currency,
           status: 'pending',
           address: address,
-          screenshot: screenshot,
           timestamp: serverTimestamp()
         });
 
@@ -115,7 +93,6 @@ export default function Withdraw() {
         amount: withdrawAmount,
         currency: currency,
         address: address,
-        screenshot: screenshot,
         timestamp: serverTimestamp(),
         read: false
       });
@@ -124,7 +101,6 @@ export default function Withdraw() {
       toast.success('Withdrawal request submitted securely! Admin will review for approval.');
       setAmount('');
       setAddress('');
-      setScreenshot(null);
       setPin('');
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (error: any) {
@@ -174,13 +150,6 @@ export default function Withdraw() {
                     <p className="text-secondary text-sm mb-1">Destination Address</p>
                     <p className="text-primary font-mono text-sm break-all">{address}</p>
                   </div>
-
-                  {screenshot && (
-                    <div className="bg-surface rounded-xl p-4 border border-border text-left">
-                      <p className="text-secondary text-sm mb-3">Wallet Screenshot</p>
-                      <img src={screenshot} alt="Wallet Proof" className="w-full h-auto max-h-48 rounded-lg object-contain bg-background" />
-                    </div>
-                  )}
                 </div>
                 
                 {userData?.two_factor_enabled && (
@@ -277,28 +246,6 @@ export default function Withdraw() {
                 className="w-full bg-background border border-border rounded-full px-4 py-3 text-primary font-mono text-sm focus:outline-none focus:border-[#0052ff] transition-colors"
                 placeholder={`Enter a valid ${currency} address`}
               />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-secondary mb-2">Wallet Screenshot (QR Code / Profile)</label>
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-xl cursor-pointer bg-background hover:bg-surface/50 hover:border-[#0052ff]/50 transition-all">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {screenshot ? (
-                      <div className="text-[#0052ff] font-medium flex items-center gap-2">
-                        <CheckCircle size={20} /> Screenshot Uploaded
-                      </div>
-                    ) : (
-                      <>
-                        <UploadCloud className="w-8 h-8 mb-3 text-secondary" />
-                        <p className="mb-2 text-sm text-secondary"><span className="font-semibold text-[#0052ff]">Click to upload</span> or drag and drop</p>
-                        <p className="text-xs text-muted">PNG, JPG up to 2MB</p>
-                      </>
-                    )}
-                  </div>
-                  <input id="dropzone-file" type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                </label>
-              </div>
             </div>
 
             <motion.button 
