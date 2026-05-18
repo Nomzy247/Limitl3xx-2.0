@@ -539,7 +539,7 @@ export default function AdminDashboard() {
           transition={{ ...fluidSpring, delay: 0.4 }}
           className="lg:col-span-2 bg-surface border border-border rounded-3xl p-6"
         >
-          <h3 className="text-xl font-bold mb-6">Total Revenue Generated</h3>
+          <h3 className="text-xl font-bold mb-6">Total Profit Generated</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={parsedChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -891,7 +891,7 @@ export default function AdminDashboard() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-secondary">Total Revenue</label>
+              <label className="text-sm font-medium text-secondary">Total Profit</label>
               <input 
                 type="text" 
                 value={liveFeed.revenue}

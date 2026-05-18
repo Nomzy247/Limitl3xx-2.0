@@ -94,12 +94,12 @@ export default function Hub() {
         className="mb-8 bg-gradient-to-br from-[#0052ff] to-[#00f0ff] p-6 rounded-3xl text-white shadow-2xl relative overflow-hidden"
       >
         <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row gap-8 sm:items-center mb-6">
+          <div className="flex flex-col gap-6 mb-6">
             <div>
               <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">Current Balance</p>
               <h3 className="text-4xl font-bold tracking-tighter">${userData?.balance?.toLocaleString() || '0.00'}</h3>
             </div>
-            <div className="pt-4 sm:pt-0 sm:pl-8 border-t sm:border-t-0 sm:border-l border-white/20">
+            <div className="pt-6 border-t border-white/20">
               <p className="text-emerald-300 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Activity size={12} /> Total Profit</p>
               <h3 className="text-4xl font-bold tracking-tighter text-emerald-300 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
                 ${(totalMined + (userData?.manual_profits || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

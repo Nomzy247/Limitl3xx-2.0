@@ -336,7 +336,7 @@ export default function Dashboard() {
                   <p className="text-2xl font-bold text-[#0052ff]">{liveFeed.hashrate} TH/s</p>
                 </div>
                 <div>
-                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Total Client Revenue</p>
+                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Total Client Profit</p>
                   <p className="text-2xl font-bold text-emerald-400">${Number(liveFeed.revenue).toLocaleString()}</p>
                 </div>
               </div>
