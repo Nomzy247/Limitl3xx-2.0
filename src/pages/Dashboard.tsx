@@ -400,7 +400,7 @@ export default function Dashboard() {
                 className="w-full bg-card rounded-2xl p-6 border border-border/50 shadow-md"
               >
                 <div className="flex justify-between items-center mb-4">
-                  <p className="text-secondary font-semibold text-sm">Mining Performance</p>
+                  <p className="text-secondary font-semibold text-sm">Mining Profits</p>
                   <Activity className="text-[#00f0ff]" size={18} />
                 </div>
                 <div className="space-y-4">
@@ -409,8 +409,8 @@ export default function Dashboard() {
                     <p className="text-lg font-bold text-primary">{totalHashrate.toFixed(2)} TH/s</p>
                   </div>
                   <div>
-                    <p className="text-xs text-secondary uppercase tracking-wider">Total Revenue</p>
-                    <p className="text-lg font-bold text-emerald-400">${totalMined.toFixed(2)}</p>
+                    <p className="text-xs text-secondary uppercase tracking-wider">Total Profit</p>
+                    <p className="text-lg font-bold text-emerald-400">${(totalMined + (userData?.manual_profits || 0)).toFixed(2)}</p>
                   </div>
                 </div>
               </motion.div>

@@ -13,13 +13,14 @@ interface UserActionModalProps {
   onLogAction: (action: string) => Promise<void>;
 }
 
-type Tab = 'status' | 'balances' | 'account' | 'actions';
+type Tab = 'status' | 'balances' | 'profits' | 'account' | 'actions';
 
 const TIERS = ['Basic', 'Silver', 'Gold', 'Platinum'];
 
 export default function UserActionModal({ user, onClose, isSuperUser, onUpdateUser, onLogAction }: UserActionModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('status');
   const [amount, setAmount] = useState('');
+  const [profitAmount, setProfitAmount] = useState('');
   const [currency, setCurrency] = useState<'USD' | 'BTC' | 'ETH' | 'USDT'>('USD');
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ type: string, payload?: any } | null>(null);
@@ -67,6 +68,18 @@ export default function UserActionModal({ user, onClose, isSuperUser, onUpdateUs
         }
         toast.success(`User balance updated successfully`);
         setAmount('');
+      } else if (action === 'add_profit' || action === 'remove_profit') {
+        const val = parseFloat(profitAmount);
+        if (isNaN(val) || val <= 0) throw new Error('Invalid profit amount');
+        
+        const newProfits = action === 'add_profit' 
+          ? (user.manual_profits || 0) + val 
+          : (user.manual_profits || 0) - val;
+          
+        await onUpdateUser(user.id, { manual_profits: newProfits });
+        await onLogAction(`Admin ${action === 'add_profit' ? 'added' : 'removed'} $${val} to manual_profits for user ${user.id}. Total manual profits: $${newProfits}`);
+        toast.success(`User profits updated successfully`);
+        setProfitAmount('');
       } else if (action === 'impersonate') {
         toast.error('Switching accounts requires issuing a custom Firebase Auth backend token.');
         // If we want a soft mock, we could use a custom context, but we need backend for real auth impersonation.
@@ -118,6 +131,7 @@ export default function UserActionModal({ user, onClose, isSuperUser, onUpdateUs
                 {[
                   { id: 'status', label: 'Status' },
                   { id: 'balances', label: 'Balances' },
+                  { id: 'profits', label: 'Profits' },
                   { id: 'account', label: 'Account Tier' },
                   { id: 'actions', label: 'Actions' },
                 ].map(tab => (
@@ -241,6 +255,35 @@ export default function UserActionModal({ user, onClose, isSuperUser, onUpdateUs
                         <div className="grid grid-cols-2 gap-2 mt-4">
                           <button onClick={() => setConfirmAction({ type: 'credit' })} disabled={!amount} className="p-3 bg-emerald-500 text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-emerald-600 transition-colors">Credit (Add)</button>
                           <button onClick={() => setConfirmAction({ type: 'debit' })} disabled={!amount} className="p-3 bg-red-500 text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-red-600 transition-colors">Debit (Remove)</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'profits' && (
+                    <div className="space-y-6">
+                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                        <p className="text-secondary mb-1">Total Manual Profits</p>
+                        <h3 className="text-3xl font-bold text-emerald-400">${(user.manual_profits || 0).toFixed(2)}</h3>
+                        <p className="text-xs text-secondary mt-2">These profits are combined with contract yields in the user's dashboard view.</p>
+                      </div>
+
+                      <div className="p-4 border border-border rounded-2xl space-y-4">
+                        <h3 className="font-bold">Modify Profits</h3>
+                        <div className="flex gap-2">
+                          <span className="flex items-center px-4 bg-subtle border border-border rounded-xl text-secondary font-bold">USD</span>
+                          <input 
+                            type="number" 
+                            placeholder="Profit Amount"
+                            value={profitAmount} 
+                            onChange={(e) => setProfitAmount(e.target.value)}
+                            className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none"
+                            step="any"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-4">
+                          <button onClick={() => setConfirmAction({ type: 'add_profit' })} disabled={!profitAmount} className="p-3 bg-emerald-500 text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-emerald-600 transition-colors">Add Profit</button>
+                          <button onClick={() => setConfirmAction({ type: 'remove_profit' })} disabled={!profitAmount} className="p-3 bg-red-500 text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:bg-red-600 transition-colors">Remove Profit</button>
                         </div>
                       </div>
                     </div>
