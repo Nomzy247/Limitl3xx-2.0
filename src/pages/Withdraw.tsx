@@ -53,10 +53,10 @@ export default function Withdraw() {
     
     setShowConfirmation(false);
     setIsSubmitting(true);
+    const toastId = toast.loading('Submitting withdrawal request...');
     
     try {
       const withdrawAmount = parseFloat(amount);
-      const toastId = toast.loading('Submitting withdrawal request...');
       
       await addDoc(collection(db, 'transactions'), {
         user_id: user!.uid,
@@ -91,6 +91,7 @@ export default function Withdraw() {
       console.error('Withdrawal error:', error);
       toast.error(error.message || 'Failed to submit withdrawal request');
     } finally {
+      toast.dismiss(toastId);
       setIsSubmitting(false);
     }
   };
