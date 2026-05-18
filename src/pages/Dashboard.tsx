@@ -268,17 +268,17 @@ export default function Dashboard() {
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#0052ff] rounded-full blur-[80px] opacity-10 pointer-events-none" />
           
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-            <div className="flex flex-col sm:flex-row gap-8 sm:items-center">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
+            <div className="flex flex-col gap-6">
               <div>
                 <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter">
                   <AnimatedNumber value={userData?.balance || 0} prefix="$" />
                 </h2>
               </div>
-              <div className="pl-0 sm:pl-8 sm:border-l border-border/50">
-                <p className="text-emerald-400 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-1.5"><Activity size={14} /> Total Profit</p>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+              <div className="pt-6 border-t border-border/50">
+                <p className="text-emerald-500 font-bold text-sm uppercase tracking-widest mb-2 flex items-center gap-2"><Activity size={16} /> Total Profit</p>
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
                   <AnimatedNumber value={(totalMined || 0) + (userData?.manual_profits || 0)} prefix="$" />
                 </h2>
               </div>
@@ -400,7 +400,7 @@ export default function Dashboard() {
 
             {/* Mining Stats & App Market */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 shrink-0">
-               {/* Mining Stats */}
+              {/* Mining Stats */}
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -408,7 +408,7 @@ export default function Dashboard() {
                 className="w-full bg-card rounded-2xl p-6 border border-border/50 shadow-md flex flex-col justify-center"
               >
                 <div className="flex justify-between items-center mb-4">
-                  <p className="text-secondary font-semibold text-sm">Mining Performance</p>
+                  <p className="text-secondary font-semibold text-sm">Active Hashpower</p>
                   <Activity className="text-[#0052ff]" size={18} />
                 </div>
                 <div className="space-y-4">
