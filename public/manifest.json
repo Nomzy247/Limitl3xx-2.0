@@ -10,14 +10,8 @@
   "categories": ["finance", "crypto", "business"],
   "icons": [
     {
-      "src": "https://picsum.photos/seed/poolmining192/192/192",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "https://picsum.photos/seed/poolmining512/512/512",
-      "sizes": "512x512",
+      "src": "/logo.png",
+      "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
@@ -26,12 +20,12 @@
     {
       "name": "Dashboard",
       "url": "/dashboard",
-      "icons": [{ "src": "https://picsum.photos/seed/pmdash/96/96", "sizes": "96x96" }]
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
     },
     {
       "name": "Wallet",
       "url": "/wallet",
-      "icons": [{ "src": "https://picsum.photos/seed/pmwallet/96/96", "sizes": "96x96" }]
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
     }
   ]
 }

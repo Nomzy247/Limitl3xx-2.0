@@ -25,6 +25,8 @@ import { useAuth } from "../context/AuthContext";
 import { fluidSpring } from "./SystemManager";
 import { toast } from "sonner";
 
+import Logo from "./Logo";
+
 export default function SmartNavbar() {
   const { scrollY } = useScroll();
   const [isShrunken, setIsShrunken] = useState(false);
@@ -251,10 +253,7 @@ export default function SmartNavbar() {
               onClick={handleHomeClick}
             >
               <div className="flex items-center gap-2">
-                <Hexagon size={20} className="text-[#00f0ff]" strokeWidth={2} />
-                <span className="text-sm font-semibold text-slate-100 tracking-tight">
-                  PoolMining<span className="text-[#0052ff]">.cloud</span>
-                </span>
+                <Logo compact={true} />
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -283,13 +282,7 @@ export default function SmartNavbar() {
                   onClick={handleHomeClick}
                   className="flex items-center gap-1.5 group"
                 >
-                  <Hexagon
-                    className="text-[#00f0ff] size-6 sm:size-7 group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.5)] transition-all"
-                    strokeWidth={2}
-                  />
-                  <span className="text-base sm:text-xl font-semibold text-slate-100 tracking-tight">
-                    PoolMining<span className="text-[#0052ff]">.cloud</span>
-                  </span>
+                  <Logo compact={false} />
                 </a>
 
                 <div className="hidden md:flex items-center gap-6">

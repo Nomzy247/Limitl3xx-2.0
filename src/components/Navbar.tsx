@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { toast } from 'sonner';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -260,8 +261,7 @@ export default function Navbar() {
                 >
                   <div className="flex items-center gap-2">
                     <Link to="/" className="flex items-center gap-2">
-                      <Hexagon className="text-[#00f0ff]" size={24} />
-                      <span className="text-lg font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
+                      <Logo compact={false} />
                     </Link>
                   </div>
                   
@@ -333,8 +333,7 @@ export default function Navbar() {
                   className="flex items-center justify-center w-full h-full px-4"
                 >
                   <div className="flex items-center gap-2">
-                    <Hexagon className="text-[#00f0ff]" size={20} />
-                    <span className="text-sm font-bold tracking-tight text-primary">PoolMining</span>
+                    <Logo compact={true} />
                   </div>
                 </motion.div>
               ) : (
@@ -347,8 +346,7 @@ export default function Navbar() {
                   className="flex items-center justify-center w-full h-full px-4"
                 >
                   <div className="flex items-center gap-2">
-                    <Hexagon className="text-[#00f0ff]" size={20} />
-                    <span className="text-sm font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
+                    <Logo compact={true} />
                   </div>
                 </motion.div>
               )}

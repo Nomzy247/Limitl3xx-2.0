@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { Hexagon, Twitter, Github, Linkedin, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 import { fluidSpring } from './SystemManager';
+import Logo from './Logo';
 
 export default function Footer() {
   return (
@@ -10,9 +11,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              {/* Replace this Hexagon with your uploaded logo image: <img src="/logo.png" alt="Logo" className="h-8" /> */}
-              <Hexagon className="text-[#00f0ff]" size={28} />
-              <span className="text-xl font-bold tracking-tight text-primary">PoolMining<span className="text-[#0052ff]">.cloud</span></span>
+              <Logo compact={false} />
             </Link>
             <p className="text-secondary text-sm mb-6">
               Automated wealth generation through advanced crypto mining protocols and institutional-grade security.
