@@ -408,56 +408,51 @@ export default function SmartNavbar() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="flex flex-col px-6 py-6 gap-4 md:hidden border-t border-white/5"
+                    className="flex flex-col px-6 py-6 gap-4 md:hidden border-t border-white/5 overflow-y-auto max-h-[80vh]"
                   >
                     {user ? (
                       <>
-                        <Link
-                          to="/dashboard"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Dashboard
-                        </Link>
-                        <Link
-                          to="/wallet"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Wallet
-                        </Link>
-                        <Link
-                          to="/referrals"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Referrals
-                        </Link>
-                        <Link
-                          to="/support"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Support
-                        </Link>
-                        <Link
-                          to="/profile"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Profile
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setIsMobileMenuOpen(false);
-                            import("../firebase").then(({ logOut }) =>
-                              logOut(),
-                            );
-                          }}
-                          className="text-left text-rose-500 font-medium"
-                        >
-                          Log out
-                        </button>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-3">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Trading</p>
+                            <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Dashboard</Link>
+                            <Link to="/live-trading" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Live Trading</Link>
+                            <Link to="/crypto-trading" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Spot Trading</Link>
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mining</p>
+                            <Link to="/pool-mining" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Pool Mining</Link>
+                            <Link to="/cloud-mining" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Cloud Mining</Link>
+                            <Link to="/marketplace" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Marketplace</Link>
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Account</p>
+                            <Link to="/hub" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Hub</Link>
+                            <Link to="/wallet" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Wallet</Link>
+                            <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Profile</Link>
+                            <Link to="/referrals" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Referrals</Link>
+                            <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Settings</Link>
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">&nbsp;</p>
+                            <Link to="/support" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Support</Link>
+                            {isAdmin && (
+                              <>
+                                <Link to="/admin/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-sky-400 font-bold text-sm">Admin Dashboard</Link>
+                                <Link to="/admin/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-sky-400 font-bold text-sm">Admin Settings</Link>
+                              </>
+                            )}
+                            <button
+                              onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                import("../firebase").then(({ logOut }) => logOut());
+                              }}
+                              className="text-left text-rose-500 font-medium text-sm mt-auto"
+                            >
+                              Log out
+                            </button>
+                          </div>
+                        </div>
                       </>
                     ) : (
                       <>

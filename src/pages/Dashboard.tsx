@@ -224,7 +224,7 @@ export default function Dashboard() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/5 rounded-full blur-[120px]" />
       </div>
 
-      <div className="max-w-[1440px] mx-auto pt-8 pb-8 relative z-10 w-full">
+      <div className="max-w-[1440px] mx-auto pb-8 relative z-10 w-full">
         {pendingWithdrawal && (
           <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3 w-full">
             <Activity className="text-amber-500 shrink-0 mt-0.5" size={20} />
@@ -469,7 +469,7 @@ export default function Dashboard() {
             </div>
             
             {/* Quick Hub/Profile Links */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <button onClick={() => navigate('/hub')} className="bg-card p-6 rounded-2xl border border-border/50 hover:border-[#0052ff] transition-all text-left">
                 <h3 className="font-bold">Operations Hub</h3>
                 <p className="text-sm text-secondary">Manage platform features</p>

@@ -36,7 +36,7 @@ export default function Layout() {
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, scale: 1.01, filter: 'blur(4px)' }}
                 transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                className={`flex-1 w-full mx-auto ${user ? 'pb-24 md:pb-0' : ''}`}
+                className={`flex-1 w-full mx-auto pt-24 ${user ? 'pb-24 md:pb-0' : ''}`}
               >
                 <Outlet />
               </motion.main>

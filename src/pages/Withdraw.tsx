@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Send, ShieldAlert, X } from 'lucide-react';
+import { ArrowLeft, Send, ShieldAlert, X, UploadCloud, CheckCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { db, doc, collection, runTransaction, serverTimestamp, addDoc } from '../firebase';
@@ -13,20 +13,34 @@ export default function Withdraw() {
   const [amount, setAmount] = useState('');
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [screenshot, setScreenshot] = useState<string | null>(null);
   
-  // 2FA variables
-  const [show2FA, setShow2FA] = useState(false);
+  // 2FA and Confirmation variables
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [pin, setPin] = useState('');
 
   const [currency, setCurrency] = useState('BTC');
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Image must be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScreenshot(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const initiateWithdrawal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !userData) return;
 
     const withdrawAmount = parseFloat(amount);
-    // Since everything is denominated in USD or BTC, we might need a conversion, but let's assume balance is what we use.
-    // In a real application, you handle balances per currency. Here we'll treat `balance` as the primary account value.
     const currentBalance = userData.balance || 0;
 
     if (withdrawAmount < 500) {
@@ -44,22 +58,21 @@ export default function Withdraw() {
       return;
     }
 
-    if (userData.two_factor_enabled) {
-      setShow2FA(true);
-    } else {
-      executeWithdrawal();
+    if (!screenshot) {
+      toast.error('Please upload a screenshot of your wallet address');
+      return;
     }
+
+    setShowConfirmation(true);
   };
 
   const executeWithdrawal = async () => {
-    if (show2FA && pin.length < 6) {
+    if (userData?.two_factor_enabled && pin.length < 6) {
       toast.error('Please enter the 6-digit confirmation code.');
       return;
     }
     
-    // In a real app we'd verify the PIN/2FA here via the server.
-    // For now, accept any 6 digits as valid simulator.
-    setShow2FA(false);
+    setShowConfirmation(false);
     setIsSubmitting(true);
     
     try {
@@ -85,6 +98,7 @@ export default function Withdraw() {
           currency: currency,
           status: 'pending',
           address: address,
+          screenshot: screenshot,
           timestamp: serverTimestamp()
         });
 
@@ -101,6 +115,7 @@ export default function Withdraw() {
         amount: withdrawAmount,
         currency: currency,
         address: address,
+        screenshot: screenshot,
         timestamp: serverTimestamp(),
         read: false
       });
@@ -109,6 +124,7 @@ export default function Withdraw() {
       toast.success('Withdrawal request submitted securely! Admin will review for approval.');
       setAmount('');
       setAddress('');
+      setScreenshot(null);
       setPin('');
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (error: any) {
@@ -122,58 +138,79 @@ export default function Withdraw() {
   return (
     <div className="min-h-screen bg-background pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       
-      {/* 2FA Modal */}
+      {/* Confirmation & 2FA Modal */}
       <AnimatePresence>
-        {show2FA && (
+        {showConfirmation && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-card w-full max-w-md p-6 rounded-3xl shadow-2xl border border-border/50 relative overflow-hidden"
+              className="bg-card w-full max-w-md max-h-[90vh] overflow-y-auto p-6 rounded-3xl shadow-2xl border border-border/50 relative"
             >
               <button 
-                onClick={() => setShow2FA(false)}
-                className="absolute top-4 right-4 text-secondary hover:text-primary transition-colors"
+                onClick={() => setShowConfirmation(false)}
+                className="absolute top-4 right-4 text-secondary hover:text-primary transition-colors z-10"
               >
                 <X size={20} />
               </button>
               
               <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-4 border border-blue-500/20">
-                  <ShieldAlert className="text-blue-500" size={32} />
+                <div className="w-16 h-16 bg-[#0052ff]/10 rounded-full flex items-center justify-center mb-4 border border-[#0052ff]/20">
+                  <ShieldAlert className="text-[#0052ff]" size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Security Verification</h3>
+                <h3 className="text-xl font-bold mb-2">Confirm Withdrawal</h3>
                 <p className="text-sm text-secondary mb-6">
-                  Please enter your 6-digit authenticator code or withdrawal PIN to confirm this transaction.
+                  Please review the details below before submitting.
                 </p>
                 
-                <div className="w-full space-y-4">
-                  <div className="bg-surface rounded-xl p-4 border border-border mb-4 text-left">
-                    <div className="flex justify-between text-xs text-secondary mb-1">
-                      <span>Sending</span>
-                      <span>Destination</span>
-                    </div>
-                    <div className="flex justify-between font-mono text-sm">
-                      <span className="text-primary font-bold">{amount} BTC</span>
-                      <span className="text-muted truncate w-32 text-right">{address.substring(0,6)}...{address.substring(address.length - 4)}</span>
-                    </div>
+                <div className="w-full space-y-4 mb-6">
+                  <div className="bg-surface rounded-xl p-4 border border-border text-left">
+                    <p className="text-secondary text-sm mb-1">Amount</p>
+                    <p className="text-primary font-bold text-xl">${amount} <span className="text-sm text-secondary font-normal">({currency})</span></p>
                   </div>
                   
-                  <input
-                    type="password"
-                    maxLength={6}
-                    placeholder="Enter 6-digit code"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-center text-xl tracking-[0.5em] font-mono focus:outline-none focus:border-[#0052ff] transition-colors"
-                  />
-                  
+                  <div className="bg-surface rounded-xl p-4 border border-border text-left">
+                    <p className="text-secondary text-sm mb-1">Destination Address</p>
+                    <p className="text-primary font-mono text-sm break-all">{address}</p>
+                  </div>
+
+                  {screenshot && (
+                    <div className="bg-surface rounded-xl p-4 border border-border text-left">
+                      <p className="text-secondary text-sm mb-3">Wallet Screenshot</p>
+                      <img src={screenshot} alt="Wallet Proof" className="w-full h-auto max-h-48 rounded-lg object-contain bg-background" />
+                    </div>
+                  )}
+                </div>
+                
+                {userData?.two_factor_enabled && (
+                  <div className="w-full space-y-4 mb-6">
+                    <p className="text-sm text-secondary">
+                      Please enter your 6-digit authenticator code or PIN to confirm.
+                    </p>
+                    <input
+                      type="password"
+                      maxLength={6}
+                      placeholder="Enter 6-digit code"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-background border border-border rounded-xl px-4 py-3 text-center text-xl tracking-[0.5em] font-mono focus:outline-none focus:border-[#0052ff] transition-colors"
+                    />
+                  </div>
+                )}
+                
+                <div className="w-full flex gap-3">
+                  <button 
+                    onClick={() => setShowConfirmation(false)}
+                    className="flex-1 bg-surface border border-border hover:bg-subtle text-primary font-bold py-3 rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
                   <button 
                     onClick={executeWithdrawal}
-                    className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-[#0052ff]/20"
+                    className="flex-1 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-[#0052ff]/20"
                   >
-                    Confirm & Send
+                    Confirm
                   </button>
                 </div>
               </div>
@@ -241,6 +278,28 @@ export default function Withdraw() {
                 placeholder={`Enter a valid ${currency} address`}
               />
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-secondary mb-2">Wallet Screenshot (QR Code / Profile)</label>
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-border border-dashed rounded-xl cursor-pointer bg-background hover:bg-surface/50 hover:border-[#0052ff]/50 transition-all">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {screenshot ? (
+                      <div className="text-[#0052ff] font-medium flex items-center gap-2">
+                        <CheckCircle size={20} /> Screenshot Uploaded
+                      </div>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-8 h-8 mb-3 text-secondary" />
+                        <p className="mb-2 text-sm text-secondary"><span className="font-semibold text-[#0052ff]">Click to upload</span> or drag and drop</p>
+                        <p className="text-xs text-muted">PNG, JPG up to 2MB</p>
+                      </>
+                    )}
+                  </div>
+                  <input id="dropzone-file" type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                </label>
+              </div>
+            </div>
 
             <motion.button 
               whileHover={{ scale: 1.02 }}
@@ -248,7 +307,7 @@ export default function Withdraw() {
               transition={fluidSpring}
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-4 rounded-full font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-4 rounded-full font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 mt-4"
             >
               {isSubmitting ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
