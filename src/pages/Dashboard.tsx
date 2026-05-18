@@ -269,11 +269,19 @@ export default function Dashboard() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#0052ff] rounded-full blur-[80px] opacity-10 pointer-events-none" />
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-            <div>
-              <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter">
-                <AnimatedNumber value={userData?.balance || 0} prefix="$" />
-              </h2>
+            <div className="flex flex-col sm:flex-row gap-8 sm:items-center">
+              <div>
+                <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter">
+                  <AnimatedNumber value={userData?.balance || 0} prefix="$" />
+                </h2>
+              </div>
+              <div className="pl-0 sm:pl-8 sm:border-l border-border/50">
+                <p className="text-emerald-400 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-1.5"><Activity size={14} /> Total Profit</p>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                  <AnimatedNumber value={(totalMined || 0) + (userData?.manual_profits || 0)} prefix="$" />
+                </h2>
+              </div>
             </div>
             
             {/* Quick Action Bar */}
@@ -397,20 +405,16 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="w-full bg-card rounded-2xl p-6 border border-border/50 shadow-md"
+                className="w-full bg-card rounded-2xl p-6 border border-border/50 shadow-md flex flex-col justify-center"
               >
                 <div className="flex justify-between items-center mb-4">
-                  <p className="text-secondary font-semibold text-sm">Mining Profits</p>
-                  <Activity className="text-[#00f0ff]" size={18} />
+                  <p className="text-secondary font-semibold text-sm">Mining Performance</p>
+                  <Activity className="text-[#0052ff]" size={18} />
                 </div>
                 <div className="space-y-4">
                   <div>
                     <p className="text-xs text-secondary uppercase tracking-wider">Total Hashrate</p>
-                    <p className="text-lg font-bold text-primary">{totalHashrate.toFixed(2)} TH/s</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-secondary uppercase tracking-wider">Total Profit</p>
-                    <p className="text-lg font-bold text-emerald-400">${(totalMined + (userData?.manual_profits || 0)).toFixed(2)}</p>
+                    <p className="text-3xl font-bold text-primary">{totalHashrate.toFixed(2)} TH/s</p>
                   </div>
                 </div>
               </motion.div>
