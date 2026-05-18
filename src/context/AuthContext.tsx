@@ -20,6 +20,7 @@ interface UserData {
   referred_by?: string;
   referral_count: number;
   referral_earnings: number;
+  manual_profits?: number;
   level: number;
   onboarding_completed?: boolean;
   is_blocked?: boolean;

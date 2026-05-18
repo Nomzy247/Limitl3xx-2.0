@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Home, Wallet, Activity, User, Settings, 
@@ -9,10 +10,23 @@ import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 import { useAuth } from '../context/AuthContext';
+import { db, collection, query, where, onSnapshot } from '../firebase';
 
 export default function Hub() {
-  const { userData, isAdmin } = useAuth();
+  const { user, userData, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [totalMined, setTotalMined] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'contracts'), where('user_id', '==', user.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let sum = 0;
+      snapshot.forEach(doc => { sum += (doc.data().mined || 0); });
+      setTotalMined(sum);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -80,8 +94,18 @@ export default function Hub() {
         className="mb-8 bg-gradient-to-br from-[#0052ff] to-[#00f0ff] p-6 rounded-3xl text-white shadow-2xl relative overflow-hidden"
       >
         <div className="relative z-10">
-          <p className="text-white/70 text-sm font-medium mb-1">Current Balance</p>
-          <h3 className="text-3xl font-bold mb-4">${userData?.balance?.toLocaleString() || '0.00'}</h3>
+          <div className="flex flex-col sm:flex-row gap-8 sm:items-center mb-6">
+            <div>
+              <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">Current Balance</p>
+              <h3 className="text-4xl font-bold tracking-tighter">${userData?.balance?.toLocaleString() || '0.00'}</h3>
+            </div>
+            <div className="pt-4 sm:pt-0 sm:pl-8 border-t sm:border-t-0 sm:border-l border-white/20">
+              <p className="text-emerald-300 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Activity size={12} /> Total Profit</p>
+              <h3 className="text-4xl font-bold tracking-tighter text-emerald-300 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                ${(totalMined + (userData?.manual_profits || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md">
               <TrendingUp size={14} />

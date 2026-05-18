@@ -8,7 +8,7 @@ const app = initializeApp(firebaseConfig);
 
 // Using initializeFirestore with custom settings to help with connectivity issues if standard gRPC fail
 export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
+  experimentalAutoDetectLongPolling: true,
 }, firebaseConfig.firestoreDatabaseId);
 
 async function testConnection() {

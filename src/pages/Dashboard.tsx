@@ -120,6 +120,7 @@ export default function Dashboard() {
       setContracts(contractsData);
       setIsLoading(false);
     }, (error) => {
+      setIsLoading(false);
       handleFirestoreError(error, OperationType.LIST, 'contracts');
     });
 
