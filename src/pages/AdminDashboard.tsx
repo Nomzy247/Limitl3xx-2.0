@@ -9,6 +9,7 @@ import { fluidSpring } from '../components/SystemManager';
 import { formatFirebaseDate } from '../utils/date';
 import UserActionModal from '../components/UserActionModal';
 import TaskManager from '../components/TaskManager';
+import { useNavigate } from 'react-router';
 
 const data = [
   { name: 'Mon', revenue: 4000, users: 2400 },
@@ -22,6 +23,7 @@ const data = [
 
 export default function AdminDashboard() {
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -450,7 +452,7 @@ export default function AdminDashboard() {
           >
             <Settings size={16} /> User Action Panel
           </button>
-          <button className="px-4 py-2 bg-subtle text-primary rounded-full font-medium hover:bg-subtle-hover transition-colors">
+          <button onClick={() => navigate('/admin/settings')} className="px-4 py-2 bg-subtle text-primary rounded-full font-medium hover:bg-subtle-hover transition-colors">
             System Settings
           </button>
         </div>
@@ -686,109 +688,6 @@ export default function AdminDashboard() {
       
       {/* Admin Controls Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* AI & Profit Control */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...fluidSpring, delay: 0.6 }}
-          className="bg-surface border border-border rounded-3xl p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-[#0052ff]/10 rounded-xl">
-              <Bot className="text-[#0052ff]" size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold">AI & Profit Management</h3>
-              <p className="text-sm text-secondary">Control client profits and AI automation</p>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-background border border-border rounded-xl">
-              <div>
-                <h4 className="font-semibold text-primary">AI Auto-Management</h4>
-                <p className="text-xs text-secondary mt-1">AI takes over client profit distribution when admin is offline.</p>
-              </div>
-              <button 
-                onClick={() => setAiEnabled(!aiEnabled)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${aiEnabled ? 'bg-[#0052ff]' : 'bg-muted'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${aiEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
-              </button>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-secondary mb-2">Global Client Profit Margin (%)</label>
-              <div className="flex items-center gap-4">
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="50" 
-                  value={globalProfitMargin}
-                  onChange={(e) => setGlobalProfitMargin(Number(e.target.value))}
-                  className="w-full accent-[#0052ff]"
-                />
-                <span className="font-mono text-primary font-bold w-12 text-right">{globalProfitMargin}%</span>
-              </div>
-              <p className="text-xs text-muted mt-2">Adjusting this affects all active client mining contracts.</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Costings Management */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...fluidSpring, delay: 0.7 }}
-          className="bg-surface border border-border rounded-3xl p-6"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-emerald-500/10 rounded-xl">
-              <Sliders className="text-emerald-500" size={24} />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold">Section Costings</h3>
-              <p className="text-sm text-secondary">Set base prices for mining sections</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-secondary">Pool Mining Base Cost ($)</label>
-              <input 
-                type="number" 
-                value={costings.pool}
-                onChange={(e) => setCostings({...costings, pool: Number(e.target.value)})}
-                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-secondary">Cloud Mining Base Cost ($)</label>
-              <input 
-                type="number" 
-                value={costings.cloud}
-                onChange={(e) => setCostings({...costings, cloud: Number(e.target.value)})}
-                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-secondary">Crypto Mining Base Cost ($)</label>
-              <input 
-                type="number" 
-                value={costings.crypto}
-                onChange={(e) => setCostings({...costings, crypto: Number(e.target.value)})}
-                className="w-32 bg-background border border-border rounded-full px-3 py-2 text-primary text-right focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
-              />
-            </div>
-          </div>
-
-          <button 
-            onClick={handleSaveSettings}
-            className="w-full mt-6 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium transition-colors"
-          >
-            Save All Changes
-          </button>
-        </motion.div>
 
         {/* Public Stats Management */}
         <motion.div 
