@@ -6,6 +6,7 @@ import { collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, serverT
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from './SystemManager';
 import { toast } from 'sonner';
+import { formatFirebaseDate } from '../utils/date';
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -179,8 +180,13 @@ export default function Chatbot() {
               )}
               {messages.map((msg, idx) => (
                 <div key={msg.id || idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] p-3 rounded-2xl ${msg.sender === 'user' ? 'bg-primary text-background rounded-tr-sm shadow-md' : 'bg-surface border border-border rounded-tl-sm shadow-sm'}`}>
+                  <div className={`max-w-[80%] p-3 rounded-2xl ${msg.sender === 'user' ? 'bg-[#0052ff] text-white rounded-tr-sm shadow-md' : 'bg-surface border border-border text-primary rounded-tl-sm shadow-sm'}`}>
                     <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                    {msg.timestamp && (
+                        <p className={`text-[10px] mt-1 text-right ${msg.sender === 'user' ? 'text-white/70' : 'text-muted'}`}>
+                           {formatFirebaseDate(msg.timestamp, { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                    )}
                   </div>
                 </div>
               ))}
