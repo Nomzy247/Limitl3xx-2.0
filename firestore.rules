@@ -139,7 +139,7 @@ service cloud.firestore {
         isAdmin() || 
         (isOwner(userId) && 
          request.resource.data.role == resource.data.role &&
-         request.resource.data.balance == resource.data.balance &&
+         request.resource.data.balance <= resource.data.balance &&
          (!('balances' in request.resource.data) || request.resource.data.balances == resource.data.balances) &&
          (!('verification_status' in request.resource.data) || request.resource.data.verification_status == resource.data.verification_status) &&
          (!('referral_count' in request.resource.data) || request.resource.data.referral_count == resource.data.referral_count) &&
