@@ -44,6 +44,19 @@ export default function Chatbot() {
      return () => unsub();
   }, [user]);
 
+  // Auto pop-out chat when client visits/comes to their account
+  useEffect(() => {
+    if (!user) return;
+    const sessionKey = `chat_auto_opened_${user.uid}`;
+    if (!sessionStorage.getItem(sessionKey)) {
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+        sessionStorage.setItem(sessionKey, 'true');
+      }, 1200); // Gentle 1.2s delay after page load for smooth entry
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
+
   // Sync messages & reset unread on open
   useEffect(() => {
     if (!user || !isOpen) return;
@@ -160,7 +173,7 @@ export default function Chatbot() {
       {/* Floating Chat Toggle Button */}
       <motion.button
         id="live-chat-toggle-btn"
-        className="fixed bottom-20 md:bottom-6 right-6 w-14 h-14 bg-[#0052ff] text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-105 transition-transform"
+        className="fixed bottom-28 md:bottom-10 right-6 w-14 h-14 bg-[#0052ff] text-white rounded-full shadow-2xl flex items-center justify-center z-[60] hover:scale-105 transition-transform"
         onClick={() => setIsOpen(!isOpen)}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
@@ -185,7 +198,7 @@ export default function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={fluidSpring}
-            className="fixed bottom-20 md:bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 bg-surface border border-border rounded-3xl shadow-2xl z-50 overflow-hidden flex flex-col h-[520px] max-h-[80vh]"
+            className="fixed bottom-28 md:bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 bg-surface border border-border rounded-3xl shadow-2xl z-[65] overflow-hidden flex flex-col h-[520px] max-h-[75vh]"
           >
             {/* Header */}
             <div className="bg-[#0052ff] text-white p-4 flex items-center justify-between shadow-md">
