@@ -8,6 +8,39 @@ import { fluidSpring } from './SystemManager';
 import { toast } from 'sonner';
 import { formatFirebaseDate } from '../utils/date';
 
+// Sound chime function for incoming support messages
+function playNotificationChime() {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.3);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+    gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.12);
+    osc2.stop(ctx.currentTime + 0.5);
+  } catch (e) {
+    // Ignore audio errors if blocked by browser policy
+  }
+}
+
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ id?: string, sender: 'user' | 'admin'; text: string; timestamp?: any }[]>([]);
@@ -16,6 +49,7 @@ export default function Chatbot() {
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const isInitialLoadRef = useRef(true);
   
   const { user, userData } = useAuth();
 
@@ -36,6 +70,7 @@ export default function Chatbot() {
   // Continuous real-time messages listener for user's support chat
   useEffect(() => {
     if (!user) return;
+    isInitialLoadRef.current = true;
 
     const q = query(
       collection(db, 'support_chats', user.uid, 'messages'),
@@ -44,24 +79,43 @@ export default function Chatbot() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs: any[] = [];
+      let hasNewAdminMsg = false;
+      let lastAdminText = '';
+
       snapshot.forEach((d) => {
         msgs.push({ id: d.id, ...d.data() });
       });
+
+      if (!isInitialLoadRef.current) {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            if (data.sender === 'admin') {
+              hasNewAdminMsg = true;
+              lastAdminText = data.text;
+            }
+          }
+        });
+      } else {
+        isInitialLoadRef.current = false;
+      }
+
       setMessages(msgs);
-      
-      // Auto pop out chat when a new admin message arrives
-      if (msgs.length > 0) {
-        const lastMsg = msgs[msgs.length - 1];
-        if (lastMsg.sender === 'admin') {
-          setIsOpen(true);
-        }
+
+      if (hasNewAdminMsg) {
+        setIsOpen(true);
+        playNotificationChime();
+        toast.info('💬 New message from Support', {
+          description: lastAdminText.slice(0, 80) + (lastAdminText.length > 80 ? '...' : ''),
+          duration: 4000
+        });
       }
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  // Read unread count on startup & auto pop-out on admin messages
+  // Read unread count on startup & auto pop-out on admin updates
   useEffect(() => {
      if (!user) return;
      const unsub = onSnapshot(doc(db, 'support_chats', user.uid), (snapshot) => {
@@ -70,19 +124,11 @@ export default function Chatbot() {
              setUnreadCount(unread);
              if (unread > 0) {
                setIsOpen(true);
+               playNotificationChime();
              }
          }
      });
      return () => unsub();
-  }, [user]);
-
-  // Auto pop-out chat when client visits/comes to their account
-  useEffect(() => {
-    if (!user) return;
-    const timer = setTimeout(() => {
-      setIsOpen(true);
-    }, 1000); // 1s delay after entering account for smooth pop-out
-    return () => clearTimeout(timer);
   }, [user]);
 
   // Reset client unread when chat drawer is opened

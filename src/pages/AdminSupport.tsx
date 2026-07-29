@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MessageSquare, Send, User as UserIcon, RefreshCw, CheckCircle2, Lock, ShieldCheck, Wallet, Sparkles } from 'lucide-react';
+import { Search, MessageSquare, Send, User as UserIcon, RefreshCw, CheckCircle2, Lock, ShieldCheck, Wallet, Sparkles, Megaphone } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, serverTimestamp, getDoc, increment } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, serverTimestamp, getDoc, setDoc, increment } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { formatFirebaseDate } from '../utils/date';
 
@@ -39,24 +39,81 @@ export default function AdminSupport() {
   const [input, setInput] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'unread' | 'open' | 'closed'>('all');
+  const [broadcastInput, setBroadcastInput] = useState('');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Subscribe to all support chats sorted by last message time
+  // Subscribe to support_chats AND users in real-time to list all registered client accounts
   useEffect(() => {
-    const q = query(collection(db, 'support_chats'), orderBy('lastMessageTime', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const sess: SupportSession[] = [];
-      snapshot.forEach((d) => {
-        sess.push({ id: d.id, ...d.data() } as SupportSession);
+    let rawChats: Record<string, SupportSession> = {};
+    let rawUsers: { id: string; email: string; name?: string }[] = [];
+
+    const updateCombined = () => {
+      const combinedMap = new Map<string, SupportSession>();
+
+      // First add all existing support_chats
+      Object.values(rawChats).forEach((chat) => {
+        combinedMap.set(chat.id, chat);
       });
-      setSessions(sess);
-      
+
+      // Next add any registered user who does not have a support_chat doc yet
+      rawUsers.forEach((u) => {
+        if (!combinedMap.has(u.id)) {
+          combinedMap.set(u.id, {
+            id: u.id,
+            userEmail: u.email || u.name || 'client@poolmining.cloud',
+            lastMessage: 'No messages yet (Registered Client)',
+            lastMessageTime: null,
+            unreadCountAdmin: 0,
+            unreadCountClient: 0,
+            status: 'open'
+          });
+        }
+      });
+
+      const combined = Array.from(combinedMap.values());
+
+      // Sort: chats with lastMessageTime first (newest to oldest), then registered clients without messages
+      combined.sort((a, b) => {
+        const timeA = a.lastMessageTime?.seconds || (a.lastMessageTime ? 1 : 0);
+        const timeB = b.lastMessageTime?.seconds || (b.lastMessageTime ? 1 : 0);
+        return timeB - timeA;
+      });
+
+      setSessions(combined);
+
       // Auto-select first chat if none selected yet
-      if (sess.length > 0 && !selectedSessionId) {
-        setSelectedSessionId(sess[0].id);
+      if (combined.length > 0 && !selectedSessionId) {
+        setSelectedSessionId(combined[0].id);
       }
+    };
+
+    const unsubChats = onSnapshot(collection(db, 'support_chats'), (snapshot) => {
+      const map: Record<string, SupportSession> = {};
+      snapshot.forEach((d) => {
+        map[d.id] = { id: d.id, ...d.data() } as SupportSession;
+      });
+      rawChats = map;
+      updateCombined();
     });
-    return () => unsubscribe();
+
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const uList: { id: string; email: string; name?: string }[] = [];
+      snapshot.forEach((d) => {
+        const data = d.data();
+        if (data.role !== 'admin') {
+          uList.push({ id: d.id, email: data.email, name: data.name });
+        }
+      });
+      rawUsers = uList;
+      updateCombined();
+    });
+
+    return () => {
+      unsubChats();
+      unsubUsers();
+    };
   }, []);
 
   const currentSession = sessions.find(s => s.id === selectedSessionId) || null;
@@ -70,7 +127,7 @@ export default function AdminSupport() {
     }
 
     // Mark messages as read by Admin
-    updateDoc(doc(db, 'support_chats', selectedSessionId), { unreadCountAdmin: 0 }).catch(() => {});
+    setDoc(doc(db, 'support_chats', selectedSessionId), { unreadCountAdmin: 0 }, { merge: true }).catch(() => {});
 
     // Fetch user profile from Firestore
     getDoc(doc(db, 'users', selectedSessionId)).then((snap) => {
@@ -113,15 +170,56 @@ export default function AdminSupport() {
         timestamp: serverTimestamp()
       });
 
-      await updateDoc(doc(db, 'support_chats', selectedSessionId), {
+      const userEmail = selectedUserProfile?.email || currentSession?.userEmail || 'client@poolmining.cloud';
+
+      await setDoc(doc(db, 'support_chats', selectedSessionId), {
+        userEmail,
         lastMessage: textToSend,
         lastMessageTime: serverTimestamp(),
         unreadCountClient: increment(1),
+        unreadCountAdmin: 0,
         status: 'open'
-      });
+      }, { merge: true });
+
+      toast.success('Support reply sent.');
     } catch (err) {
       console.error(err);
       toast.error('Failed to send message');
+    }
+  };
+
+  const handleBroadcast = async () => {
+    if (!broadcastInput.trim()) return;
+    setIsBroadcasting(true);
+    const textToBroadcast = `[ANNOUNCEMENT] ${broadcastInput.trim()}`;
+
+    try {
+      let count = 0;
+      for (const sess of sessions) {
+        await addDoc(collection(db, 'support_chats', sess.id, 'messages'), {
+          sender: 'admin',
+          text: textToBroadcast,
+          timestamp: serverTimestamp()
+        });
+
+        await setDoc(doc(db, 'support_chats', sess.id), {
+          userEmail: sess.userEmail,
+          lastMessage: textToBroadcast,
+          lastMessageTime: serverTimestamp(),
+          unreadCountClient: increment(1),
+          status: 'open'
+        }, { merge: true });
+        count++;
+      }
+
+      toast.success(`Broadcast sent to ${count} client dashboards in real-time!`);
+      setBroadcastInput('');
+      setShowBroadcastModal(false);
+    } catch (e) {
+      console.error(e);
+      toast.error('Broadcast failed for some clients.');
+    } finally {
+      setIsBroadcasting(false);
     }
   };
   
@@ -129,9 +227,9 @@ export default function AdminSupport() {
     if (!selectedSessionId || !currentSession) return;
     const newStatus = currentSession.status === 'open' ? 'closed' : 'open';
     try {
-      await updateDoc(doc(db, 'support_chats', selectedSessionId), {
+      await setDoc(doc(db, 'support_chats', selectedSessionId), {
         status: newStatus
-      });
+      }, { merge: true });
       toast.success(newStatus === 'closed' ? "Ticket marked as closed." : "Ticket reopened.");
     } catch (e) {
       toast.error("Could not update ticket status.");
@@ -164,8 +262,14 @@ export default function AdminSupport() {
           <p className="text-secondary text-sm mt-1">Provide real-time client assistance and manage support tickets.</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowBroadcastModal(true)}
+            className="text-xs font-bold px-3.5 py-2 rounded-xl bg-[#0052ff] text-white hover:bg-[#0052ff]/90 transition-all flex items-center gap-1.5 shadow-lg shadow-[#0052ff]/20"
+          >
+            <Megaphone size={14} /> Broadcast to All
+          </button>
           <span className="text-xs text-muted font-medium bg-surface border border-border px-3 py-1.5 rounded-xl">
-            Total Chats: {sessions.length}
+            Clients: {sessions.length}
           </span>
           <span className="text-xs text-emerald-500 font-medium bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -173,6 +277,51 @@ export default function AdminSupport() {
           </span>
         </div>
       </div>
+
+      {/* Broadcast Modal */}
+      {showBroadcastModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-primary">
+                <Megaphone className="text-[#0052ff]" size={20} /> Broadcast Announcement
+              </h3>
+              <button
+                onClick={() => setShowBroadcastModal(false)}
+                className="text-muted hover:text-primary p-1 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-xs text-secondary leading-relaxed">
+              This message will be dispatched instantly to <strong>all {sessions.length} registered client dashboards</strong>, popping open their support chat with audio & visual notifications in real-time.
+            </p>
+            <textarea
+              rows={4}
+              value={broadcastInput}
+              onChange={(e) => setBroadcastInput(e.target.value)}
+              placeholder="Type announcement message (e.g. Scheduled maintenance completed / Special profit bonus credited!)..."
+              className="w-full bg-background border border-border rounded-2xl p-3.5 text-sm focus:outline-none focus:border-[#0052ff] transition-all"
+            />
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowBroadcastModal(false)}
+                className="px-4 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-subtle transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBroadcast}
+                disabled={!broadcastInput.trim() || isBroadcasting}
+                className="px-5 py-2 rounded-xl bg-[#0052ff] text-white text-xs font-bold hover:bg-[#0052ff]/90 disabled:opacity-40 transition-colors flex items-center gap-2"
+              >
+                {isBroadcasting ? <RefreshCw size={14} className="animate-spin" /> : <Send size={14} />}
+                Send Broadcast
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="flex-1 bg-surface border border-border rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl">
         {/* Sidebar - Chat List */}
