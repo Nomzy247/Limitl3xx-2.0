@@ -8,6 +8,8 @@ import { doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, in
 import { useAuth } from '../context/AuthContext';
 
 export default function Support() {
+  const [subject, setSubject] = useState('General Inquiry');
+  const [priority, setPriority] = useState('Medium');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -18,7 +20,7 @@ export default function Support() {
     { q: 'How long do contracts last?', a: 'Mining contracts typically last for 12 months, but we also offer flexible short-term options.' },
   ];
 
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,37 +28,28 @@ export default function Support() {
     
     setIsSubmitting(true);
     try {
+      const userEmail = user.email || userData?.email || 'client@poolmining.cloud';
+      const ticketText = `[${priority.toUpperCase()} TICKET - ${subject}]\n${message.trim()}`;
       const chatRef = doc(db, 'support_chats', user.uid);
-      const chatDoc = await getDoc(chatRef);
       
-      const userMessage = `[Ticket] ${message}`;
-      
-      if (!chatDoc.exists()) {
-        await setDoc(chatRef, {
-            userEmail: user.email,
-            lastMessage: userMessage,
-            lastMessageTime: serverTimestamp(),
-            unreadCountAdmin: 1,
-            unreadCountClient: 0,
-            status: 'open'
-        });
-      } else {
-        await updateDoc(chatRef, {
-            lastMessage: userMessage,
-            lastMessageTime: serverTimestamp(),
-            status: 'open',
-            unreadCountAdmin: increment(1)
-        });
-      }
+      await setDoc(chatRef, {
+        userEmail,
+        lastMessage: ticketText,
+        lastMessageTime: serverTimestamp(),
+        unreadCountAdmin: increment(1),
+        unreadCountClient: 0,
+        status: 'open'
+      }, { merge: true });
       
       await addDoc(collection(db, 'support_chats', user.uid, 'messages'), {
         sender: 'user',
-        text: userMessage,
+        text: ticketText,
         timestamp: serverTimestamp()
       });
 
       setMessage('');
-      toast.success('Support ticket created! We will get back to you soon.');
+      toast.success('Support ticket submitted! Opening Live Support...');
+      window.dispatchEvent(new Event('open-chat'));
     } catch (err) {
       console.error(err);
       toast.error('Failed to create ticket.');
@@ -185,7 +178,11 @@ export default function Support() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-muted mb-2">Subject</label>
-                <select className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all">
+                <select 
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
+                >
                   <option>General Inquiry</option>
                   <option>Technical Issue</option>
                   <option>Billing & Payments</option>
@@ -194,7 +191,11 @@ export default function Support() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-muted mb-2">Priority</label>
-                <select className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all">
+                <select 
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full bg-surface border border-border/50 rounded-xl px-4 py-3 text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50 transition-all"
+                >
                   <option>Low</option>
                   <option>Medium</option>
                   <option>High</option>

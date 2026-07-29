@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, X, Send, User, Headset, Mic, Square } from 'lucide-react';
+import { MessageSquare, X, Send, Headset, Mic, MicOff, Sparkles, Circle } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, serverTimestamp, setDoc, getDoc, increment } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, addDoc, serverTimestamp, setDoc, increment } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from './SystemManager';
 import { toast } from 'sonner';
@@ -10,16 +10,14 @@ import { formatFirebaseDate } from '../utils/date';
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{ id?: string, sender: 'user' | 'admin'; text: string }[]>([]);
+  const [messages, setMessages] = useState<{ id?: string, sender: 'user' | 'admin'; text: string; timestamp?: any }[]>([]);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
   
-  const { user } = useAuth();
-  
-  // Audio state
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const { user, userData } = useAuth();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -35,25 +33,23 @@ export default function Chatbot() {
     return () => window.removeEventListener('open-chat', handleOpenChat);
   }, []);
 
-  const [unreadCount, setUnreadCount] = useState(0);
-
   // Read unread count on startup
   useEffect(() => {
      if (!user) return;
-     const unsub = onSnapshot(doc(db, 'support_chats', user.uid), (doc) => {
-         if (doc.exists()) {
-             setUnreadCount(doc.data().unreadCountClient || 0);
+     const unsub = onSnapshot(doc(db, 'support_chats', user.uid), (snapshot) => {
+         if (snapshot.exists()) {
+             setUnreadCount(snapshot.data().unreadCountClient || 0);
          }
      });
      return () => unsub();
   }, [user]);
 
-  // Sync messages
+  // Sync messages & reset unread on open
   useEffect(() => {
     if (!user || !isOpen) return;
 
     // Reset client unread
-    updateDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }).catch(() => {});
+    setDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }, { merge: true }).catch(() => {});
 
     const q = query(
       collection(db, 'support_chats', user.uid, 'messages'),
@@ -67,78 +63,110 @@ export default function Chatbot() {
       });
       setMessages(msgs);
       
-      if (msgs.length > 0 && msgs[msgs.length-1].sender === 'admin' && isOpen) {
-         updateDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }).catch(() => {});
+      if (msgs.length > 0 && msgs[msgs.length - 1].sender === 'admin' && isOpen) {
+         setDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }, { merge: true }).catch(() => {});
       }
     });
 
     return () => unsubscribe();
   }, [user, isOpen]);
 
-  const handleSend = async () => {
-    if (!input.trim() || !user) return;
+  const sendTextMessage = async (textToSend: string) => {
+    if (!textToSend.trim() || !user) return;
 
-    const userText = input.trim();
-    setInput('');
-    
-    // Optimistic push
-    // setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
+    const userEmail = user.email || userData?.email || 'client@poolmining.cloud';
+    const chatRef = doc(db, 'support_chats', user.uid);
     
     try {
-      const chatRef = doc(db, 'support_chats', user.uid);
-      const chatDoc = await getDoc(chatRef);
-      
-      if (!chatDoc.exists()) {
-         await setDoc(chatRef, {
-             userEmail: user.email,
-             lastMessage: userText,
-             lastMessageTime: serverTimestamp(),
-             unreadCountAdmin: 1,
-             unreadCountClient: 0,
-             status: 'open'
-         });
-      } else {
-         await updateDoc(chatRef, {
-             lastMessage: userText,
-             lastMessageTime: serverTimestamp(),
-             status: 'open',
-             unreadCountAdmin: increment(1)
-         });
-      }
+      await setDoc(chatRef, {
+        userEmail,
+        lastMessage: textToSend,
+        lastMessageTime: serverTimestamp(),
+        unreadCountAdmin: increment(1),
+        unreadCountClient: 0,
+        status: 'open'
+      }, { merge: true });
       
       await addDoc(collection(db, 'support_chats', user.uid, 'messages'), {
         sender: 'user',
-        text: userText,
+        text: textToSend,
         timestamp: serverTimestamp()
       });
-      
     } catch (error) {
       console.error('Chat error:', error);
       toast.error('Failed to send message.');
     }
   };
 
-  const startRecording = async () => {
-    // Basic fallback for recording that just types a mock message if real STT is gone
-    toast.error('Voice input requires AI integration which is disabled in Live Support Mode.');
+  const handleSend = () => {
+    if (!input.trim()) return;
+    const userText = input.trim();
+    setInput('');
+    sendTextMessage(userText);
   };
 
-  const stopRecording = () => {
-      // Stub
+  const toggleRecording = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error('Voice input is not supported by your browser.');
+      return;
+    }
+
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => setIsRecording(true);
+      recognition.onend = () => setIsRecording(false);
+      recognition.onerror = () => {
+        setIsRecording(false);
+        toast.error('Voice input cancelled or failed.');
+      };
+      recognition.onresult = (e: any) => {
+        const transcript = e.results[0][0].transcript;
+        if (transcript) {
+          setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (e) {
+      setIsRecording(false);
+      toast.error('Could not start microphone.');
+    }
   };
 
-  if (!user) return null; // Only show for logged in
+  if (!user) return null;
+
+  const quickPrompts = [
+    'How do I deposit funds?',
+    'Withdrawal processing time?',
+    'What mining plans are available?'
+  ];
 
   return (
     <>
-      {/* Chat Toggle Button */}
+      {/* Floating Chat Toggle Button */}
       <motion.button
-        className="fixed bottom-20 md:bottom-6 right-6 w-14 h-14 bg-primary text-background rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-105 transition-transform"
-        onClick={() => setIsOpen(true)}
+        id="live-chat-toggle-btn"
+        className="fixed bottom-20 md:bottom-6 right-6 w-14 h-14 bg-[#0052ff] text-white rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-105 transition-transform"
+        onClick={() => setIsOpen(!isOpen)}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
+        aria-label="Open Live Support Chat"
       >
         <MessageSquare size={24} />
         {unreadCount > 0 && !isOpen && (
@@ -148,66 +176,117 @@ export default function Chatbot() {
         )}
       </motion.button>
 
-      {/* Chat Window */}
+      {/* Chat Drawer / Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="live-chat-window"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={fluidSpring}
-            className="fixed bottom-20 md:bottom-24 right-6 w-80 sm:w-96 bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col h-[500px] max-h-[80vh]"
+            className="fixed bottom-20 md:bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 bg-surface border border-border rounded-3xl shadow-2xl z-50 overflow-hidden flex flex-col h-[520px] max-h-[80vh]"
           >
             {/* Header */}
-            <div className="bg-primary text-background p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Headset size={20} />
-                <h3 className="font-semibold">Live Support</h3>
+            <div className="bg-[#0052ff] text-white p-4 flex items-center justify-between shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                  <Headset size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm flex items-center gap-1.5">
+                    Live Support
+                    <Circle size={8} className="fill-emerald-400 text-emerald-400 animate-pulse" />
+                  </h3>
+                  <p className="text-[11px] text-white/80">Support Agents Online 24/7</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setIsOpen(false)} className="hover:bg-background/20 p-1 rounded-full transition-colors">
-                  <X size={20} />
-                </button>
-              </div>
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="hover:bg-white/20 p-1.5 rounded-full transition-colors text-white"
+                aria-label="Close Chat"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            {/* Messages */}
+            {/* Messages Container */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
-              {messages.length === 0 && (
-                  <div className="text-center text-muted text-sm mt-4">
-                      How can we help you today? Send a message to speak to a representative.
+              {messages.length === 0 ? (
+                <div className="text-center py-6 px-4">
+                  <div className="w-12 h-12 rounded-full bg-[#0052ff]/10 text-[#0052ff] flex items-center justify-center mx-auto mb-3">
+                    <Sparkles size={24} />
                   </div>
-              )}
-              {messages.map((msg, idx) => (
-                <div key={msg.id || idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] p-3 rounded-2xl ${msg.sender === 'user' ? 'bg-[#0052ff] text-white rounded-tr-sm shadow-md' : 'bg-surface border border-border text-primary rounded-tl-sm shadow-sm'}`}>
-                    <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                    {msg.timestamp && (
-                        <p className={`text-[10px] mt-1 text-right ${msg.sender === 'user' ? 'text-white/70' : 'text-muted'}`}>
-                           {formatFirebaseDate(msg.timestamp, { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                    )}
+                  <h4 className="font-bold text-sm mb-1">Welcome to PoolMining Support</h4>
+                  <p className="text-xs text-muted mb-4">
+                    Send us a message below or tap a quick topic to speak with a specialist.
+                  </p>
+                  <div className="space-y-2">
+                    {quickPrompts.map((prompt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => sendTextMessage(prompt)}
+                        className="w-full text-left p-2.5 rounded-xl bg-surface border border-border/60 hover:border-[#0052ff] text-xs text-primary transition-all hover:bg-[#0052ff]/5"
+                      >
+                        💬 {prompt}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              ) : (
+                messages.map((msg, idx) => {
+                  const isUser = msg.sender === 'user';
+                  return (
+                    <div key={msg.id || idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[82%] p-3 rounded-2xl text-sm ${
+                        isUser 
+                          ? 'bg-[#0052ff] text-white rounded-tr-sm shadow-md' 
+                          : 'bg-surface border border-border text-primary rounded-tl-sm shadow-sm'
+                      }`}>
+                        <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                        {msg.timestamp && (
+                          <p className={`text-[10px] mt-1 text-right ${isUser ? 'text-white/70' : 'text-muted'}`}>
+                            {formatFirebaseDate(msg.timestamp, { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-surface border-t border-border">
+            <div className="p-3 bg-surface border-t border-border">
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleRecording}
+                  className={`p-2 rounded-xl border transition-colors ${
+                    isRecording 
+                      ? 'bg-rose-500 text-white border-rose-600 animate-pulse' 
+                      : 'bg-background border-border text-muted hover:text-primary'
+                  }`}
+                  title="Voice input"
+                >
+                  {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
+
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder={"Type your message..."}
-                  className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+                  placeholder={isRecording ? "Listening..." : "Type your message..."}
+                  className="flex-1 bg-background border border-border rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#0052ff] transition-colors"
                 />
+                
                 <button
+                  type="button"
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="bg-primary text-background p-2 rounded-full hover:opacity-90 disabled:opacity-50 transition-opacity flex-shrink-0 shadow-md"
+                  className="bg-[#0052ff] text-white p-2.5 rounded-xl hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0 shadow-md shadow-[#0052ff]/20"
                 >
                   <Send size={18} />
                 </button>
@@ -219,3 +298,4 @@ export default function Chatbot() {
     </>
   );
 }
+
