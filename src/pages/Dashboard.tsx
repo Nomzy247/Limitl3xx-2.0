@@ -261,47 +261,83 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Quick Actions / Balance (Full Width Top Banner) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full bg-card rounded-2xl p-6 border border-border/30 shadow-md relative overflow-hidden shrink-0 mb-8"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#0052ff] rounded-full blur-[80px] opacity-10 pointer-events-none" />
+        {/* Top Summary Banner - Refactored into Mobile-Friendly Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 md:gap-6 mb-8 w-full">
           
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
-            <div className="flex flex-col gap-6">
-              <div>
-                <p className="text-secondary font-semibold text-xs uppercase tracking-widest mb-1">Total Balance</p>
-                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter">
-                  <AnimatedNumber value={userData?.balance || 0} prefix="$" />
-                </h2>
+          {/* Total Balance Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:col-span-4 bg-card rounded-2xl p-5 sm:p-6 border border-border/40 shadow-md relative overflow-hidden flex flex-col justify-between"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#0052ff] rounded-full blur-[60px] opacity-15 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-secondary font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Wallet size={14} className="text-[#0052ff]" /> Total Balance
+                </span>
+                <span className="text-[10px] bg-[#0052ff]/10 text-[#0052ff] px-2 py-0.5 rounded-full font-semibold">
+                  Available
+                </span>
               </div>
-              <div className="pt-6 border-t border-border/50">
-                <p className="text-emerald-500 font-bold text-sm uppercase tracking-widest mb-2 flex items-center gap-2"><Activity size={16} /> Total Profit</p>
-                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
-                  <AnimatedNumber value={(totalMined || 0) + (userData?.manual_profits || 0)} prefix="$" />
-                </h2>
-              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary truncate">
+                <AnimatedNumber value={userData?.balance || 0} prefix="$" />
+              </h2>
             </div>
-            
-            {/* Quick Action Bar */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
+          </motion.div>
+
+          {/* Total Profit Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="lg:col-span-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 shadow-md relative overflow-hidden flex flex-col justify-between"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 rounded-full blur-[60px] opacity-15 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-emerald-400 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Activity size={15} /> Total Profit
+                </span>
+                <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Sync
+                </span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)] truncate">
+                <AnimatedNumber value={(totalMined || 0) + (userData?.manual_profits || 0)} prefix="$" />
+              </h2>
+              {dailyProfit > 0 && (
+                <p className="text-xs text-emerald-400/80 font-medium mt-1">
+                  +${dailyProfit.toFixed(2)} estimated daily yield
+                </p>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Quick Actions Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="lg:col-span-4 bg-card rounded-2xl p-5 sm:p-6 border border-border/40 shadow-md flex flex-col justify-between gap-3"
+          >
+            <span className="text-xs font-semibold text-secondary uppercase tracking-wider">Quick Actions</span>
+            <div className="grid grid-cols-2 gap-3 w-full">
               <button 
                 onClick={() => navigate('/deposit')} 
-                className="flex-1 md:flex-none bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-6 md:px-8 py-3 w-full sm:w-auto rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm whitespace-nowrap shadow-lg shadow-[#0052ff]/20"
+                className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap shadow-lg shadow-[#0052ff]/20"
               >
-                <ArrowDownRight size={18} /> Deposit
+                <ArrowDownRight size={16} /> Deposit
               </button>
               <button 
                 onClick={() => navigate('/withdraw')} 
-                className="flex-1 md:flex-none bg-subtle hover:bg-subtle-hover text-primary px-6 md:px-8 py-3 w-full sm:w-auto rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-sm whitespace-nowrap"
+                className="bg-subtle hover:bg-subtle-hover text-primary px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-xs sm:text-sm whitespace-nowrap"
               >
-                <ArrowUpRight size={18} /> Withdraw
+                <ArrowUpRight size={16} /> Withdraw
               </button>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* 12-Column Grid System */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
@@ -309,35 +345,74 @@ export default function Dashboard() {
           {/* Main Content Column (Spans 8 columns on large screens) */}
           <div className="xl:col-span-8 flex flex-col gap-6 w-full overflow-hidden">
 
-            {/* Global Network Live Feed */}
+            {/* Mining Performance & Live Network Grid Card */}
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full bg-card rounded-2xl p-6 border border-border/50 shadow-md relative overflow-hidden"
+              className="w-full bg-card rounded-2xl p-5 sm:p-6 border border-border/50 shadow-md relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 w-1 h-full bg-fuchsia-500 rounded-l-2xl"></div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Activity className="text-fuchsia-500" size={20} />
-                  <h3 className="text-lg font-bold">Global Network Status</h3>
+              <div className="absolute top-0 left-0 w-1 h-full bg-[#0052ff] rounded-l-2xl" />
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-[#0052ff]/10 rounded-xl text-[#0052ff]">
+                    <Zap size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold">Mining Performance & Live Stats</h3>
+                    <p className="text-xs text-secondary">Real-time network hash output and yield metrics</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-full">
-                  <RefreshCcw size={12} className="text-fuchsia-400 animate-spin-slow" />
-                  <span className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-wider">Syncing</span>
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                  <RefreshCcw size={11} className="text-emerald-400 animate-spin-slow" />
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Syncing</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Mining Performance</p>
-                  <p className="text-2xl font-bold text-primary">{liveFeed.performance}% <span className="text-xs text-emerald-500 ml-1">▲</span></p>
+
+              {/* Grid layout for mobile & desktop */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="p-3.5 sm:p-4 bg-background border border-border/50 rounded-xl flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-secondary mb-1">
+                    <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider">Performance</span>
+                    <Zap size={14} className="text-amber-400" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-extrabold text-primary flex items-baseline gap-1">
+                    {liveFeed.performance}% 
+                    <span className="text-xs text-emerald-500 font-bold">▲</span>
+                  </p>
+                  <span className="text-[10px] text-emerald-400 font-medium">Optimal Efficiency</span>
                 </div>
-                <div>
-                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Total Client Hashrate</p>
-                  <p className="text-2xl font-bold text-[#0052ff]">{liveFeed.hashrate} TH/s</p>
+
+                <div className="p-3.5 sm:p-4 bg-background border border-border/50 rounded-xl flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-secondary mb-1">
+                    <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider">Mining Hashrate</span>
+                    <Activity size={14} className="text-[#0052ff]" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-extrabold text-[#0052ff]">
+                    {totalHashrate > 0 ? totalHashrate.toFixed(2) : liveFeed.hashrate} <span className="text-xs font-bold text-secondary">TH/s</span>
+                  </p>
+                  <span className="text-[10px] text-secondary font-medium">{contracts.length} Active Contracts</span>
                 </div>
-                <div>
-                  <p className="text-xs text-secondary uppercase tracking-wider mb-1">Total Client Profit</p>
-                  <p className="text-2xl font-bold text-emerald-400">${Number(liveFeed.revenue).toLocaleString()}</p>
+
+                <div className="p-3.5 sm:p-4 bg-background border border-border/50 rounded-xl flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-secondary mb-1">
+                    <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider">Est. Daily Yield</span>
+                    <TrendingUp size={14} className="text-emerald-400" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-extrabold text-emerald-400">
+                    ${dailyProfit.toFixed(2)}
+                  </p>
+                  <span className="text-[10px] text-emerald-400/80 font-medium">Auto Payout Active</span>
+                </div>
+
+                <div className="p-3.5 sm:p-4 bg-background border border-border/50 rounded-xl flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-secondary mb-1">
+                    <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider">Global Pool Profit</span>
+                    <DollarSign size={14} className="text-emerald-400" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-extrabold text-emerald-400 truncate">
+                    ${Number(liveFeed.revenue).toLocaleString()}
+                  </p>
+                  <span className="text-[10px] text-secondary font-medium">Network 24h Yield</span>
                 </div>
               </div>
             </motion.div>
