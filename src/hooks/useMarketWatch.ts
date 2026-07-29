@@ -11,15 +11,18 @@ export function useMarketWatch(symbols: string[] = ['btcusdt', 'ethusdt', 'solus
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    if (!symbols || symbols.length === 0) return;
     const streamNames = symbols.map(s => `${s.toLowerCase()}@ticker`).join('/');
-    const url = `wss://stream.binance.com:9443/ws/${streamNames}`;
+    const url = `wss://stream.binance.com:9443/stream?streams=${streamNames}`;
 
     const connect = () => {
       const socket = new WebSocket(url);
       socketRef.current = socket;
 
       socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        const payload = JSON.parse(event.data);
+        if (!payload.data) return;
+        const data = payload.data;
         const symbol = data.s.toLowerCase();
         
         setMarketData(prev => ({

@@ -4,7 +4,7 @@ import {
   Home, Wallet, Activity, User, Settings, 
   HelpCircle, History, Plus, ArrowUpRight, 
   ArrowDownRight, Shield, Users, TrendingUp,
-  Cpu, Cloud, Zap, Globe, Mail, Phone, Share2
+  Zap, Globe, Share2, Hexagon, ArrowUp
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -46,29 +46,39 @@ export default function Hub() {
   };
 
   const menuItems = [
-    { icon: Home, label: 'Dashboard', path: '/dashboard', color: 'text-[#0052ff]', bg: 'bg-[#0052ff]/10' },
-    { icon: TrendingUp, label: 'Stocks', path: '/buy-hashpower', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { icon: Zap, label: 'Mining', path: '/buy-hashpower', color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
-    { icon: Wallet, label: 'Wallet', path: '/wallet', color: 'text-purple-400', bg: 'bg-purple-400/10' },
-    { icon: History, label: 'History', path: '/transactions', color: 'text-pink-400', bg: 'bg-pink-400/10' },
-    { icon: Users, label: 'Referrals', path: '/referrals', color: 'text-orange-400', bg: 'bg-orange-400/10' },
-    { icon: HelpCircle, label: 'Support', path: '/support', color: 'text-[#00f0ff]', bg: 'bg-[#00f0ff]/10' },
-    { icon: Settings, label: 'Settings', path: '/settings', color: 'text-secondary', bg: 'bg-secondary/10' },
+    { icon: Home, label: 'Dashboard', path: '/dashboard', color: 'text-[#0052ff]' },
+    { icon: TrendingUp, label: 'Stocks', path: '/buy-hashpower', color: 'text-emerald-400' },
+    { icon: Zap, label: 'Mining', path: '/buy-hashpower', color: 'text-yellow-400' },
+    { icon: Wallet, label: 'Wallet', path: '/wallet', color: 'text-purple-400' },
+    { icon: History, label: 'History', path: '/transactions', color: 'text-pink-400' },
+    { icon: Users, label: 'Referrals', path: '/referrals', color: 'text-orange-400' },
+    { icon: HelpCircle, label: 'Support', path: '/support', color: 'text-[#00f0ff]' },
+    { icon: Settings, label: 'Settings', path: '/settings', color: 'text-secondary' },
   ];
 
   if (isAdmin) {
-    menuItems.push({ icon: Shield, label: 'Admin', path: '/admin', color: 'text-sky-400', bg: 'bg-sky-400/10' });
+    menuItems.push({ icon: Shield, label: 'Admin', path: '/admin/dashboard', color: 'text-[#00f0ff]' });
   }
 
   const quickActions = [
-    { icon: ArrowDownRight, label: 'Deposit', path: '/deposit' },
-    { icon: ArrowUpRight, label: 'Withdraw', path: '/withdraw' },
-    { icon: Plus, label: 'Buy Hash', path: '/buy-hashpower' },
-    { icon: Globe, label: 'E-Payment', path: '/integration/e-payment' },
+    { icon: ArrowDownRight, label: 'DEPOSIT', path: '/deposit' },
+    { icon: ArrowUpRight, label: 'WITHDRAW', path: '/withdraw' },
+    { icon: Plus, label: 'BUY HASH', path: '/buy-hashpower' },
+    { icon: Globe, label: 'E-PAYMENT', path: '/integration/e-payment' },
   ];
 
   return (
-    <div className="min-h-screen bg-surface px-4 py-8 pb-24 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background px-4 py-8 pb-24 max-w-7xl mx-auto">
+      
+      {/* Top Logo Chip */}
+      <div className="flex justify-center mb-8">
+        <div className="flex items-center gap-2 bg-surface border border-border/50 px-4 py-2 rounded-full shadow-lg">
+          <Hexagon className="text-[#00f0ff]" size={16} />
+          <span className="text-sm font-bold text-white">PoolMining<span className="text-[#00f0ff]">.cloud</span></span>
+          <ArrowUp className="text-secondary ml-2" size={14} />
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -79,7 +89,7 @@ export default function Hub() {
           <motion.div 
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="w-12 h-12 rounded-full bg-[#0052ff]/10 flex items-center justify-center text-[#0052ff] font-bold text-xl border border-[#0052ff]/20"
+            className="w-10 h-10 rounded-full bg-[#0052ff]/10 flex items-center justify-center text-[#0052ff] font-bold text-lg"
           >
             {userData?.name?.charAt(0) || 'U'}
           </motion.div>
@@ -90,60 +100,57 @@ export default function Hub() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ ...fluidSpring, delay: 0.5 }}
-        className="mb-8 bg-gradient-to-br from-[#0052ff] to-[#00f0ff] p-6 rounded-3xl text-white shadow-2xl relative overflow-hidden"
+        transition={{ ...fluidSpring, delay: 0.2 }}
+        className="mb-8 bg-gradient-to-br from-[#00f0ff] to-[#0052ff] p-6 rounded-2xl text-white shadow-2xl relative overflow-hidden"
       >
         <div className="relative z-10">
-          <div className="flex flex-col gap-6 mb-6">
+          <div className="flex flex-col gap-4 mb-6">
             <div>
-              <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">Current Balance</p>
-              <h3 className="text-4xl font-bold tracking-tighter">${userData?.balance?.toLocaleString() || '0.00'}</h3>
+              <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">CURRENT BALANCE</p>
+              <h3 className="text-4xl font-bold tracking-tighter">${userData?.balance?.toLocaleString() || '0'}</h3>
             </div>
-            <div className="pt-6 border-t border-white/20">
-              <p className="text-emerald-300 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Activity size={12} /> Total Profit</p>
+            <div className="pt-4 border-t border-white/20">
+              <p className="text-emerald-300 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Activity size={12} /> TOTAL PROFIT</p>
               <h3 className="text-4xl font-bold tracking-tighter text-emerald-300 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
                 ${(totalMined + (userData?.manual_profits || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-md">
+            <div className="flex items-center gap-2 text-xs font-bold bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
               <TrendingUp size={14} />
               +12.5% this week
             </div>
             <button 
               onClick={handleShare}
-              className="flex items-center gap-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-1.5 rounded-full backdrop-blur-md transition-colors"
+              className="flex items-center gap-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full backdrop-blur-md transition-colors"
             >
               <Share2 size={14} />
               Share App
             </button>
           </div>
         </div>
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24" />
       </motion.div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         {quickActions.map((action, i) => (
           <Link key={i} to={action.path}>
             <motion.div
-              whileHover={{ y: -5, scale: 1.02 }}
+              whileHover={{ y: -2, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              transition={fluidSpring}
-              className="bg-card border border-border/50 p-4 rounded-2xl flex flex-row items-center justify-between gap-2 shadow-lg"
+              className="bg-surface border border-border/50 p-4 rounded-xl flex items-center justify-between shadow-lg"
             >
-              <span className="text-xs font-bold uppercase tracking-wider">{action.label}</span>
-              <div className="p-2 bg-primary/5 rounded-xl text-primary">
-                <action.icon size={20} />
-              </div>
+              <span className="text-[11px] font-bold text-white uppercase tracking-wider">{action.label}</span>
+              <action.icon size={16} className="text-secondary" />
             </motion.div>
           </Link>
         ))}
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-4">
         {menuItems.map((item, i) => (
           <Link key={i} to={item.path}>
             <motion.div
@@ -152,13 +159,13 @@ export default function Hub() {
               transition={{ ...fluidSpring, delay: i * 0.05 }}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="bg-card border border-border/50 p-6 rounded-3xl flex items-center gap-4 shadow-xl relative overflow-hidden group"
+              className="bg-surface border border-border/50 p-5 rounded-xl flex items-center gap-4 shadow-lg relative overflow-hidden group"
             >
-              <div className={`p-4 ${item.bg} ${item.color} rounded-2xl transition-transform group-hover:scale-110`}>
-                <item.icon size={28} />
+              <div className={`p-2 bg-background/50 rounded-lg ${item.color}`}>
+                <item.icon size={20} />
               </div>
-              <span className="font-bold text-xl">{item.label}</span>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+              <span className="font-bold text-base text-white">{item.label}</span>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
             </motion.div>
           </Link>
         ))}
