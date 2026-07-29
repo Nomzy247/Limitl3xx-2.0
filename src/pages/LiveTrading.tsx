@@ -33,8 +33,9 @@ export default function LiveTrading() {
   const [openOrders, setOpenOrders] = useState<any[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
     // Connect to Binance Public WebSocket for real-time order book
-    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@depth10@100ms`);
+    const ws = new WebSocket(`wss://stream.binance.com/ws/${symbol.toLowerCase()}@depth10@100ms`);
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -43,9 +44,13 @@ export default function LiveTrading() {
         setAsks(data.a.slice(0, 8)); // Top 8 asks
       }
     };
+    
+    ws.onerror = () => {
+      console.warn('Order book WebSocket error occurred.');
+    };
 
     // Connect to ticker for real-time price
-    const wsTicker = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@ticker`);
+    const wsTicker = new WebSocket(`wss://stream.binance.com/ws/${symbol.toLowerCase()}@ticker`);
     wsTicker.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.c) {
@@ -54,8 +59,17 @@ export default function LiveTrading() {
         setPriceChange(parseFloat(data.P));
       }
     };
+    
+    wsTicker.onerror = () => {
+      console.warn('Ticker WebSocket error occurred.');
+    };
 
     return () => {
+      isMounted = false;
+      ws.onerror = null;
+      ws.onmessage = null;
+      wsTicker.onerror = null;
+      wsTicker.onmessage = null;
       ws.close();
       wsTicker.close();
     };

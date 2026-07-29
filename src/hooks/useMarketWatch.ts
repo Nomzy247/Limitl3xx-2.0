@@ -12,10 +12,13 @@ export function useMarketWatch(symbols: string[] = ['btcusdt', 'ethusdt', 'solus
 
   useEffect(() => {
     if (!symbols || symbols.length === 0) return;
+    let isMounted = true;
     const streamNames = symbols.map(s => `${s.toLowerCase()}@ticker`).join('/');
-    const url = `wss://stream.binance.com:9443/stream?streams=${streamNames}`;
+    const url = `wss://stream.binance.com/stream?streams=${streamNames}`;
+    let reconnectTimeout: ReturnType<typeof setTimeout>;
 
     const connect = () => {
+      if (!isMounted) return;
       const socket = new WebSocket(url);
       socketRef.current = socket;
 
@@ -25,23 +28,27 @@ export function useMarketWatch(symbols: string[] = ['btcusdt', 'ethusdt', 'solus
         const data = payload.data;
         const symbol = data.s.toLowerCase();
         
-        setMarketData(prev => ({
-          ...prev,
-          [symbol]: {
-            symbol: data.s,
-            price: parseFloat(data.c),
-            change: parseFloat(data.P)
-          }
-        }));
+        if (isMounted) {
+          setMarketData(prev => ({
+            ...prev,
+            [symbol]: {
+              symbol: data.s,
+              price: parseFloat(data.c),
+              change: parseFloat(data.P)
+            }
+          }));
+        }
       };
 
       socket.onclose = () => {
-        console.log('Market WebSocket closed. Reconnecting...');
-        setTimeout(connect, 3000);
+        if (isMounted) {
+          console.log('Market WebSocket closed. Reconnecting...');
+          reconnectTimeout = setTimeout(connect, 3000);
+        }
       };
 
       socket.onerror = (error) => {
-        console.error('Market WebSocket error:', error);
+        console.warn('Market WebSocket error occurred.');
         socket.close();
       };
     };
@@ -49,7 +56,12 @@ export function useMarketWatch(symbols: string[] = ['btcusdt', 'ethusdt', 'solus
     connect();
 
     return () => {
+      isMounted = false;
+      clearTimeout(reconnectTimeout);
       if (socketRef.current) {
+        socketRef.current.onclose = null;
+        socketRef.current.onerror = null;
+        socketRef.current.onmessage = null;
         socketRef.current.close();
       }
     };
