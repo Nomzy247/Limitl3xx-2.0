@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, MessageSquare, Send, User as UserIcon, RefreshCw, CheckCircle2, Lock, ShieldCheck, Wallet, Sparkles } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, serverTimestamp, getDoc, increment } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { formatFirebaseDate } from '../utils/date';
 
@@ -116,7 +116,7 @@ export default function AdminSupport() {
       await updateDoc(doc(db, 'support_chats', selectedSessionId), {
         lastMessage: textToSend,
         lastMessageTime: serverTimestamp(),
-        unreadCountClient: 1,
+        unreadCountClient: increment(1),
         status: 'open'
       });
     } catch (err) {

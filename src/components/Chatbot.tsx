@@ -33,12 +33,16 @@ export default function Chatbot() {
     return () => window.removeEventListener('open-chat', handleOpenChat);
   }, []);
 
-  // Read unread count on startup
+  // Read unread count on startup & auto pop-out on admin messages
   useEffect(() => {
      if (!user) return;
      const unsub = onSnapshot(doc(db, 'support_chats', user.uid), (snapshot) => {
          if (snapshot.exists()) {
-             setUnreadCount(snapshot.data().unreadCountClient || 0);
+             const unread = snapshot.data().unreadCountClient || 0;
+             setUnreadCount(unread);
+             if (unread > 0) {
+               setIsOpen(true);
+             }
          }
      });
      return () => unsub();
@@ -47,14 +51,10 @@ export default function Chatbot() {
   // Auto pop-out chat when client visits/comes to their account
   useEffect(() => {
     if (!user) return;
-    const sessionKey = `chat_auto_opened_${user.uid}`;
-    if (!sessionStorage.getItem(sessionKey)) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-        sessionStorage.setItem(sessionKey, 'true');
-      }, 1200); // Gentle 1.2s delay after page load for smooth entry
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 1000); // 1s delay after entering account for smooth pop-out
+    return () => clearTimeout(timer);
   }, [user]);
 
   // Sync messages & reset unread on open
