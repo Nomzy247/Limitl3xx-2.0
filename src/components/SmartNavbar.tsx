@@ -22,8 +22,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { fluidSpring } from "./SystemManager";
-import { toast } from "sonner";
 
 import Logo from "./Logo";
 
@@ -34,7 +34,7 @@ export default function SmartNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, toggleTheme } = useTheme();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<
     "connected" | "connecting" | "offline"
@@ -123,9 +123,6 @@ export default function SmartNavbar() {
     handleResize();
     window.addEventListener("resize", handleResize);
 
-    // Check initial theme
-    setIsDark(document.documentElement.classList.contains("dark"));
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -177,19 +174,6 @@ export default function SmartNavbar() {
   const handleScrollToTop = (e: React.MouseEvent) => {
     e.stopPropagation();
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const toggleTheme = () => {
-    const root = document.documentElement;
-    if (root.classList.contains("dark")) {
-      root.classList.remove("dark");
-      setIsDark(false);
-      toast.success("Switched to Light Mode");
-    } else {
-      root.classList.add("dark");
-      setIsDark(true);
-      toast.success("Switched to Dark Mode");
-    }
   };
 
   const effectivelyShrunken = isShrunken && !isHovered && !isMobileMenuOpen;
@@ -354,9 +338,11 @@ export default function SmartNavbar() {
                 <div className="hidden md:flex items-center gap-4">
                   <button
                     onClick={toggleTheme}
-                    className="p-2 text-slate-300 hover:text-white transition-colors rounded-full hover:bg-white/10"
+                    className="p-2 text-slate-300 hover:text-white transition-all rounded-full hover:bg-white/10 flex items-center justify-center border border-white/10 bg-white/5 shadow-sm"
+                    title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                    aria-label="Toggle Theme"
                   >
-                    {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                    {isDark ? <Sun size={18} className="text-amber-400 animate-pulse" /> : <Moon size={18} className="text-sky-400" />}
                   </button>
                   {user ? (
                     <>
@@ -410,6 +396,26 @@ export default function SmartNavbar() {
                     exit={{ opacity: 0, height: 0 }}
                     className="flex flex-col px-6 py-6 gap-4 md:hidden border-t border-white/5 overflow-y-auto max-h-[80vh]"
                   >
+                    {/* Mobile Theme Switcher Bar */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-800/60 border border-white/10 mb-2">
+                      <div className="flex items-center gap-2">
+                        {isDark ? <Moon size={16} className="text-sky-400" /> : <Sun size={16} className="text-amber-400" />}
+                        <span className="text-xs font-semibold text-slate-200">
+                          {isDark ? "Dark Theme" : "Light Theme"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={toggleTheme}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                          isDark
+                            ? "bg-amber-400/10 text-amber-300 border border-amber-400/20"
+                            : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                        }`}
+                      >
+                        {isDark ? <Sun size={12} /> : <Moon size={12} />}
+                        Switch to {isDark ? "Light" : "Dark"}
+                      </button>
+                    </div>
                     {user ? (
                       <>
                         <div className="grid grid-cols-2 gap-4">

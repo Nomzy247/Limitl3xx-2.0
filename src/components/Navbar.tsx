@@ -5,13 +5,14 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { toast } from 'sonner';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Logo from './Logo';
 
 export default function Navbar() {
+  const { isDark, toggleTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isDark, setIsDark] = useState(true);
   const [isGlowing, setIsGlowing] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [status, setStatus] = useState<'offline' | 'connecting' | 'connected' | 'ongoing'>('connected');
@@ -83,9 +84,6 @@ export default function Navbar() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Check initial theme
-    setIsDark(document.documentElement.classList.contains('dark'));
-    
     return () => {
       window.removeEventListener('scroll', handleScroll);
       if (glowTimeoutRef.current) clearTimeout(glowTimeoutRef.current);
@@ -94,19 +92,6 @@ export default function Navbar() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const toggleTheme = () => {
-    const root = document.documentElement;
-    if (root.classList.contains('dark')) {
-      root.classList.remove('dark');
-      setIsDark(false);
-      toast.success('Switched to Light Mode');
-    } else {
-      root.classList.add('dark');
-      setIsDark(true);
-      toast.success('Switched to Dark Mode');
-    }
   };
 
   const showNotification = () => {

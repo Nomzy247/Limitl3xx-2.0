@@ -6,6 +6,7 @@ import {
   CheckCircle, Copy, RefreshCw, Eye, EyeOff, ChevronRight, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { fluidSpring } from '../components/SystemManager';
 import { toast } from 'sonner';
 import { db, doc, updateDoc } from '../firebase';
@@ -38,6 +39,7 @@ const ALL_COUNTRIES = [
 
 export default function Settings() {
   const { user, userData } = useAuth();
+  const { isDark, toggleTheme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'preferences'>('profile');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -395,36 +397,77 @@ export default function Settings() {
               {activeTab === 'preferences' && (
                 <div className="space-y-12 relative z-10">
                   <div className="space-y-6">
-                     <div className="flex items-center gap-3 mb-6">
-                        <Globe size={20} className="text-[#00f0ff]" />
-                        <h3 className="text-xl font-bold tracking-tight">Platform Experience</h3>
+                     <div className="flex items-center justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-3">
+                          <Globe size={20} className="text-[#00f0ff]" />
+                          <h3 className="text-xl font-bold tracking-tight">Platform Theme & Experience</h3>
+                        </div>
+                        <div className="flex items-center gap-3 bg-surface border border-border px-4 py-2 rounded-2xl">
+                          <span className="text-xs font-semibold text-secondary">Toggle Theme</span>
+                          <button
+                            onClick={toggleTheme}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                              isDark ? 'bg-[#0052ff]' : 'bg-amber-500'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                isDark ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
                      </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <motion.button 
                         whileHover={{ scale: 1.02, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        className="p-6 rounded-[2rem] border-2 border-[#0052ff] bg-surface-dark/50 flex flex-col items-start gap-4 transition-all shadow-xl shadow-blue-500/10"
+                        onClick={() => setTheme('dark')}
+                        className={`p-6 rounded-[2rem] flex flex-col items-start gap-4 transition-all text-left relative overflow-hidden ${
+                          isDark 
+                            ? 'border-2 border-[#0052ff] bg-surface shadow-xl shadow-blue-500/10' 
+                            : 'border border-border bg-surface/50 hover:border-[#0052ff]/40'
+                        }`}
                       >
-                        <div className="p-3 bg-[#0052ff]/10 rounded-xl text-[#0052ff]">
-                          <Moon size={28} />
+                        <div className="flex items-center justify-between w-full">
+                          <div className={`p-3 rounded-xl ${isDark ? 'bg-[#0052ff]/10 text-[#0052ff]' : 'bg-subtle text-muted'}`}>
+                            <Moon size={28} />
+                          </div>
+                          {isDark && (
+                            <span className="flex items-center gap-1 text-xs font-bold text-[#0052ff] bg-[#0052ff]/10 border border-[#0052ff]/20 px-3 py-1 rounded-full">
+                              <CheckCircle size={14} /> Active
+                            </span>
+                          )}
                         </div>
-                        <div className="text-left">
-                          <p className="font-bold text-lg">Fintech Dark</p>
-                          <p className="text-xs text-muted mt-1 leading-relaxed">High contrast, low eye-strain professional dashboard.</p>
+                        <div>
+                          <p className="font-bold text-lg text-primary">Fintech Dark Mode</p>
+                          <p className="text-xs text-secondary mt-1 leading-relaxed">High contrast, low eye-strain professional deep navy dashboard visual mode.</p>
                         </div>
                       </motion.button>
+
                       <motion.button 
                         whileHover={{ scale: 1.02, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        disabled
-                        className="p-6 rounded-[2rem] border border-white/5 bg-white/5 flex flex-col items-start gap-4 opacity-50 cursor-not-allowed group"
+                        onClick={() => setTheme('light')}
+                        className={`p-6 rounded-[2rem] flex flex-col items-start gap-4 transition-all text-left relative overflow-hidden ${
+                          !isDark 
+                            ? 'border-2 border-amber-500 bg-surface shadow-xl shadow-amber-500/10' 
+                            : 'border border-border bg-surface/50 hover:border-amber-500/40'
+                        }`}
                       >
-                        <div className="p-3 bg-white/10 rounded-xl text-muted">
-                          <Sun size={28} />
+                        <div className="flex items-center justify-between w-full">
+                          <div className={`p-3 rounded-xl ${!isDark ? 'bg-amber-500/10 text-amber-500' : 'bg-subtle text-muted'}`}>
+                            <Sun size={28} />
+                          </div>
+                          {!isDark && (
+                            <span className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
+                              <CheckCircle size={14} /> Active
+                            </span>
+                          )}
                         </div>
-                        <div className="text-left">
-                          <p className="font-bold text-lg text-muted">Light UI</p>
-                          <p className="text-xs text-muted mt-1 leading-relaxed uppercase tracking-tighter">Coming Soon</p>
+                        <div>
+                          <p className="font-bold text-lg text-primary">Clean Light Mode</p>
+                          <p className="text-xs text-secondary mt-1 leading-relaxed">Bright, high-clarity daylight theme with vibrant blue accents and subtle card borders.</p>
                         </div>
                       </motion.button>
                     </div>

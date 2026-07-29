@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
@@ -55,57 +56,59 @@ function MobileRedirect({ children }: { children: ReactNode }) {
 
 export default function App() {
   return (
-    <SystemManager>
-      <AuthProvider>
-        <Router>
-          <ScrollToTop/>
-          <Toaster 
-            theme="system" 
-            position="top-center" 
-            toastOptions={{
-              className: 'rounded-full border border-border/50 bg-card text-primary px-6 py-3 shadow-lg flex items-center justify-center text-sm font-semibold'
-            }}
-          />
-          <Routes>
-            <Route path="/admin/poolmining.cloud" element={<AdminLogin />} />
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="overview/earn" element={<EarnOverview />} />
-            <Route path="overview/menu" element={<MenuOverview />} />
-            <Route path="overview/wallet" element={<WalletOverview />} />
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="dashboard" element={<ProtectedRoute><MobileRedirect><Dashboard /></MobileRedirect></ProtectedRoute>} />
-            <Route path="deposit" element={<ProtectedRoute><Deposit /></ProtectedRoute>} />
-            <Route path="withdraw" element={<ProtectedRoute><Withdraw /></ProtectedRoute>} />
-            <Route path="buy-hashpower" element={<ProtectedRoute><BuyHashpower /></ProtectedRoute>} />
-            <Route path="transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-            <Route path="wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-            <Route path="pool-mining" element={<ProtectedRoute><PoolMining /></ProtectedRoute>} />
-            <Route path="cloud-mining" element={<ProtectedRoute><CloudMining /></ProtectedRoute>} />
-            <Route path="live-trading" element={<ProtectedRoute><LiveTrading /></ProtectedRoute>} />
-            <Route path="crypto-trading" element={<ProtectedRoute><CryptoTrading /></ProtectedRoute>} />
-            <Route path="assets" element={<ProtectedRoute><Assets /></ProtectedRoute>} />
-            <Route path="marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
-            <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
-            <Route path="referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
-            <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="hub" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
-            <Route path="integration/e-payment" element={<ProtectedRoute><EPaymentIntegration /></ProtectedRoute>} />
-            <Route path="locations" element={<Locations />} />
-            <Route path="services" element={<Services />} />
-            <Route path="about" element={<About />} />
-            <Route path="faq" element={<FAQ />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="admin" element={<Navigate to="/admin/poolmining.cloud" replace />} />
-            <Route path="admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
-            <Route path="admin/support" element={<ProtectedRoute requireAdmin><AdminSupport /></ProtectedRoute>} />
-            <Route path="admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
-          </Route>
-        </Routes>
-      </Router>
-    </AuthProvider>
-    </SystemManager>
+    <ThemeProvider>
+      <SystemManager>
+        <AuthProvider>
+          <Router>
+            <ScrollToTop/>
+            <Toaster 
+              theme="system" 
+              position="top-center" 
+              toastOptions={{
+                className: 'rounded-full border border-border/50 bg-card text-primary px-6 py-3 shadow-lg flex items-center justify-center text-sm font-semibold'
+              }}
+            />
+            <Routes>
+              <Route path="/admin/poolmining.cloud" element={<AdminLogin />} />
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="overview/earn" element={<EarnOverview />} />
+              <Route path="overview/menu" element={<MenuOverview />} />
+              <Route path="overview/wallet" element={<WalletOverview />} />
+              <Route path="login" element={<Login />} />
+              <Route path="signup" element={<Signup />} />
+              <Route path="dashboard" element={<ProtectedRoute><MobileRedirect><Dashboard /></MobileRedirect></ProtectedRoute>} />
+              <Route path="deposit" element={<ProtectedRoute><Deposit /></ProtectedRoute>} />
+              <Route path="withdraw" element={<ProtectedRoute><Withdraw /></ProtectedRoute>} />
+              <Route path="buy-hashpower" element={<ProtectedRoute><BuyHashpower /></ProtectedRoute>} />
+              <Route path="transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+              <Route path="wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+              <Route path="pool-mining" element={<ProtectedRoute><PoolMining /></ProtectedRoute>} />
+              <Route path="cloud-mining" element={<ProtectedRoute><CloudMining /></ProtectedRoute>} />
+              <Route path="live-trading" element={<ProtectedRoute><LiveTrading /></ProtectedRoute>} />
+              <Route path="crypto-trading" element={<ProtectedRoute><CryptoTrading /></ProtectedRoute>} />
+              <Route path="assets" element={<ProtectedRoute><Assets /></ProtectedRoute>} />
+              <Route path="marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+              <Route path="referrals" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
+              <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="hub" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
+              <Route path="integration/e-payment" element={<ProtectedRoute><EPaymentIntegration /></ProtectedRoute>} />
+              <Route path="locations" element={<Locations />} />
+              <Route path="services" element={<Services />} />
+              <Route path="about" element={<About />} />
+              <Route path="faq" element={<FAQ />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="admin" element={<Navigate to="/admin/poolmining.cloud" replace />} />
+              <Route path="admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+              <Route path="admin/support" element={<ProtectedRoute requireAdmin><AdminSupport /></ProtectedRoute>} />
+              <Route path="admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            </Route>
+          </Routes>
+        </Router>
+      </AuthProvider>
+      </SystemManager>
+    </ThemeProvider>
   );
 }
