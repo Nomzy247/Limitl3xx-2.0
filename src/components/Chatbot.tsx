@@ -33,6 +33,34 @@ export default function Chatbot() {
     return () => window.removeEventListener('open-chat', handleOpenChat);
   }, []);
 
+  // Continuous real-time messages listener for user's support chat
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'support_chats', user.uid, 'messages'),
+      orderBy('timestamp', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs: any[] = [];
+      snapshot.forEach((d) => {
+        msgs.push({ id: d.id, ...d.data() });
+      });
+      setMessages(msgs);
+      
+      // Auto pop out chat when a new admin message arrives
+      if (msgs.length > 0) {
+        const lastMsg = msgs[msgs.length - 1];
+        if (lastMsg.sender === 'admin') {
+          setIsOpen(true);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   // Read unread count on startup & auto pop-out on admin messages
   useEffect(() => {
      if (!user) return;
@@ -57,31 +85,10 @@ export default function Chatbot() {
     return () => clearTimeout(timer);
   }, [user]);
 
-  // Sync messages & reset unread on open
+  // Reset client unread when chat drawer is opened
   useEffect(() => {
     if (!user || !isOpen) return;
-
-    // Reset client unread
     setDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }, { merge: true }).catch(() => {});
-
-    const q = query(
-      collection(db, 'support_chats', user.uid, 'messages'),
-      orderBy('timestamp', 'asc')
-    );
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs: any[] = [];
-      snapshot.forEach(d => {
-        msgs.push({ id: d.id, ...d.data() });
-      });
-      setMessages(msgs);
-      
-      if (msgs.length > 0 && msgs[msgs.length - 1].sender === 'admin' && isOpen) {
-         setDoc(doc(db, 'support_chats', user.uid), { unreadCountClient: 0 }, { merge: true }).catch(() => {});
-      }
-    });
-
-    return () => unsubscribe();
   }, [user, isOpen]);
 
   const sendTextMessage = async (textToSend: string) => {
