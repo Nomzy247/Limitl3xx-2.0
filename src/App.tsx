@@ -1,3 +1,4 @@
+import './i18n';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './context/AuthContext';

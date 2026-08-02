@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '../components/LanguageSelector';
 import { fluidSpring } from '../components/SystemManager';
 import { toast } from 'sonner';
 import { db, doc, updateDoc } from '../firebase';
@@ -40,6 +42,7 @@ const ALL_COUNTRIES = [
 export default function Settings() {
   const { user, userData } = useAuth();
   const { isDark, toggleTheme, setTheme } = useTheme();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'preferences'>('profile');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -396,14 +399,43 @@ export default function Settings() {
 
               {activeTab === 'preferences' && (
                 <div className="space-y-12 relative z-10">
+                  {/* Language & Regional Settings */}
+                  <div className="space-y-6 pb-12 border-b border-white/5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <Globe size={20} className="text-[#0052ff]" />
+                          <h3 className="text-xl font-bold tracking-tight">
+                            {t('settings.languageSectionTitle', 'Language & Regional Settings')}
+                          </h3>
+                        </div>
+                        <p className="text-xs text-secondary mt-1 max-w-lg">
+                          {t('settings.languageSectionSubtitle', 'Select your preferred display language for dashboards, notifications, and trading reports.')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs font-semibold text-secondary hidden sm:inline">
+                          {t('settings.selectLanguageLabel', 'Interface Language')}:
+                        </span>
+                        <LanguageSelector variant="dropdown" />
+                      </div>
+                    </div>
+
+                    <LanguageSelector variant="cards" />
+                  </div>
+
                   <div className="space-y-6">
                      <div className="flex items-center justify-between gap-4 mb-6">
                         <div className="flex items-center gap-3">
                           <Globe size={20} className="text-[#00f0ff]" />
-                          <h3 className="text-xl font-bold tracking-tight">Platform Theme & Experience</h3>
+                          <h3 className="text-xl font-bold tracking-tight">
+                            {t('settings.themeSectionTitle', 'Platform Theme & Experience')}
+                          </h3>
                         </div>
                         <div className="flex items-center gap-3 bg-surface border border-border px-4 py-2 rounded-2xl">
-                          <span className="text-xs font-semibold text-secondary">Toggle Theme</span>
+                          <span className="text-xs font-semibold text-secondary">
+                            {t('settings.toggleThemeLabel', 'Toggle Theme')}
+                          </span>
                           <button
                             onClick={toggleTheme}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${

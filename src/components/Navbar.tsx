@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import LanguageSelector from './LanguageSelector';
 import Logo from './Logo';
 
 export default function Navbar() {
@@ -265,6 +266,7 @@ export default function Navbar() {
                       exit={{ scale: 0.3, opacity: 0, borderRadius: '9999px' }}
                       transition={{ duration: 0.3 }}
                     >
+                      <LanguageSelector variant="dropdown" />
                       <button onClick={toggleTheme} className="p-1.5 text-muted hover:text-primary transition-colors rounded-full hover:bg-subtle">
                         {isDark ? <Sun size={16} /> : <Moon size={16} />}
                       </button>

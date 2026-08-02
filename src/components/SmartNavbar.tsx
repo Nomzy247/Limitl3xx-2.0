@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import LanguageSelector from "./LanguageSelector";
 import { fluidSpring } from "./SystemManager";
 
 import Logo from "./Logo";
@@ -335,7 +336,8 @@ export default function SmartNavbar() {
                   )}
                 </div>
 
-                <div className="hidden md:flex items-center gap-4">
+                <div className="hidden md:flex items-center gap-3">
+                  <LanguageSelector variant="dropdown" />
                   <button
                     onClick={toggleTheme}
                     className="p-2 text-slate-300 hover:text-white transition-all rounded-full hover:bg-white/10 flex items-center justify-center border border-white/10 bg-white/5 shadow-sm"
@@ -396,25 +398,31 @@ export default function SmartNavbar() {
                     exit={{ opacity: 0, height: 0 }}
                     className="flex flex-col px-6 py-6 gap-4 md:hidden border-t border-white/5 overflow-y-auto max-h-[80vh]"
                   >
-                    {/* Mobile Theme Switcher Bar */}
-                    <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-800/60 border border-white/10 mb-2">
-                      <div className="flex items-center gap-2">
-                        {isDark ? <Moon size={16} className="text-sky-400" /> : <Sun size={16} className="text-amber-400" />}
-                        <span className="text-xs font-semibold text-slate-200">
-                          {isDark ? "Dark Theme" : "Light Theme"}
-                        </span>
+                    {/* Mobile Theme & Language Switcher Bar */}
+                    <div className="flex flex-col gap-2 mb-2">
+                      <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-800/60 border border-white/10">
+                        <div className="flex items-center gap-2">
+                          {isDark ? <Moon size={16} className="text-sky-400" /> : <Sun size={16} className="text-amber-400" />}
+                          <span className="text-xs font-semibold text-slate-200">
+                            {isDark ? "Dark Theme" : "Light Theme"}
+                          </span>
+                        </div>
+                        <button
+                          onClick={toggleTheme}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                            isDark
+                              ? "bg-amber-400/10 text-amber-300 border border-amber-400/20"
+                              : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                          }`}
+                        >
+                          {isDark ? <Sun size={12} /> : <Moon size={12} />}
+                          Switch to {isDark ? "Light" : "Dark"}
+                        </button>
                       </div>
-                      <button
-                        onClick={toggleTheme}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          isDark
-                            ? "bg-amber-400/10 text-amber-300 border border-amber-400/20"
-                            : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
-                        }`}
-                      >
-                        {isDark ? <Sun size={12} /> : <Moon size={12} />}
-                        Switch to {isDark ? "Light" : "Dark"}
-                      </button>
+                      <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-800/60 border border-white/10">
+                        <span className="text-xs font-semibold text-slate-200 pl-2">Language</span>
+                        <LanguageSelector variant="dropdown" className="w-auto" />
+                      </div>
                     </div>
                     {user ? (
                       <>
