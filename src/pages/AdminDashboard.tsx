@@ -208,7 +208,7 @@ export default function AdminDashboard() {
 
     const searchUsers = async () => {
       setIsSearching(true);
-      const term = searchTerm.toLowerCase().trim();
+      const term = (searchTerm || '').toLowerCase().trim();
       
       const usersQuery = query(
         collection(db, 'users'),
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
     try {
       const usersQuery = query(
         collection(db, 'users'),
-        where('email', '==', adminEmailInput.toLowerCase()),
+        where('email', '==', (adminEmailInput || '').toLowerCase()),
         limit(1)
       );
       
@@ -955,7 +955,7 @@ export default function AdminDashboard() {
               </select>
             </div>
             <span className="px-2 py-1 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold rounded">
-              {transactions.length} {txFilterStatus.toUpperCase()}
+              {transactions.length} {(txFilterStatus || '').toUpperCase()}
             </span>
           </div>
 

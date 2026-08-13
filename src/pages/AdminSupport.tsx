@@ -237,8 +237,10 @@ export default function AdminSupport() {
   };
 
   const filteredSessions = sessions.filter(s => {
-    const matchesSearch = s.userEmail.toLowerCase().includes(search.toLowerCase()) || 
-                          (s.lastMessage && s.lastMessage.toLowerCase().includes(search.toLowerCase()));
+    const emailStr = (s.userEmail || '').toLowerCase();
+    const searchStr = (search || '').toLowerCase();
+    const msgStr = (s.lastMessage || '').toLowerCase();
+    const matchesSearch = emailStr.includes(searchStr) || msgStr.includes(searchStr);
     if (!matchesSearch) return false;
 
     if (filter === 'unread') return s.unreadCountAdmin > 0;

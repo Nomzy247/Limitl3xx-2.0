@@ -42,7 +42,7 @@ export default function AdminLogin() {
     setIsLoading(true);
     
     try {
-      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedEmail = (email || '').trim().toLowerCase();
       const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       const user = userCredential.user;
       

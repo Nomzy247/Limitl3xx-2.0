@@ -35,7 +35,8 @@ export default function LiveTrading() {
   useEffect(() => {
     let isMounted = true;
     // Connect to Binance Public WebSocket for real-time order book
-    const ws = new WebSocket(`wss://stream.binance.com/ws/${symbol.toLowerCase()}@depth10@100ms`);
+    const sym = (symbol || 'BTCUSDT').toLowerCase();
+    const ws = new WebSocket(`wss://stream.binance.com/ws/${sym}@depth10@100ms`);
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -50,7 +51,7 @@ export default function LiveTrading() {
     };
 
     // Connect to ticker for real-time price
-    const wsTicker = new WebSocket(`wss://stream.binance.com/ws/${symbol.toLowerCase()}@ticker`);
+    const wsTicker = new WebSocket(`wss://stream.binance.com/ws/${sym}@ticker`);
     wsTicker.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.c) {

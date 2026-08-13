@@ -57,7 +57,7 @@ export default function Signup() {
           return;
         }
 
-        const normalizedEmail = email.trim().toLowerCase();
+        const normalizedEmail = (email || '').trim().toLowerCase();
         const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
         await auth.signOut();
         

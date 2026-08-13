@@ -449,6 +449,7 @@ i18n
   });
 
 i18n.on('languageChanged', (lng) => {
+  if (!lng || typeof lng !== 'string') return;
   const baseCode = lng.split('-')[0];
   const langMeta = SUPPORTED_LANGUAGES.find(l => l.code === baseCode) || SUPPORTED_LANGUAGES[0];
   const dir = langMeta.dir || 'ltr';

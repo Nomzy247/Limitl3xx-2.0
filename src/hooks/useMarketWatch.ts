@@ -13,7 +13,7 @@ export function useMarketWatch(symbols: string[] = ['btcusdt', 'ethusdt', 'solus
   useEffect(() => {
     if (!symbols || symbols.length === 0) return;
     let isMounted = true;
-    const streamNames = symbols.map(s => `${s.toLowerCase()}@ticker`).join('/');
+    const streamNames = (symbols || []).map(s => `${(s || '').toLowerCase()}@ticker`).join('/');
     const url = `wss://stream.binance.com/stream?streams=${streamNames}`;
     let reconnectTimeout: ReturnType<typeof setTimeout>;
 
@@ -24,9 +24,9 @@ export function useMarketWatch(symbols: string[] = ['btcusdt', 'ethusdt', 'solus
 
       socket.onmessage = (event) => {
         const payload = JSON.parse(event.data);
-        if (!payload.data) return;
+        if (!payload?.data?.s) return;
         const data = payload.data;
-        const symbol = data.s.toLowerCase();
+        const symbol = (data.s || '').toLowerCase();
         
         if (isMounted) {
           setMarketData(prev => ({

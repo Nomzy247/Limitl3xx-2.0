@@ -55,7 +55,7 @@ export default function Login() {
 
     try {
       if (loginMethod === 'email') {
-        const normalizedEmail = email.trim().toLowerCase();
+        const normalizedEmail = (email || '').trim().toLowerCase();
         console.log('Signing in with email:', normalizedEmail);
         const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
         const user = userCredential.user;
