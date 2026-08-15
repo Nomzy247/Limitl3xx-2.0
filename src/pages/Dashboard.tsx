@@ -15,6 +15,7 @@ import { auth, db, collection, query, where, orderBy, limit, onSnapshot, handleF
 import WalletWidget from '../components/WalletWidget';
 import NewsFeed from '../components/NewsFeed';
 import MarketOverview from '../components/MarketOverview';
+import CryptoTicker from '../components/CryptoTicker';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
 import FinancialPlanner from '../components/FinancialPlanner';
 import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
@@ -255,26 +256,11 @@ export default function Dashboard() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">Welcome back, {userData?.name}</h1>
             <p className="text-secondary mt-1 text-sm leading-relaxed">Here is the update on your crypto operations.</p>
           </div>
-          
-          {/* Real-time Ticker */}
-          <div className="flex items-center gap-4 overflow-x-auto pb-2 no-scrollbar">
-            {(Object.values(market) as MarketData[]).map((coin) => (
-              <motion.div 
-                key={coin.symbol}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-card/50 border border-border/30 rounded-lg whitespace-nowrap"
-              >
-                <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${coin.change >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                <span className="text-[10px] font-black uppercase text-secondary">{coin.symbol.replace('USDT', '')}</span>
-                <span className="text-xs font-bold text-primary">${coin.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                <span className={`text-[10px] font-bold ${coin.change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {coin.change > 0 ? '+' : ''}{coin.change.toFixed(2)}%
-                </span>
-              </motion.div>
-            ))}
-          </div>
         </header>
+
+        <div className="mb-8 -mx-4 md:-mx-8">
+          <CryptoTicker />
+        </div>
 
         {/* Top Summary Banner - Refactored into Mobile-Friendly Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 md:gap-6 mb-8 w-full">

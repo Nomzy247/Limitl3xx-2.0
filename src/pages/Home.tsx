@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import Hero from '../components/Hero';
+import CryptoTicker from '../components/CryptoTicker';
 import Features from '../components/Features';
 import Pricing from '../components/Pricing';
 import Sponsors from '../components/Sponsors';
@@ -28,6 +29,7 @@ export default function Home() {
   return (
     <div className="flex flex-col w-full bg-background">
       <section className="w-full flex flex-col justify-center"><Hero /></section>
+      <CryptoTicker />
       <section className="w-full flex flex-col justify-center"><ScrollReveal><Sponsors /></ScrollReveal></section>
       <section className="w-full flex flex-col justify-center"><ScrollReveal><AboutUs /></ScrollReveal></section>
       <section className="w-full flex flex-col justify-center"><ScrollReveal><MarketOpportunities /></ScrollReveal></section>
