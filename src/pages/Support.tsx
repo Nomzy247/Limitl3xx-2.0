@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { MessageCircle, Mail, Phone, HelpCircle, Search, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { MessageCircle, Mail, Phone, HelpCircle, Search, Send, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link } from 'react-router';
 import { fluidSpring } from '../components/SystemManager';
+import DiscordIcon from '../components/DiscordIcon';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
@@ -75,25 +77,27 @@ export default function Support() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.02 }}
           transition={fluidSpring}
-          className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
+          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
         >
-          <div className="p-4 bg-[#0052ff]/10 rounded-2xl mb-6">
-            <MessageCircle className="text-[#0052ff]" size={32} />
+          <div className="flex flex-col items-center">
+            <div className="p-4 bg-[#0052ff]/10 rounded-2xl mb-4">
+              <MessageCircle className="text-[#0052ff]" size={28} />
+            </div>
+            <h3 className="text-lg font-bold mb-2">Live Chat</h3>
+            <p className="text-secondary text-xs mb-6 leading-relaxed">Speak directly with our support agents in real-time.</p>
           </div>
-          <h3 className="text-xl font-bold mb-2">Live Chat</h3>
-          <p className="text-secondary text-sm mb-6 leading-relaxed">Speak directly with our support agents in real-time.</p>
           <motion.button 
             onClick={() => window.dispatchEvent(new Event('open-chat'))}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}
-            className="w-full py-3 bg-[#0052ff] text-white rounded-full font-bold hover:bg-[#0052ff]/90 transition-colors"
+            className="w-full py-2.5 bg-[#0052ff] text-white rounded-full font-bold text-xs hover:bg-[#0052ff]/90 transition-colors"
           >
             Start Chat
           </motion.button>
@@ -103,20 +107,49 @@ export default function Support() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.02 }}
-          transition={{ ...fluidSpring, delay: 0.1 }}
-          className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
+          transition={{ ...fluidSpring, delay: 0.08 }}
+          className="bg-card rounded-3xl p-6 border border-[#5865F2]/30 shadow-xl text-center flex flex-col items-center justify-between relative overflow-hidden"
         >
-          <div className="p-4 bg-emerald-500/10 rounded-2xl mb-6">
-            <Mail className="text-emerald-500" size={32} />
+          <div className="flex flex-col items-center">
+            <div className="p-4 bg-[#5865F2]/10 rounded-2xl mb-4 text-[#5865F2]">
+              <DiscordIcon size={28} />
+            </div>
+            <h3 className="text-lg font-bold mb-2">Discord Group</h3>
+            <p className="text-secondary text-xs mb-6 leading-relaxed">Join 14,000+ miners for live discussions and community help.</p>
           </div>
-          <h3 className="text-xl font-bold mb-2">Email Support</h3>
-          <p className="text-secondary text-sm mb-6 leading-relaxed">Send us a detailed message and we'll reply via email.</p>
+          <motion.a 
+            href="https://discord.gg/poolmining"
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={fluidSpring}
+            className="w-full py-2.5 bg-[#5865F2] text-white rounded-full font-bold text-xs hover:bg-[#4752C4] transition-colors flex items-center justify-center gap-1.5"
+          >
+            <DiscordIcon size={14} /> Join Discord
+          </motion.a>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={{ ...fluidSpring, delay: 0.16 }}
+          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
+        >
+          <div className="flex flex-col items-center">
+            <div className="p-4 bg-emerald-500/10 rounded-2xl mb-4">
+              <Mail className="text-emerald-500" size={28} />
+            </div>
+            <h3 className="text-lg font-bold mb-2">Email Support</h3>
+            <p className="text-secondary text-xs mb-6 leading-relaxed">Send us a detailed message and we'll reply via email.</p>
+          </div>
           <motion.a 
             href="mailto:poolmining@poolmining.cloud"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}
-            className="w-full py-3 bg-emerald-500 text-white rounded-full font-bold hover:bg-emerald-600 transition-colors block text-center"
+            className="w-full py-2.5 bg-emerald-500 text-white rounded-full font-bold text-xs hover:bg-emerald-600 transition-colors block text-center"
           >
             Send Email
           </motion.a>
@@ -126,20 +159,22 @@ export default function Support() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.02 }}
-          transition={{ ...fluidSpring, delay: 0.2 }}
-          className="bg-card rounded-3xl p-8 border border-border/50 shadow-xl text-center flex flex-col items-center"
+          transition={{ ...fluidSpring, delay: 0.24 }}
+          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
         >
-          <div className="p-4 bg-purple-500/10 rounded-2xl mb-6">
-            <Phone className="text-purple-500" size={32} />
+          <div className="flex flex-col items-center">
+            <div className="p-4 bg-purple-500/10 rounded-2xl mb-4">
+              <Phone className="text-purple-500" size={28} />
+            </div>
+            <h3 className="text-lg font-bold mb-2">Phone Support</h3>
+            <p className="text-secondary text-xs mb-6 leading-relaxed">Call our international support line for urgent matters.</p>
           </div>
-          <h3 className="text-xl font-bold mb-2">Phone Support</h3>
-          <p className="text-secondary text-sm mb-6 leading-relaxed">Call our international support line for urgent matters.</p>
           <motion.a 
             href="tel:+18001234567"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}
-            className="w-full py-3 bg-purple-500 text-white rounded-full font-bold hover:bg-purple-600 transition-colors block text-center"
+            className="w-full py-2.5 bg-purple-500 text-white rounded-full font-bold text-xs hover:bg-purple-600 transition-colors block text-center"
           >
             Call Now
           </motion.a>
@@ -148,10 +183,19 @@ export default function Support() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="space-y-8">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <HelpCircle size={24} className="text-[#00f0ff]" />
-            Frequently Asked Questions
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <HelpCircle size={24} className="text-[#00f0ff]" />
+              Frequently Asked Questions
+            </h2>
+            <Link 
+              to="/faq" 
+              className="text-xs font-bold text-[#0052ff] dark:text-[#00f0ff] hover:underline flex items-center gap-1"
+            >
+              <span>View All FAQs</span>
+              <ExternalLink size={12} />
+            </Link>
+          </div>
           <div className="space-y-4">
             {faqs.map((faq, i) => (
               <motion.div 

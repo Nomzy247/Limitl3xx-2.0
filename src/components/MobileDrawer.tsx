@@ -34,6 +34,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
+import DiscordIcon from './DiscordIcon';
 import { toast } from 'sonner';
 
 interface MobileDrawerProps {
@@ -129,7 +130,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     {
       title: t('nav.supportGroup', { defaultValue: 'System & Support' }),
       items: [
-        { name: t('nav.support', { defaultValue: 'Support Center' }), icon: HelpCircle, path: '/support', badge: null },
+        { name: 'FAQ & Help', icon: HelpCircle, path: '/faq', badge: null },
+        { name: t('nav.support', { defaultValue: 'Support Center' }), icon: MessageSquare, path: '/support', badge: null },
         { name: t('nav.settings', { defaultValue: 'Settings' }), icon: SettingsIcon, path: '/settings', badge: null },
       ]
     }
@@ -345,6 +347,18 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                     </>
                   )}
                 </button>
+
+                {/* Discord Community Button */}
+                <a
+                  href="https://discord.gg/poolmining"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-xl bg-[#5865F2]/10 hover:bg-[#5865F2]/20 border border-[#5865F2]/30 text-[#5865F2] dark:text-[#7983f5] transition-colors"
+                  title="Join PoolMining Discord"
+                  aria-label="Join Discord"
+                >
+                  <DiscordIcon size={16} />
+                </a>
 
                 {/* Share Button */}
                 <button

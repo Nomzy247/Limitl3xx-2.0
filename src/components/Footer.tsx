@@ -3,6 +3,7 @@ import { Hexagon, Twitter, Github, Linkedin, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 import { fluidSpring } from './SystemManager';
 import Logo from './Logo';
+import DiscordIcon from './DiscordIcon';
 
 export default function Footer() {
   return (
@@ -16,17 +17,27 @@ export default function Footer() {
             <p className="text-secondary text-sm mb-6">
               Automated wealth generation through advanced crypto mining protocols and institutional-grade security.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
+            <div className="flex gap-4 items-center">
+              <a 
+                href="https://discord.gg/poolmining" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                aria-label="Join PoolMining Discord Server" 
+                className="text-secondary transition-colors hover:text-[#5865F2] hover:scale-110 active:scale-95 inline-block transition-all"
+                title="Discord Community"
+              >
+                <DiscordIcon size={20} />
+              </a>
+              <a href="#" aria-label="Twitter" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
+              <a href="#" aria-label="GitHub" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Github size={20} />
               </a>
-              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
+              <a href="#" aria-label="LinkedIn" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Linkedin size={20} />
               </a>
-              <a href="#" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
+              <a href="mailto:poolmining@poolmining.cloud" aria-label="Email" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Mail size={20} />
               </a>
             </div>
@@ -77,6 +88,16 @@ export default function Footer() {
                 <Link to="/faq" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
                   FAQ
                 </Link>
+              </li>
+              <li>
+                <a 
+                  href="https://discord.gg/poolmining" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-secondary text-sm block hover:text-[#5865F2] transition-all hover:translate-x-1 flex items-center gap-1.5"
+                >
+                  <span>Discord Community</span>
+                </a>
               </li>
               <li>
                 <Link to="/support" className="text-secondary text-sm block hover:text-[#00f0ff] transition-all hover:translate-x-1 block">
