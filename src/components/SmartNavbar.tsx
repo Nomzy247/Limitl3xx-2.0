@@ -24,6 +24,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import LanguageSelector from "./LanguageSelector";
+import MobileDrawer from "./MobileDrawer";
 import { fluidSpring } from "./SystemManager";
 
 import Logo from "./Logo";
@@ -385,142 +386,16 @@ export default function SmartNavbar() {
                 <button
                   className="md:hidden p-2 text-slate-300 hover:text-white transition-colors rounded-full hover:bg-white/10"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  aria-label="Toggle Navigation Drawer"
                 >
                   {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
               </div>
-
-              <AnimatePresence>
-                {isMobileMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="flex flex-col px-6 py-6 gap-4 md:hidden border-t border-white/5 overflow-y-auto max-h-[80vh]"
-                  >
-                    {/* Mobile Theme & Language Switcher Bar */}
-                    <div className="flex flex-col gap-2 mb-2">
-                      <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-800/60 border border-white/10">
-                        <div className="flex items-center gap-2">
-                          {isDark ? <Moon size={16} className="text-sky-400" /> : <Sun size={16} className="text-amber-400" />}
-                          <span className="text-xs font-semibold text-slate-200">
-                            {isDark ? "Dark Theme" : "Light Theme"}
-                          </span>
-                        </div>
-                        <button
-                          onClick={toggleTheme}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                            isDark
-                              ? "bg-amber-400/10 text-amber-300 border border-amber-400/20"
-                              : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
-                          }`}
-                        >
-                          {isDark ? <Sun size={12} /> : <Moon size={12} />}
-                          Switch to {isDark ? "Light" : "Dark"}
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-800/60 border border-white/10">
-                        <span className="text-xs font-semibold text-slate-200 pl-2">Language</span>
-                        <LanguageSelector variant="dropdown" className="w-auto" />
-                      </div>
-                    </div>
-                    {user ? (
-                      <>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="flex flex-col gap-3">
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Trading</p>
-                            <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Dashboard</Link>
-                            <Link to="/live-trading" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Live Trading</Link>
-                            <Link to="/crypto-trading" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Spot Trading</Link>
-                          </div>
-                          <div className="flex flex-col gap-3">
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mining</p>
-                            <Link to="/pool-mining" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Pool Mining</Link>
-                            <Link to="/cloud-mining" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Cloud Mining</Link>
-                            <Link to="/marketplace" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Marketplace</Link>
-                          </div>
-                          <div className="flex flex-col gap-3">
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Account</p>
-                            <Link to="/hub" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Hub</Link>
-                            <Link to="/wallet" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Wallet</Link>
-                            <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Profile</Link>
-                            <Link to="/referrals" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Referrals</Link>
-                            <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Settings</Link>
-                          </div>
-                          <div className="flex flex-col gap-3">
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">&nbsp;</p>
-                            <Link to="/support" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-100 font-medium text-sm">Support</Link>
-                            {isAdmin && (
-                              <>
-                                <Link to="/admin/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-sky-400 font-bold text-sm">Admin Dashboard</Link>
-                                <Link to="/admin/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-sky-400 font-bold text-sm">Admin Settings</Link>
-                              </>
-                            )}
-                            <button
-                              onClick={() => {
-                                setIsMobileMenuOpen(false);
-                                import("../firebase").then(({ logOut }) => logOut());
-                              }}
-                              className="text-left text-rose-500 font-medium text-sm mt-auto"
-                            >
-                              Log out
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Link
-                          to="/about"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          About
-                        </Link>
-                        <Link
-                          to="/locations"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Mining Pools
-                        </Link>
-                        <Link
-                          to="/services"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Pricing
-                        </Link>
-                        <Link
-                          to="/contact"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Contact
-                        </Link>
-                        <div className="h-px bg-white/5 my-2" />
-                        <Link
-                          to="/login"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="text-slate-100 font-medium"
-                        >
-                          Log in
-                        </Link>
-                        <Link
-                          to="/signup"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="bg-[#0052ff] text-white px-4 py-3 rounded-2xl text-center font-bold"
-                        >
-                          Create Account
-                        </Link>
-                      </>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
+
+        <MobileDrawer isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       </motion.nav>
     </div>
   );

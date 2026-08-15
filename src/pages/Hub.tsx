@@ -4,18 +4,20 @@ import {
   Home, Wallet, Activity, User, Settings, 
   HelpCircle, History, Plus, ArrowUpRight, 
   ArrowDownRight, Shield, Users, TrendingUp,
-  Zap, Globe, Share2, Hexagon, ArrowUp
+  Zap, Globe, Share2, Hexagon, ArrowUp, Menu
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 import { useAuth } from '../context/AuthContext';
 import { db, collection, query, where, onSnapshot } from '../firebase';
+import MobileDrawer from '../components/MobileDrawer';
 
 export default function Hub() {
   const { user, userData, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [totalMined, setTotalMined] = useState(0);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -82,18 +84,28 @@ export default function Hub() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Menu</h1>
-          <p className="text-secondary text-sm">Quick access to all features</p>
+          <h1 className="text-2xl font-bold">Mobile Hub</h1>
+          <p className="text-secondary text-sm">Quick access to all platform features</p>
         </div>
-        <Link to="/profile">
-          <motion.div 
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="w-10 h-10 rounded-full bg-[#0052ff]/10 flex items-center justify-center text-[#0052ff] font-bold text-lg"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0052ff]/10 text-[#0052ff] dark:text-[#00f0ff] font-bold text-xs hover:bg-[#0052ff]/20 transition-colors"
+            title="Open Navigation Drawer"
           >
-            {userData?.name?.charAt(0) || 'U'}
-          </motion.div>
-        </Link>
+            <Menu size={16} />
+            <span className="hidden sm:inline">Drawer</span>
+          </button>
+          <Link to="/profile">
+            <motion.div 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-10 h-10 rounded-full bg-[#0052ff]/10 flex items-center justify-center text-[#0052ff] font-bold text-lg"
+            >
+              {userData?.name?.charAt(0) || 'U'}
+            </motion.div>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Summary */}
@@ -170,6 +182,8 @@ export default function Hub() {
           </Link>
         ))}
       </div>
+
+      <MobileDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
     </div>
   );
 }
