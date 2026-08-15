@@ -11,7 +11,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Brush 
 } from 'recharts';
 import { useAuth } from '../context/AuthContext';
-import { auth, db, collection, query, where, orderBy, limit, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, collection, query, where, orderBy, limit, onSnapshot, handleFirestoreError, OperationType, doc, getDoc } from '../firebase';
 import WalletWidget from '../components/WalletWidget';
 import NewsFeed from '../components/NewsFeed';
 import MarketOverview from '../components/MarketOverview';
@@ -155,10 +155,25 @@ export default function Dashboard() {
       });
     });
 
+    // Background polling mechanism to automatically fetch latest account data every 30 seconds
+    const pollInterval = setInterval(async () => {
+      if (!user) return;
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userDocRef);
+        if (userSnap.exists()) {
+          console.log('[Background Poll] Latest account data fetched successfully:', userSnap.data());
+        }
+      } catch (err) {
+        console.error('[Background Poll] Error fetching latest account data:', err);
+      }
+    }, 30000);
+
     return () => {
       unsubscribeContracts();
       unsubscribeTransactions();
       unsubscribeFeed();
+      clearInterval(pollInterval);
     };
   }, [user, authLoading, navigate]);
 
