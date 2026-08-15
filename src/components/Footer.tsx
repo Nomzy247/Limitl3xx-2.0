@@ -19,7 +19,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-4 items-center">
               <a 
-                href="https://discord.gg/poolmining" 
+                href="https://discord.gg/p5XRG4bG8" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 aria-label="Join PoolMining Discord Server" 
@@ -91,7 +91,7 @@ export default function Footer() {
               </li>
               <li>
                 <a 
-                  href="https://discord.gg/poolmining" 
+                  href="https://discord.gg/p5XRG4bG8" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-secondary text-sm block hover:text-[#5865F2] transition-all hover:translate-x-1 flex items-center gap-1.5"

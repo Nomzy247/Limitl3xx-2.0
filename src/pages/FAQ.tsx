@@ -151,7 +151,7 @@ export default function FAQ() {
   });
   const [copiedDiscord, setCopiedDiscord] = useState(false);
 
-  const discordInviteLink = 'https://discord.gg/poolmining';
+  const discordInviteLink = 'https://discord.gg/p5XRG4bG8';
 
   const handleCopyDiscord = () => {
     navigator.clipboard.writeText(discordInviteLink);

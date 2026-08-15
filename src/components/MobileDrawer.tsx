@@ -350,7 +350,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
                 {/* Discord Community Button */}
                 <a
-                  href="https://discord.gg/poolmining"
+                  href="https://discord.gg/p5XRG4bG8"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 rounded-xl bg-[#5865F2]/10 hover:bg-[#5865F2]/20 border border-[#5865F2]/30 text-[#5865F2] dark:text-[#7983f5] transition-colors"

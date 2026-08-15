@@ -118,7 +118,7 @@ export default function Support() {
             <p className="text-secondary text-xs mb-6 leading-relaxed">Join 14,000+ miners for live discussions and community help.</p>
           </div>
           <motion.a 
-            href="https://discord.gg/poolmining"
+            href="https://discord.gg/p5XRG4bG8"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05 }}

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
+import DiscordIcon from '../components/DiscordIcon';
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,6 +99,34 @@ export default function Contact() {
                 </motion.h4>
                 <p className="text-secondary">+1 (800) 123-4567</p>
                 <p className="text-secondary">Mon-Fri from 8am to 5pm</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <motion.div 
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-12 h-12 bg-[#5865F2]/15 text-[#5865F2] rounded-xl flex items-center justify-center flex-shrink-0 cursor-default"
+              >
+                <DiscordIcon size={24} />
+              </motion.div>
+              <div>
+                <motion.h4 
+                  whileHover={{ color: ['#ffffff', '#00f0ff', '#ffffff'] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="font-semibold text-lg cursor-default"
+                >
+                  Discord Server
+                </motion.h4>
+                <p className="text-secondary">Official 24/7 PoolMining Group</p>
+                <a 
+                  href="https://discord.gg/p5XRG4bG8" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-xs font-bold text-[#5865F2] hover:underline inline-flex items-center gap-1 mt-1"
+                >
+                  <span>discord.gg/p5XRG4bG8</span>
+                  <ExternalLink size={12} />
+                </a>
               </div>
             </div>
 
