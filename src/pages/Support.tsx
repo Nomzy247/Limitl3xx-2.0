@@ -30,18 +30,22 @@ export default function Support() {
     
     setIsSubmitting(true);
     try {
-      const userEmail = user.email || userData?.email || 'client@poolmining.cloud';
+      const userEmail = (user.email || userData?.email || 'client@poolmining.cloud').trim();
       const ticketText = `[${priority.toUpperCase()} TICKET - ${subject}]\n${message.trim()}`;
       const chatRef = doc(db, 'support_chats', user.uid);
       
-      await setDoc(chatRef, {
-        userEmail,
+      const chatData: Record<string, any> = {
         lastMessage: ticketText,
         lastMessageTime: serverTimestamp(),
         unreadCountAdmin: increment(1),
         unreadCountClient: 0,
         status: 'open'
-      }, { merge: true });
+      };
+      if (userEmail) {
+        chatData.userEmail = userEmail;
+      }
+      
+      await setDoc(chatRef, chatData, { merge: true });
       
       await addDoc(collection(db, 'support_chats', user.uid, 'messages'), {
         sender: 'user',

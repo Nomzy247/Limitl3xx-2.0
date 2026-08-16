@@ -140,18 +140,22 @@ export default function Chatbot() {
   const sendTextMessage = async (textToSend: string) => {
     if (!textToSend.trim() || !user) return;
 
-    const userEmail = user.email || userData?.email || 'client@poolmining.cloud';
+    const userEmail = (user.email || userData?.email || 'client@poolmining.cloud').trim();
     const chatRef = doc(db, 'support_chats', user.uid);
     
     try {
-      await setDoc(chatRef, {
-        userEmail,
+      const chatUpdate: Record<string, any> = {
         lastMessage: textToSend,
         lastMessageTime: serverTimestamp(),
         unreadCountAdmin: increment(1),
         unreadCountClient: 0,
         status: 'open'
-      }, { merge: true });
+      };
+      if (userEmail) {
+        chatUpdate.userEmail = userEmail;
+      }
+
+      await setDoc(chatRef, chatUpdate, { merge: true });
       
       await addDoc(collection(db, 'support_chats', user.uid, 'messages'), {
         sender: 'user',

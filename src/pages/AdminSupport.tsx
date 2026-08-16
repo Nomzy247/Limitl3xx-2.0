@@ -172,14 +172,18 @@ export default function AdminSupport() {
 
       const userEmail = selectedUserProfile?.email || currentSession?.userEmail || 'client@poolmining.cloud';
 
-      await setDoc(doc(db, 'support_chats', selectedSessionId), {
-        userEmail,
+      const chatUpdate: Record<string, any> = {
         lastMessage: textToSend,
         lastMessageTime: serverTimestamp(),
         unreadCountClient: increment(1),
         unreadCountAdmin: 0,
         status: 'open'
-      }, { merge: true });
+      };
+      if (userEmail) {
+        chatUpdate.userEmail = userEmail;
+      }
+
+      await setDoc(doc(db, 'support_chats', selectedSessionId), chatUpdate, { merge: true });
 
       toast.success('Support reply sent.');
     } catch (err) {
@@ -202,13 +206,18 @@ export default function AdminSupport() {
           timestamp: serverTimestamp()
         });
 
-        await setDoc(doc(db, 'support_chats', sess.id), {
-          userEmail: sess.userEmail,
+        const bcastEmail = sess.userEmail || 'client@poolmining.cloud';
+        const bcastUpdate: Record<string, any> = {
           lastMessage: textToBroadcast,
           lastMessageTime: serverTimestamp(),
           unreadCountClient: increment(1),
           status: 'open'
-        }, { merge: true });
+        };
+        if (bcastEmail) {
+          bcastUpdate.userEmail = bcastEmail;
+        }
+
+        await setDoc(doc(db, 'support_chats', sess.id), bcastUpdate, { merge: true });
         count++;
       }
 
