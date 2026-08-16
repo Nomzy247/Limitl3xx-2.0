@@ -394,9 +394,10 @@ export default function SmartNavbar() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        <MobileDrawer isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       </motion.nav>
+
+      {/* Render MobileDrawer outside motion.nav to prevent overflow/clipping constraints */}
+      <MobileDrawer isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { CloudRain } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
+import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
 
 export default function CloudMining() {
   const { user } = useAuth();
@@ -32,6 +33,14 @@ export default function CloudMining() {
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] bg-background text-primary p-4 md:p-8">
+      {/* Low Battery Warning Banner During Active Mining Operations */}
+      <div className="mb-6">
+        <LowPowerMiningBanner 
+          hasActiveMining={contracts.filter(c => c.status === 'active').length > 0 || contracts.length > 0} 
+          activeMiningCount={contracts.filter(c => c.status === 'active').length || contracts.length} 
+        />
+      </div>
+
       <header className="mb-8">
         <h1 className="text-3xl font-bold tracking-tighter flex items-center gap-3">
           <CloudRain className="text-[#00f0ff]" /> Cloud Mining

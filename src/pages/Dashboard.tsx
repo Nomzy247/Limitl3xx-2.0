@@ -16,6 +16,7 @@ import WalletWidget from '../components/WalletWidget';
 import NewsFeed from '../components/NewsFeed';
 import MarketOverview from '../components/MarketOverview';
 import CryptoTicker from '../components/CryptoTicker';
+import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
 import FinancialPlanner from '../components/FinancialPlanner';
 import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
@@ -250,6 +251,14 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* Low Battery Warning Banner During Active Mining Operations */}
+        <div className="mb-6">
+          <LowPowerMiningBanner 
+            hasActiveMining={contracts.filter(c => c.status === 'active').length > 0 || contracts.length > 0} 
+            activeMiningCount={contracts.filter(c => c.status === 'active').length || contracts.length} 
+          />
+        </div>
 
         <header className="mb-6 px-2 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
           <div>
