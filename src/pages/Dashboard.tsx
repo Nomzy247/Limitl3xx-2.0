@@ -17,6 +17,7 @@ import NewsFeed from '../components/NewsFeed';
 import MarketOverview from '../components/MarketOverview';
 import CryptoTicker from '../components/CryptoTicker';
 import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
+import BatteryStatus from '../components/BatteryStatus';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
 import FinancialPlanner from '../components/FinancialPlanner';
 import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
@@ -264,6 +265,10 @@ export default function Dashboard() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">Welcome back, {userData?.name}</h1>
             <p className="text-secondary mt-1 text-sm leading-relaxed">Here is the update on your crypto operations.</p>
+          </div>
+
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            <BatteryStatus />
           </div>
         </header>
 
