@@ -84,10 +84,13 @@ service cloud.firestore {
              data.type in ['pool', 'cloud', 'crypto'] &&
              data.hashpower is string && data.hashpower.size() > 0 && data.hashpower.size() < 50 &&
              data.price is number && data.price >= 0 &&
-             data.start_date is string && data.start_date.size() < 50 &&
+             (data.start_date is timestamp || (data.start_date is string && data.start_date.size() < 50)) &&
              data.status in ['active', 'completed', 'expired', 'pending'] &&
+             (!('plan_id' in data) || (data.plan_id is string && data.plan_id.size() < 50)) &&
+             (!('plan_name' in data) || (data.plan_name is string && data.plan_name.size() < 100)) &&
              (!('daily_return' in data) || data.daily_return is number) &&
-             (!('next_payout' in data) || (data.next_payout is string && data.next_payout.size() < 50));
+             (!('mined' in data) || data.mined is number) &&
+             (!('next_payout' in data) || (data.next_payout is timestamp || (data.next_payout is string && data.next_payout.size() < 50)));
     }
 
     function isValidTransaction(data) {
@@ -154,7 +157,7 @@ service cloud.firestore {
     match /contracts/{contractId} {
       allow read: if isAuthenticated() && (isOwner(resource.data.user_id) || isAdmin());
       allow create: if isAuthenticated() && isOwner(request.resource.data.user_id) && isValidContract(request.resource.data) &&
-                    (request.resource.data.status == 'pending' || isAdmin());
+                    (request.resource.data.status in ['active', 'pending'] || isAdmin());
       allow update: if isAuthenticated() && isValidContract(request.resource.data) && (
         isAdmin() ||
         (isOwner(resource.data.user_id) && 
@@ -170,7 +173,11 @@ service cloud.firestore {
     match /transactions/{transactionId} {
       allow read: if isAuthenticated() && (isOwner(resource.data.user_id) || isAdmin());
       allow create: if isAuthenticated() && isOwner(request.resource.data.user_id) && isValidTransaction(request.resource.data) &&
-                    (request.resource.data.status == 'pending' || isAdmin());
+                    (
+                      (request.resource.data.type == 'purchase' && request.resource.data.status in ['completed', 'pending']) ||
+                      (request.resource.data.type in ['deposit', 'withdrawal'] && request.resource.data.status == 'pending') ||
+                      isAdmin()
+                    );
       allow update: if isAuthenticated() && isValidTransaction(request.resource.data) && isAdmin();
       allow delete: if isAdmin();
     }

@@ -33,12 +33,15 @@
       "type": "object",
       "properties": {
         "user_id": { "type": "string" },
+        "plan_id": { "type": "string" },
+        "plan_name": { "type": "string" },
         "type": { "type": "string", "enum": ["pool", "cloud", "crypto"] },
         "hashpower": { "type": "string" },
         "price": { "type": "number" },
         "daily_return": { "type": "number" },
+        "mined": { "type": "number" },
         "start_date": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["active", "completed", "expired"] },
+        "status": { "type": "string", "enum": ["active", "completed", "expired", "pending"] },
         "next_payout": { "type": "string", "format": "date-time" }
       },
       "required": ["user_id", "type", "hashpower", "price", "start_date", "status"]
