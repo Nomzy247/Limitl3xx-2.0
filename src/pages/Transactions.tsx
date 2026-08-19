@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
 import { formatFirebaseDate } from '../utils/date';
+import { TransactionsSkeletonLoader } from '../components/SkeletonLoaders';
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -32,6 +33,10 @@ export default function Transactions() {
 
     return () => unsubscribe();
   }, [user]);
+
+  if (isLoading) {
+    return <TransactionsSkeletonLoader />;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">

@@ -20,6 +20,7 @@ import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
 import BatteryStatus from '../components/BatteryStatus';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
 import FinancialPlanner from '../components/FinancialPlanner';
+import { DashboardSkeletonLoader } from '../components/SkeletonLoaders';
 import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
 import { usePowerSave } from '../context/PowerSaveContext';
 import { fluidSpring } from '../components/SystemManager';
@@ -192,11 +193,7 @@ export default function Dashboard() {
   };
 
   if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="w-8 h-8 border-4 border-[#0052ff] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <DashboardSkeletonLoader />;
   }
 
   const totalMined = contracts.reduce((acc, curr) => acc + (curr.mined || 0), 0);

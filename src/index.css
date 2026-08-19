@@ -162,6 +162,11 @@ select:focus-visible {
   animation: float 5s ease-in-out infinite;
 }
 
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 /* Ensure no horizontal overflow on any device */
 html, body {
   overflow-x: hidden;

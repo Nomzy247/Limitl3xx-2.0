@@ -1,5 +1,8 @@
 {
   "name": "PoolMining.cloud",
   "description": "A premium crypto and fintech platform with automated mining, secure wallets, and advanced analytics.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

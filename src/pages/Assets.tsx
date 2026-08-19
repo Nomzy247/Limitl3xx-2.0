@@ -1,15 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Shield, TrendingUp, DollarSign, Activity, Wallet, PieChart as PieChartIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { AssetsSkeletonLoader } from '../components/SkeletonLoaders';
 
 export default function Assets() {
-  const { userData } = useAuth();
+  const { userData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Smooth transition once account and allocation records are resolved
+    if (!authLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [authLoading]);
+
   const COLORS = ['#0052ff', '#00f0ff', '#8b5cf6', '#10b981'];
 
   const assetDistribution = [
@@ -19,10 +31,8 @@ export default function Assets() {
     { name: 'Emergency Funds', value: 5 },
   ];
 
-  // Asset details logic
-
   // Static rich layout values
-  const totalAssets = 145200.50;
+  const totalAssets = (userData?.balance ? userData.balance * 3.5 : 145200.50);
   const currentTradesVal = totalAssets * 0.35;
   const investmentsVal = totalAssets * 0.45;
   const retirementVal = totalAssets * 0.15;
@@ -36,6 +46,10 @@ export default function Assets() {
     { name: 'May', trades: 1890, investments: 4800 },
     { name: 'Jun', trades: 2390, investments: 3800 },
   ];
+
+  if (authLoading || isLoading) {
+    return <AssetsSkeletonLoader />;
+  }
 
   return (
     <div className="pt-24 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
