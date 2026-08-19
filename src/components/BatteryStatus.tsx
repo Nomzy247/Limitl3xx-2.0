@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   Battery, 
   BatteryCharging, 
@@ -8,25 +8,51 @@ import {
   Zap, 
   AlertTriangle 
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useBattery } from '../hooks/useBattery';
 
 interface BatteryStatusProps {
   className?: string;
   showDetails?: boolean;
+  hasActiveMining?: boolean;
 }
 
-export default function BatteryStatus({ className = '', showDetails = true }: BatteryStatusProps) {
+export default function BatteryStatus({ 
+  className = '', 
+  showDetails = true,
+  hasActiveMining = false 
+}: BatteryStatusProps) {
   const { isSupported, level, charging } = useBattery();
-
-  // If Battery API is not supported by the client browser/device, render nothing gracefully
-  if (!isSupported) {
-    return null;
-  }
+  const hasNotifiedRef = useRef(false);
 
   const percentage = Math.round(level * 100);
   const isCritical = percentage <= 10 && !charging;
   const isLow = percentage <= 20 && !charging;
   const isMedium = percentage > 20 && percentage <= 50;
+
+  // Trigger subtle toast notification when battery drops below 20% during active mining
+  useEffect(() => {
+    if (!isSupported) return;
+
+    if (isLow && hasActiveMining && !charging) {
+      if (!hasNotifiedRef.current) {
+        toast.warning(`Battery at ${percentage}% during active mining`, {
+          description: 'Cloud mining runs remotely in our data center. Your hashrate and payouts continue safely even if your device powers off.',
+          duration: 5000,
+          id: 'low-battery-mining-toast'
+        });
+        hasNotifiedRef.current = true;
+      }
+    } else if (charging || percentage > 20) {
+      // Reset toast trigger when user plugs in or battery level recovers
+      hasNotifiedRef.current = false;
+    }
+  }, [isSupported, isLow, hasActiveMining, charging, percentage]);
+
+  // If Battery API is not supported by the client browser/device, render nothing gracefully
+  if (!isSupported) {
+    return null;
+  }
 
   // Determine styling, colors, and badge appearance based on charging and percentage
   let statusColor = 'text-emerald-400';

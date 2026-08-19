@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
 import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
+import BatteryStatus from '../components/BatteryStatus';
 
 export default function CloudMining() {
   const { user } = useAuth();
@@ -41,11 +42,16 @@ export default function CloudMining() {
         />
       </div>
 
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tighter flex items-center gap-3">
-          <CloudRain className="text-[#00f0ff]" /> Cloud Mining
-        </h1>
-        <p className="text-secondary mt-2 text-sm leading-relaxed">Rent hashpower directly from our global data centers.</p>
+      <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tighter flex items-center gap-3">
+            <CloudRain className="text-[#00f0ff]" /> Cloud Mining
+          </h1>
+          <p className="text-secondary mt-2 text-sm leading-relaxed">Rent hashpower directly from our global data centers.</p>
+        </div>
+        <div className="self-start md:self-auto">
+          <BatteryStatus hasActiveMining={contracts.filter(c => c.status === 'active').length > 0 || contracts.length > 0} />
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">

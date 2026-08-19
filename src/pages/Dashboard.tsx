@@ -268,7 +268,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3 self-start md:self-auto">
-            <BatteryStatus />
+            <BatteryStatus hasActiveMining={contracts.filter(c => c.status === 'active').length > 0 || contracts.length > 0} />
           </div>
         </header>
 
