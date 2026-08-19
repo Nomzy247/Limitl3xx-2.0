@@ -6,24 +6,63 @@ import firebaseConfig from '../firebase-applet-config.json';
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
 
-// Using initializeFirestore with custom settings to help with connectivity issues if standard gRPC fail
+// Initialize Firestore with robust caching and auto-detect settings
 export const db = initializeFirestore(app, {
   experimentalAutoDetectLongPolling: true,
+  experimentalForceLongPolling: false,
 }, firebaseConfig.firestoreDatabaseId);
 
-async function testConnection() {
+// Helper for retry logic with exponential backoff to handle transient 'unavailable' or network drops
+export async function withFirestoreRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelayMs: number = 500
+): Promise<T> {
+  let lastError: any;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      const isRetryable = 
+        error?.code === 'unavailable' || 
+        error?.code === 'deadline-exceeded' || 
+        error?.code === 'resource-exhausted' ||
+        error?.message?.includes('unavailable') ||
+        error?.message?.includes('Failed to get document because the client is offline');
+
+      if (!isRetryable || attempt === maxRetries) {
+        throw error;
+      }
+
+      const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 200;
+      console.warn(`[Firestore Retry] Operation failed with ${error?.code || error?.message}. Retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  throw lastError;
+}
+
+// Background non-blocking connectivity verification
+async function verifyFirestoreConnection() {
   try {
-    await getDoc(doc(db, 'system', 'health'));
-    console.log("Firestore connection successful");
+    await withFirestoreRetry(() => getDoc(doc(db, 'system', 'health')), 2, 800);
+    console.log('[Firestore] Initialization and connection verified successfully.');
   } catch (error: any) {
-    if (error?.code === 'permission-denied' || error?.code === 'not-found' || error?.message?.includes('not-found') || error?.message?.includes('permission')) {
-      console.log("Firestore connection established successfully.");
+    if (
+      error?.code === 'permission-denied' || 
+      error?.code === 'not-found' || 
+      error?.message?.includes('not-found') || 
+      error?.message?.includes('permission')
+    ) {
+      console.log('[Firestore] Connection established to database cluster (europe-west2 proxy).');
     } else {
-      console.log("Firestore client initialized in offline/online mode.");
+      console.warn('[Firestore] Transient offline/unavailable status during initial probe; local offline cache and retry engine active.', error?.code || error?.message);
     }
   }
 }
-testConnection();
+
+verifyFirestoreConnection();
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
-import { auth, db, doc, getDoc, setDoc, updateDoc, onSnapshot, handleFirestoreError, OperationType, addDoc, collection, serverTimestamp } from '../firebase';
+import { auth, db, doc, getDoc, setDoc, updateDoc, onSnapshot, handleFirestoreError, OperationType, addDoc, collection, serverTimestamp, withFirestoreRetry } from '../firebase';
 
 interface UserData {
   name: string;
@@ -72,16 +72,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const lastLogin = data.last_login ? new Date(data.last_login).getTime() : 0;
               if (Date.now() - lastLogin > 3600000) {
                 try {
-                  await updateDoc(userDocRef, { last_login: new Date().toISOString() });
+                  await withFirestoreRetry(() => updateDoc(userDocRef, { last_login: new Date().toISOString() }));
                   
                   // Log a visit notification only when last_login is updated (max once per hour)
-                  await addDoc(collection(db, 'notifications'), {
+                  await withFirestoreRetry(() => addDoc(collection(db, 'notifications'), {
                       type: 'visit',
                       userId: firebaseUser.uid,
                       message: `User ${firebaseUser.email} visited the site`,
                       timestamp: serverTimestamp(),
                       read: false
-                  });
+                  }));
                 } catch (e) {
                   console.error("Failed to update last login or log visit", e);
                 }
@@ -114,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 last_login: new Date().toISOString()
               };
               try {
-                await setDoc(userDocRef, newData);
+                await withFirestoreRetry(() => setDoc(userDocRef, newData), 3, 500);
                 setUserData(newData);
               } catch (error) {
                 console.error("Error creating user doc", error);
