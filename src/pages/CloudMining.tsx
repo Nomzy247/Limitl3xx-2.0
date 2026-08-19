@@ -7,6 +7,7 @@ import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError
 import { fluidSpring } from '../components/SystemManager';
 import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
 import BatteryStatus from '../components/BatteryStatus';
+import MiningProfitabilityCalculator from '../components/MiningProfitabilityCalculator';
 
 export default function CloudMining() {
   const { user } = useAuth();
@@ -67,6 +68,11 @@ export default function CloudMining() {
           <p className="text-xs text-secondary uppercase mb-2">Total Mined (Cloud)</p>
           <div className="text-3xl font-bold text-[#00f0ff]">${totalMined.toFixed(2)}</div>
         </motion.div>
+      </div>
+
+      {/* Interactive Mining Profitability Calculator */}
+      <div className="mb-10">
+        <MiningProfitabilityCalculator defaultHashpower={100} defaultPowerConsumption={3200} />
       </div>
 
       <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-lg">

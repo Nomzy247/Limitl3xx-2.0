@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { Home, Wallet, User, LayoutDashboard, Menu } from 'lucide-react';
-import { motion } from 'motion/react';
+import { 
+  LayoutDashboard, 
+  Wallet, 
+  CandlestickChart, 
+  Compass, 
+  Menu 
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
 import MobileDrawer from './MobileDrawer';
@@ -14,64 +20,138 @@ export default function BottomNav() {
 
   if (!user) return null;
 
+  // Primary destinations prioritized for mobile accessibility:
+  // 1. Dashboard - Core analytics & mining overview
+  // 2. Trading - Live cryptocurrency trading & market execution
+  // 3. Wallet - Balances, transfers & transaction actions
+  // 4. Hub - Quick service shortcuts & ecosystem utilities
+  // 5. Menu - Full drawer with account, settings, referrals, support
   const navItems = [
-    { path: '/dashboard', icon: Home, label: 'Home' },
-    { path: '/hub', icon: LayoutDashboard, label: 'Hub' },
-    { action: 'drawer', icon: Menu, label: 'Menu' },
-    { path: '/wallet', icon: Wallet, label: 'Wallet' },
-    { path: '/profile', icon: User, label: 'Profile' },
+    { 
+      path: '/dashboard', 
+      icon: LayoutDashboard, 
+      label: 'Dashboard',
+      isExact: true
+    },
+    { 
+      path: '/live-trading', 
+      icon: CandlestickChart, 
+      label: 'Trading',
+      aliases: ['/live-trading', '/crypto-trading']
+    },
+    { 
+      path: '/wallet', 
+      icon: Wallet, 
+      label: 'Wallet',
+      aliases: ['/wallet', '/deposit', '/withdraw', '/assets', '/transactions']
+    },
+    { 
+      path: '/hub', 
+      icon: Compass, 
+      label: 'Hub',
+      aliases: ['/hub', '/buy-hashpower', '/pool-mining', '/cloud-mining']
+    },
+    { 
+      action: 'drawer', 
+      icon: Menu, 
+      label: 'More' 
+    },
   ];
 
   return (
     <>
-      <motion.div 
-        initial={{ y: 100, opacity: 0 }}
+      {/* Bottom docked mobile tab bar */}
+      <motion.nav 
+        id="mobile-bottom-dock"
+        initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={fluidSpring}
-        className="md:hidden fixed bottom-6 left-3 right-3 bg-white/[0.45] dark:bg-black/[0.45] backdrop-blur-3xl rounded-[2.5rem] px-4 py-2.5 flex justify-between items-center z-50 shadow-2xl border border-white/20 dark:border-white/10"
+        aria-label="Mobile Navigation Bar"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-3 pb-[max(env(safe-area-inset-bottom,12px),12px)] pt-2 bg-white/80 dark:bg-[#0a0f1d]/85 backdrop-blur-2xl border-t border-slate-200/80 dark:border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.5)]"
       >
-        {navItems.map((item, idx) => {
-          const Icon = item.icon;
-          if (item.action === 'drawer') {
+        <div className="max-w-md mx-auto flex items-center justify-around gap-1">
+          {navItems.map((item, idx) => {
+            const Icon = item.icon;
+
+            if (item.action === 'drawer') {
+              return (
+                <button
+                  key="bottom-nav-drawer-toggle"
+                  id="mobile-menu-more-btn"
+                  onClick={() => setIsDrawerOpen(true)}
+                  className={`group relative flex flex-1 flex-col items-center justify-center py-1.5 px-2 min-h-[52px] rounded-2xl transition-all duration-200 active:scale-95 ${
+                    isDrawerOpen
+                      ? 'text-[#0052ff] dark:text-[#00f0ff] font-semibold'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  aria-label="Open More Navigation Options"
+                  aria-expanded={isDrawerOpen}
+                >
+                  <div className="relative flex items-center justify-center w-8 h-8 rounded-xl transition-all">
+                    <Icon size={22} strokeWidth={isDrawerOpen ? 2.4 : 1.9} />
+                    {isDrawerOpen && (
+                      <motion.div 
+                        layoutId="bottomNavBubble"
+                        className="absolute inset-0 bg-primary/10 dark:bg-primary/20 rounded-xl -z-10"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                      />
+                    )}
+                  </div>
+                  <span className="text-[10px] tracking-tight mt-0.5 leading-none font-medium">
+                    {item.label}
+                  </span>
+                </button>
+              );
+            }
+
+            const isActive = item.aliases 
+              ? item.aliases.some(alias => currentPath === alias || currentPath.startsWith(alias + '/'))
+              : (currentPath === item.path || (!item.isExact && currentPath.startsWith(item.path!)));
+
             return (
-              <button
-                key="menu-drawer-btn"
-                onClick={() => setIsDrawerOpen(true)}
-                className={`relative flex flex-col items-center justify-center transition-all duration-300 ${
-                  isDrawerOpen
-                    ? 'bg-black/90 text-white dark:bg-white/90 dark:text-black w-12 h-11 rounded-[1.25rem] shadow-lg scale-105'
-                    : 'text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white w-11 h-11'
+              <Link 
+                key={item.path || idx}
+                id={`mobile-nav-${item.label.toLowerCase()}`}
+                to={item.path!} 
+                className={`group relative flex flex-1 flex-col items-center justify-center py-1.5 px-2 min-h-[52px] rounded-2xl transition-all duration-200 active:scale-95 ${
+                  isActive 
+                    ? 'text-[#0052ff] dark:text-[#00f0ff] font-semibold' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
-                aria-label="Open Mobile Drawer Menu"
+                aria-label={`Navigate to ${item.label}`}
+                aria-current={isActive ? 'page' : undefined}
               >
-                <Icon size={20} strokeWidth={isDrawerOpen ? 2.5 : 2} />
-                <span className="text-[9px] font-bold tracking-tight mt-0.5 leading-none">Menu</span>
-              </button>
+                <div className="relative flex items-center justify-center w-8 h-8 rounded-xl transition-all">
+                  <Icon size={22} strokeWidth={isActive ? 2.4 : 1.9} />
+                  
+                  {/* Subtle active pill backdrop */}
+                  {isActive && (
+                    <motion.div 
+                      layoutId="bottomNavBubble"
+                      className="absolute inset-0 bg-[#0052ff]/10 dark:bg-[#00f0ff]/15 rounded-xl -z-10"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                    />
+                  )}
+
+                  {/* Indicator for live updates */}
+                  {item.label === 'Wallet' && !isActive && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#0a0f1d]" />
+                  )}
+                  {item.label === 'Trading' && !isActive && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#0052ff] dark:bg-[#00f0ff] rounded-full animate-pulse ring-2 ring-white dark:ring-[#0a0f1d]" />
+                  )}
+                </div>
+                
+                <span className={`text-[10px] tracking-tight mt-0.5 leading-none ${isActive ? 'font-bold' : 'font-medium'}`}>
+                  {item.label}
+                </span>
+              </Link>
             );
-          }
+          })}
+        </div>
+      </motion.nav>
 
-          const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(item.path!));
-          
-          return (
-            <Link 
-              key={item.path || idx}
-              to={item.path!} 
-              className={`relative flex flex-col items-center justify-center transition-all duration-300 ${
-                isActive 
-                  ? 'bg-black/90 text-white dark:bg-white/90 dark:text-black w-12 h-11 rounded-[1.25rem] shadow-lg' 
-                  : 'text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white w-11 h-11'
-              }`}
-            >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[9px] font-bold tracking-tight mt-0.5 leading-none">{item.label}</span>
-              {item.label === 'Wallet' && !isActive && (
-                <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-[#0052ff] dark:bg-[#00f0ff] rounded-full ring-2 ring-white/50 dark:ring-black/50" />
-              )}
-            </Link>
-          );
-        })}
-      </motion.div>
-
+      {/* Slide-over full mobile navigation drawer */}
       <MobileDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
     </>
   );

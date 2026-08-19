@@ -8,6 +8,7 @@ import { db, doc, collection, query, where, orderBy, onSnapshot, runTransaction,
 import { fluidSpring } from '../components/SystemManager';
 import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
 import BatteryStatus from '../components/BatteryStatus';
+import MiningProfitabilityCalculator from '../components/MiningProfitabilityCalculator';
 
 export default function PoolMining() {
   const { user, userData } = useAuth();
@@ -200,6 +201,11 @@ export default function PoolMining() {
               </tbody>
             </table>
           </div>
+      </div>
+
+      {/* Interactive Mining Profitability & Network Difficulty Calculator */}
+      <div className="mb-10">
+        <MiningProfitabilityCalculator defaultHashpower={50} defaultPowerConsumption={1600} />
       </div>
 
       <div className="mb-10">

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { db, doc, collection, runTransaction, serverTimestamp, onSnapshot } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
+import MiningProfitabilityCalculator from '../components/MiningProfitabilityCalculator';
 
 export default function BuyHashpower() {
   const { user, userData } = useAuth();
@@ -181,45 +182,10 @@ export default function BuyHashpower() {
             </motion.button>
           </div>
 
-          {/* Mining Calculator */}
-          <motion.div 
-            whileHover={{ y: -5, scale: 1.01 }}
-            transition={fluidSpring}
-            className="bg-background border border-border rounded-2xl p-6 mb-8 shadow-lg"
-          >
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Sliders className="text-primary" size={20} /> Profit Calculator
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-secondary mb-2">Investment Amount ($)</label>
-                <input 
-                  type="number" 
-                  value={calcAmount}
-                  onChange={(e) => setCalcAmount(Number(e.target.value))}
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-2 text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                transition={fluidSpring}
-                className="bg-surface p-4 rounded-xl border border-border/50"
-              >
-                <p className="text-xs text-secondary uppercase tracking-wider mb-1">Daily Profit</p>
-                <p className="text-2xl font-bold text-emerald-400">${(calcAmount * 0.015).toFixed(2)}</p>
-                <p className="text-[10px] text-secondary mt-1">Based on 1.5% avg. return</p>
-              </motion.div>
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                transition={fluidSpring}
-                className="bg-surface p-4 rounded-xl border border-border/50"
-              >
-                <p className="text-xs text-secondary uppercase tracking-wider mb-1">Monthly Profit</p>
-                <p className="text-2xl font-bold text-emerald-400">${(calcAmount * 0.015 * 30).toFixed(2)}</p>
-                <p className="text-[10px] text-secondary mt-1">~{(calcAmount * 0.015 * 30 / 65000).toFixed(6)} BTC</p>
-              </motion.div>
-            </div>
-          </motion.div>
+          {/* Mining Profitability Calculator */}
+          <div className="mb-8">
+            <MiningProfitabilityCalculator defaultHashpower={100} defaultPowerConsumption={3250} />
+          </div>
 
           {/* Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
