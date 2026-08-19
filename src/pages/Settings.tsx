@@ -3,10 +3,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Settings as SettingsIcon, User, Lock, Bell, Shield, 
   Globe, Moon, Sun, Trash2, Save, Camera, Smartphone, 
-  CheckCircle, Copy, RefreshCw, Eye, EyeOff, ChevronRight, X
+  CheckCircle, Copy, RefreshCw, Eye, EyeOff, ChevronRight, X,
+  BatteryCharging, BatteryLow, ZapOff, Sparkles, Sliders
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { usePowerSave } from '../context/PowerSaveContext';
+import { useBattery } from '../hooks/useBattery';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from '../components/LanguageSelector';
 import { fluidSpring } from '../components/SystemManager';
@@ -42,8 +45,10 @@ const ALL_COUNTRIES = [
 export default function Settings() {
   const { user, userData } = useAuth();
   const { isDark, toggleTheme, setTheme } = useTheme();
+  const { powerSaveMode, isEffectivePowerSaving, togglePowerSaveMode, updateIntervalMs } = usePowerSave();
+  const battery = useBattery();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'preferences'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'preferences' | 'power'>('profile');
   const [isSaving, setIsSaving] = useState(false);
 
   // Profile Form State
@@ -67,6 +72,7 @@ export default function Settings() {
     { id: 'security', icon: Lock, label: 'Security' },
     { id: 'notifications', icon: Bell, label: 'Notifications' },
     { id: 'preferences', icon: Globe, label: 'Preferences' },
+    { id: 'power', icon: BatteryCharging, label: 'Power Save' },
   ];
 
   useEffect(() => {
@@ -522,6 +528,116 @@ export default function Settings() {
                         <Trash2 size={16} /> Delete Forever
                       </motion.button>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'power' && (
+                <div className="space-y-10 relative z-10">
+                  {/* Header & Battery Status Telemetry Card */}
+                  <div className="p-6 md:p-8 bg-surface-dark/40 rounded-3xl border border-white/5 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <BatteryCharging size={22} className="text-[#00f0ff]" />
+                          <h3 className="text-xl font-bold tracking-tight text-primary">
+                            Device Power-Save Mode
+                          </h3>
+                        </div>
+                        <p className="text-xs text-secondary mt-1 max-w-xl leading-relaxed">
+                          Dynamically throttle mining dashboard polling, ticker refresh rates, and background telemetry queries to preserve battery longevity on portable and mobile devices when unplugged.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-surface border border-border px-5 py-3 rounded-2xl shrink-0">
+                        <span className="text-xs font-semibold text-secondary">
+                          Power-Save State
+                        </span>
+                        <button
+                          id="settings-toggle-power-save"
+                          onClick={togglePowerSaveMode}
+                          className={`relative inline-flex h-7 w-13 items-center rounded-full transition-colors ${
+                            powerSaveMode ? 'bg-emerald-500' : 'bg-white/10'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-md ${
+                              powerSaveMode ? 'translate-x-7' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Live Device Battery Diagnostics */}
+                    {battery.isSupported && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/5">
+                        <div className="p-4 rounded-2xl bg-surface/40 border border-border/40">
+                          <p className="text-[10px] uppercase font-bold text-secondary tracking-wider">Battery Level</p>
+                          <p className="text-xl font-black font-mono mt-1 text-primary">
+                            {Math.round(battery.level * 100)}%
+                          </p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-surface/40 border border-border/40">
+                          <p className="text-[10px] uppercase font-bold text-secondary tracking-wider">Power Source</p>
+                          <p className={`text-sm font-bold mt-1.5 flex items-center gap-1.5 ${battery.charging ? 'text-[#00f0ff]' : 'text-amber-400'}`}>
+                            {battery.charging ? <BatteryCharging size={16} /> : <BatteryLow size={16} />}
+                            {battery.charging ? 'AC Connected (Charging)' : 'Discharging on Battery'}
+                          </p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-surface/40 border border-border/40">
+                          <p className="text-[10px] uppercase font-bold text-secondary tracking-wider">Telemetry Cadence</p>
+                          <p className="text-sm font-mono font-bold mt-1.5 text-secondary">
+                            {isEffectivePowerSaving ? 'Every 90s (Throttled)' : 'Every 15s (Real-time)'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Feature Breakdown & Modes */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-6 bg-surface-dark/30 rounded-3xl border border-white/5 space-y-3">
+                      <div className="flex items-center gap-2.5 text-emerald-400 font-bold text-sm">
+                        <ZapOff size={18} />
+                        <span>Background Polling Throttling</span>
+                      </div>
+                      <p className="text-xs text-secondary leading-relaxed">
+                        When battery is discharging, background network calls to update contract balances and pool statuses are relaxed from 15 seconds to 90 seconds.
+                      </p>
+                    </div>
+
+                    <div className="p-6 bg-surface-dark/30 rounded-3xl border border-white/5 space-y-3">
+                      <div className="flex items-center gap-2.5 text-[#0052ff] font-bold text-sm">
+                        <Sparkles size={18} />
+                        <span>Zero Cloud Mining Interruption</span>
+                      </div>
+                      <p className="text-xs text-secondary leading-relaxed">
+                        Cloud and Pool contracts run autonomously on our enterprise hardware nodes. Reducing local client polling will never affect your earned payouts or hashrates.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Operational Status Pill */}
+                  <div className="p-5 rounded-2xl border bg-surface/30 border-border flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Sliders size={18} className="text-secondary" />
+                      <div>
+                        <p className="text-sm font-bold text-primary">Active Optimization Status</p>
+                        <p className="text-xs text-secondary">
+                          {isEffectivePowerSaving 
+                            ? 'Power-Save mode is actively conserving battery during discharge.' 
+                            : powerSaveMode && battery.charging 
+                            ? 'Power-Save enabled, but standby mode is bypassed because device is connected to power.'
+                            : 'Standard high-frequency telemetry updates active.'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold font-mono ${
+                      isEffectivePowerSaving ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-surface text-secondary border border-border'
+                    }`}>
+                      {isEffectivePowerSaving ? 'Active Saver' : 'Standard'}
+                    </span>
                   </div>
                 </div>
               )}

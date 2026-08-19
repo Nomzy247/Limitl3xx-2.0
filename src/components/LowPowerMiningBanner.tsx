@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BatteryWarning, ZapOff, PlugZap, X, ShieldAlert, Sparkles } from 'lucide-react';
+import { BatteryWarning, ZapOff, PlugZap, X, ShieldAlert, Sparkles, Leaf } from 'lucide-react';
 import { useBattery } from '../hooks/useBattery';
+import { usePowerSave } from '../context/PowerSaveContext';
 import { fluidSpring } from './SystemManager';
 
 interface LowPowerMiningBannerProps {
@@ -16,6 +17,7 @@ export default function LowPowerMiningBanner({
   className = ''
 }: LowPowerMiningBannerProps) {
   const battery = useBattery();
+  const { powerSaveMode, isEffectivePowerSaving, togglePowerSaveMode } = usePowerSave();
   const [isDismissed, setIsDismissed] = useState(false);
   const [showPowerSaverTips, setShowPowerSaverTips] = useState(false);
 
@@ -72,7 +74,19 @@ export default function LowPowerMiningBanner({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+          <div className="flex items-center gap-2 self-end sm:self-center shrink-0 flex-wrap sm:flex-nowrap">
+            <button
+              onClick={togglePowerSaveMode}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                powerSaveMode 
+                  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/40 text-emerald-300' 
+                  : 'bg-surface/80 hover:bg-surface border-border/80 text-secondary'
+              }`}
+            >
+              <Leaf size={14} className={powerSaveMode ? 'text-emerald-400' : 'text-secondary'} />
+              {powerSaveMode ? 'Power Saver On' : 'Turn On Power Saver'}
+            </button>
+
             <button
               onClick={() => setShowPowerSaverTips(!showPowerSaverTips)}
               className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-colors flex items-center gap-1.5"

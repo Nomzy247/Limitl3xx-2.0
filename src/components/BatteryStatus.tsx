@@ -6,10 +6,12 @@ import {
   BatteryMedium, 
   BatteryWarning, 
   Zap, 
-  AlertTriangle 
+  AlertTriangle,
+  Leaf
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBattery } from '../hooks/useBattery';
+import { usePowerSave } from '../context/PowerSaveContext';
 
 interface BatteryStatusProps {
   className?: string;
@@ -23,6 +25,7 @@ export default function BatteryStatus({
   hasActiveMining = false 
 }: BatteryStatusProps) {
   const { isSupported, level, charging } = useBattery();
+  const { isEffectivePowerSaving, powerSaveMode } = usePowerSave();
   const hasNotifiedRef = useRef(false);
 
   const percentage = Math.round(level * 100);
@@ -120,6 +123,10 @@ export default function BatteryStatus({
         {charging ? (
           <span className="flex items-center text-[10px] uppercase font-bold text-[#00f0ff] tracking-wider px-1.5 py-0.2 rounded bg-[#00f0ff]/10">
             <Zap size={10} className="mr-0.5 inline fill-[#00f0ff]" /> AC
+          </span>
+        ) : isEffectivePowerSaving ? (
+          <span className="flex items-center text-[10px] uppercase font-bold text-emerald-400 tracking-wider px-1.5 py-0.2 rounded bg-emerald-500/15 border border-emerald-500/30">
+            <Leaf size={10} className="mr-0.5 inline" /> ECO
           </span>
         ) : isLow ? (
           <span className="flex items-center text-[10px] uppercase font-bold text-amber-400 tracking-wider px-1 py-0.2 rounded bg-amber-400/10">

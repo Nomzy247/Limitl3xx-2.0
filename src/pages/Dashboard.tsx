@@ -21,6 +21,7 @@ import BatteryStatus from '../components/BatteryStatus';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
 import FinancialPlanner from '../components/FinancialPlanner';
 import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
+import { usePowerSave } from '../context/PowerSaveContext';
 import { fluidSpring } from '../components/SystemManager';
 import { signOut } from 'firebase/auth';
 import { formatFirebaseDate } from '../utils/date';
@@ -90,6 +91,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function Dashboard() {
   const { user, userData, loading: authLoading } = useAuth();
+  const { isEffectivePowerSaving, updateIntervalMs } = usePowerSave();
   const [contracts, setContracts] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [liveFeed, setLiveFeed] = useState({
@@ -158,19 +160,19 @@ export default function Dashboard() {
       });
     });
 
-    // Background polling mechanism to automatically fetch latest account data every 30 seconds
+    // Background polling mechanism to automatically fetch latest account data (throttled in Power-Save mode)
     const pollInterval = setInterval(async () => {
       if (!user) return;
       try {
         const userDocRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userDocRef);
         if (userSnap.exists()) {
-          console.log('[Background Poll] Latest account data fetched successfully:', userSnap.data());
+          console.log(`[Background Poll (${updateIntervalMs}ms)] Latest account data fetched successfully:`, userSnap.data());
         }
       } catch (err) {
         console.error('[Background Poll] Error fetching latest account data:', err);
       }
-    }, 30000);
+    }, updateIntervalMs);
 
     return () => {
       unsubscribeContracts();
@@ -178,7 +180,7 @@ export default function Dashboard() {
       unsubscribeFeed();
       clearInterval(pollInterval);
     };
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, updateIntervalMs]);
 
   const handleLogout = async () => {
     try {

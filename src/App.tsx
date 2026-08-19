@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { Toaster } from 'sonner';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { PowerSaveProvider } from './context/PowerSaveContext';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
@@ -58,9 +59,10 @@ function MobileRedirect({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <ThemeProvider>
-      <SystemManager>
-        <AuthProvider>
-          <Router>
+      <PowerSaveProvider>
+        <SystemManager>
+          <AuthProvider>
+            <Router>
             <ScrollToTop/>
             <Toaster 
               theme="system" 
@@ -110,6 +112,7 @@ export default function App() {
         </Router>
       </AuthProvider>
       </SystemManager>
+      </PowerSaveProvider>
     </ThemeProvider>
   );
 }
