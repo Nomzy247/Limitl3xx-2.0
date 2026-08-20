@@ -20,10 +20,14 @@ const TradingViewWidget = lazy(() => Promise.resolve({
 }));
 
 export default function LiveTrading() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [orderType, setOrderType] = useState('limit');
-  const [side, setSide] = useState('buy');
+  const [side, setSide] = useState<'buy' | 'sell'>('buy');
+  const [price, setPrice] = useState('64500.00');
+  const [amount, setAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'open' | 'history' | 'funds'>('open');
 
   // Real-time WSS State
   const [bids, setBids] = useState<[string, string][]>([]);
@@ -135,7 +139,7 @@ export default function LiveTrading() {
           {/* Asks (Sell) */}
           <div className="flex-1 flex flex-col-reverse justify-end gap-1 overflow-hidden">
             {asks.slice(0,8).map((ask, i) => (
-              <div key={`ask-${i}`} className="flex justify-between text-xs relative group cursor-pointer" onClick={() => (document.getElementById('trade-price') as HTMLInputElement).value = parseFloat(ask[0]).toFixed(2)}>
+              <div key={`ask-${i}`} className="flex justify-between text-xs relative group cursor-pointer" onClick={() => setPrice(parseFloat(ask[0]).toFixed(2))}>
                 <div className="absolute inset-0 bg-red-500/10 right-0 opacity-50 group-hover:opacity-100 transition-opacity" style={{ width: `${Math.min(100, parseFloat(ask[1]) * 50)}%` }} />
                 <span className="text-red-400 font-mono z-10">{parseFloat(ask[0]).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 <span className="text-secondary font-mono z-10">{parseFloat(ask[1]).toFixed(4)}</span>
@@ -149,7 +153,7 @@ export default function LiveTrading() {
           {/* Bids (Buy) */}
           <div className="flex-1 flex flex-col gap-1 overflow-hidden">
             {bids.slice(0,8).map((bid, i) => (
-              <div key={`bid-${i}`} className="flex justify-between text-xs relative group cursor-pointer" onClick={() => (document.getElementById('trade-price') as HTMLInputElement).value = parseFloat(bid[0]).toFixed(2)}>
+              <div key={`bid-${i}`} className="flex justify-between text-xs relative group cursor-pointer" onClick={() => setPrice(parseFloat(bid[0]).toFixed(2))}>
                 <div className="absolute inset-0 bg-emerald-500/10 left-0 opacity-50 group-hover:opacity-100 transition-opacity" style={{ width: `${Math.min(100, parseFloat(bid[1]) * 50)}%` }} />
                 <span className="text-emerald-400 font-mono z-10">{parseFloat(bid[0]).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 <span className="text-secondary font-mono z-10">{parseFloat(bid[1]).toFixed(4)}</span>
@@ -181,9 +185,9 @@ export default function LiveTrading() {
           </div>
 
           <div className="flex gap-4 text-xs font-medium text-secondary mb-4 border-b border-border/50 pb-2">
-            <button className={orderType === 'limit' ? 'text-primary' : ''} onClick={() => setOrderType('limit')}>Limit</button>
-            <button className={orderType === 'market' ? 'text-primary' : ''} onClick={() => setOrderType('market')}>Market</button>
-            <button className={orderType === 'stop' ? 'text-primary' : ''} onClick={() => setOrderType('stop')}>Stop-Limit</button>
+            <button className={`pb-1 ${orderType === 'limit' ? 'text-primary font-bold border-b border-[#0052ff]' : 'hover:text-primary'}`} onClick={() => setOrderType('limit')}>Limit</button>
+            <button className={`pb-1 ${orderType === 'market' ? 'text-primary font-bold border-b border-[#0052ff]' : 'hover:text-primary'}`} onClick={() => setOrderType('market')}>Market</button>
+            <button className={`pb-1 ${orderType === 'stop' ? 'text-primary font-bold border-b border-[#0052ff]' : 'hover:text-primary'}`} onClick={() => setOrderType('stop')}>Stop-Limit</button>
           </div>
 
           <div className="space-y-4 flex-1">
@@ -191,10 +195,10 @@ export default function LiveTrading() {
               <span className="text-xs text-secondary pl-2">Price</span>
               <input 
                 type="number" 
-                className="bg-transparent text-right text-sm outline-none text-primary w-24 font-mono" 
-                defaultValue="64500.00" 
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="bg-transparent text-right text-sm outline-none text-primary w-28 font-mono disabled:opacity-50" 
                 disabled={orderType === 'market'}
-                id="trade-price"
               />
               <span className="text-xs text-secondary pr-2">USDT</span>
             </div>
@@ -203,25 +207,26 @@ export default function LiveTrading() {
               <span className="text-xs text-secondary pl-2">Amount</span>
               <input 
                 type="number" 
-                className="bg-transparent text-right text-sm outline-none text-primary w-24 font-mono" 
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="bg-transparent text-right text-sm outline-none text-primary w-28 font-mono" 
                 placeholder="0.00" 
-                id="trade-amount"
               />
               <span className="text-xs text-secondary pr-2">BTC</span>
             </div>
 
             <div className="pt-4 mt-4 border-t border-border/30">
               <button 
+                disabled={isSubmitting}
                 onClick={async () => {
                   try {
-                    const priceInput = document.getElementById('trade-price') as HTMLInputElement;
-                    const amountInput = document.getElementById('trade-amount') as HTMLInputElement;
-                    
-                    if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
+                    const parsedAmount = parseFloat(amount);
+                    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
                       toast.error('Please enter a valid amount');
                       return;
                     }
 
+                    setIsSubmitting(true);
                     const res = await fetch('/api/binance/trade', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
@@ -229,28 +234,30 @@ export default function LiveTrading() {
                         symbol,
                         side: side.toUpperCase(),
                         type: orderType.toUpperCase(),
-                        quantity: amountInput.value,
-                        price: orderType === 'market' ? null : priceInput.value
+                        quantity: amount,
+                        price: orderType === 'market' ? null : price
                       })
                     });
                     const data = await res.json();
                     
-                    if (data.status === 'FILLED') {
-                      toast.success(`${side.toUpperCase()} ${amountInput.value} ${symbol} successful`);
-                      amountInput.value = '';
+                    if (data.status === 'FILLED' || data.orderId) {
+                      toast.success(`${side.toUpperCase()} ${amount} ${symbol} successful`);
+                      setAmount('');
                       setOpenOrders(prev => [data, ...prev]);
                     } else {
                       toast.error(data.error || 'Trade failed');
                     }
                   } catch (e) {
                      toast.error('Connection to broker failed');
+                  } finally {
+                    setIsSubmitting(false);
                   }
                 }}
-                className={`w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${
+                className={`w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50 ${
                   side === 'buy' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'
                 }`}
               >
-                {side === 'buy' ? 'Buy BTC' : 'Sell BTC'}
+                {isSubmitting ? 'Processing...' : (side === 'buy' ? 'Buy BTC' : 'Sell BTC')}
               </button>
             </div>
           </div>
@@ -264,15 +271,45 @@ export default function LiveTrading() {
           className="col-span-12 bg-card rounded-xl border border-border/30 p-4 shadow-md overflow-x-auto"
         >
           <div className="flex gap-6 border-b border-border/50 pb-2 mb-4 text-sm font-semibold">
-            <button className="text-primary border-b-2 border-[#0052ff] pb-2 -mb-[2px]">Open Orders ({openOrders.length})</button>
-            <button className="text-secondary hover:text-primary transition-colors">Trade History</button>
-            <button className="text-secondary hover:text-primary transition-colors">Funds</button>
+            <button 
+              onClick={() => setActiveTab('open')}
+              className={`pb-2 -mb-[2px] transition-colors ${activeTab === 'open' ? 'text-primary border-b-2 border-[#0052ff]' : 'text-secondary hover:text-primary'}`}
+            >
+              Open Orders ({openOrders.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('history')}
+              className={`pb-2 -mb-[2px] transition-colors ${activeTab === 'history' ? 'text-primary border-b-2 border-[#0052ff]' : 'text-secondary hover:text-primary'}`}
+            >
+              Trade History
+            </button>
+            <button 
+              onClick={() => setActiveTab('funds')}
+              className={`pb-2 -mb-[2px] transition-colors ${activeTab === 'funds' ? 'text-primary border-b-2 border-[#0052ff]' : 'text-secondary hover:text-primary'}`}
+            >
+              Available Funds
+            </button>
           </div>
           
-          {openOrders.length === 0 ? (
+          {activeTab === 'funds' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-3">
+              <div className="p-3 bg-surface rounded-xl border border-border/30">
+                <span className="text-xs text-secondary">Total Balance</span>
+                <p className="text-base font-bold text-primary">${(userData?.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div className="p-3 bg-surface rounded-xl border border-border/30">
+                <span className="text-xs text-secondary">BTC Available</span>
+                <p className="text-base font-bold text-primary">{(userData?.balances?.BTC || 0).toFixed(6)} BTC</p>
+              </div>
+              <div className="p-3 bg-surface rounded-xl border border-border/30">
+                <span className="text-xs text-secondary">USDT Available</span>
+                <p className="text-base font-bold text-primary">${(userData?.balances?.USDT || 0).toFixed(2)} USDT</p>
+              </div>
+            </div>
+          ) : activeTab === 'history' || openOrders.length === 0 ? (
             <div className="w-full text-center py-8 text-secondary text-sm">
               <Activity className="mx-auto mb-2 opacity-50" size={24} />
-              No open orders.
+              {activeTab === 'history' ? 'No recent filled trades on this account.' : 'No open orders.'}
             </div>
           ) : (
             <table className="w-full text-left text-sm mt-4">
@@ -290,14 +327,14 @@ export default function LiveTrading() {
               <tbody>
                 {openOrders.map((order, idx) => (
                   <tr key={idx} className="border-b border-border/20 last:border-0 hover:bg-surface/50 transition-colors">
-                    <td className="py-3 text-secondary">{new Date(order.transactTime).toLocaleTimeString()}</td>
+                    <td className="py-3 text-secondary">{new Date(order.transactTime || Date.now()).toLocaleTimeString()}</td>
                     <td className="py-3 font-bold">{order.symbol}</td>
                     <td className="py-3">{order.type}</td>
                     <td className={`py-3 font-semibold ${order.side === 'BUY' ? 'text-emerald-400' : 'text-red-400'}`}>{order.side}</td>
-                    <td className="py-3">{order.price !== 'Market' ? `$${parseFloat(order.price).toLocaleString()}` : 'Market'}</td>
-                    <td className="py-3">{order.executedQty}</td>
+                    <td className="py-3">{order.price && order.price !== 'Market' ? `$${parseFloat(order.price).toLocaleString()}` : 'Market'}</td>
+                    <td className="py-3">{order.executedQty || order.quantity || amount}</td>
                     <td className="py-3 text-right">
-                      <span className="text-[10px] text-emerald-400 font-bold uppercase px-2 py-1 bg-emerald-500/10 rounded">{order.status}</span>
+                      <span className="text-[10px] text-emerald-400 font-bold uppercase px-2 py-1 bg-emerald-500/10 rounded">{order.status || 'FILLED'}</span>
                     </td>
                   </tr>
                 ))}

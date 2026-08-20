@@ -15,6 +15,27 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'assets/[name].[hash].js',
+          chunkFileNames: 'assets/[name].[hash].js',
+          assetFileNames: (assetInfo) => {
+            const name = assetInfo.name || '';
+            if (name.endsWith('.css')) {
+              return 'assets/css/[name].[hash][extname]';
+            }
+            if (/\.(png|jpe?g|svg|gif|tiff|bmp|ico|webp)$/i.test(name)) {
+              return 'assets/images/[name].[hash][extname]';
+            }
+            if (/\.(woff2?|eot|ttf|otf)$/i.test(name)) {
+              return 'assets/fonts/[name].[hash][extname]';
+            }
+            return 'assets/[name].[hash][extname]';
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

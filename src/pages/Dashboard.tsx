@@ -52,14 +52,18 @@ const mockChartData = [
 ];
 
 function AnimatedNumber({ value, prefix = '', suffix = '', decimals = 2 }: { value: number, prefix?: string, suffix?: string, decimals?: number }) {
-  const [displayValue, setDisplayValue] = useState(0);
+  const [displayValue, setDisplayValue] = useState(value || 0);
+  const prevValueRef = React.useRef(value || 0);
 
   useEffect(() => {
-    const controls = animate(0, value, {
-      duration: 1.5,
+    const from = prevValueRef.current;
+    const to = value || 0;
+    const controls = animate(from, to, {
+      duration: 1.2,
       ease: "easeOut",
       onUpdate: (v) => setDisplayValue(v)
     });
+    prevValueRef.current = to;
     return controls.stop;
   }, [value]);
 

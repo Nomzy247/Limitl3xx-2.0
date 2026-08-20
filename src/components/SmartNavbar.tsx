@@ -274,31 +274,39 @@ export default function SmartNavbar() {
                 <div className="hidden md:flex items-center gap-6">
                   {user ? (
                     <>
-                      <Link
-                        to="/dashboard"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Dashboard
-                      </Link>
-                      <Link
-                        to="/wallet"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Wallet
-                      </Link>
-                      <Link
-                        to="/referrals"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Referrals
-                      </Link>
-                      <Link
-                        to="/support"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Support
-                      </Link>
-                      {isAdmin && (
+                      {location.pathname !== '/dashboard' && (
+                        <Link
+                          to="/dashboard"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Dashboard
+                        </Link>
+                      )}
+                      {location.pathname !== '/wallet' && (
+                        <Link
+                          to="/wallet"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Wallet
+                        </Link>
+                      )}
+                      {location.pathname !== '/referrals' && (
+                        <Link
+                          to="/referrals"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Referrals
+                        </Link>
+                      )}
+                      {location.pathname !== '/support' && (
+                        <Link
+                          to="/support"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Support
+                        </Link>
+                      )}
+                      {isAdmin && !location.pathname.startsWith('/admin') && (
                         <Link
                           to="/admin/dashboard"
                           className="text-sm font-bold text-sky-400 hover:text-sky-300 transition-colors"
@@ -309,30 +317,38 @@ export default function SmartNavbar() {
                     </>
                   ) : (
                     <>
-                      <Link
-                        to="/about"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        About
-                      </Link>
-                      <Link
-                        to="/locations"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Pools
-                      </Link>
-                      <Link
-                        to="/services"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Pricing
-                      </Link>
-                      <Link
-                        to="/contact"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Contact
-                      </Link>
+                      {location.pathname !== '/about' && (
+                        <Link
+                          to="/about"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          About
+                        </Link>
+                      )}
+                      {location.pathname !== '/locations' && (
+                        <Link
+                          to="/locations"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Pools
+                        </Link>
+                      )}
+                      {location.pathname !== '/services' && (
+                        <Link
+                          to="/services"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Pricing
+                        </Link>
+                      )}
+                      {location.pathname !== '/contact' && (
+                        <Link
+                          to="/contact"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Contact
+                        </Link>
+                      )}
                     </>
                   )}
                 </div>
@@ -349,12 +365,14 @@ export default function SmartNavbar() {
                   </button>
                   {user ? (
                     <>
-                      <Link
-                        to="/profile"
-                        className="flex items-center gap-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-colors border border-white/10"
-                      >
-                        <User size={16} /> Profile
-                      </Link>
+                      {location.pathname !== '/profile' && (
+                        <Link
+                          to="/profile"
+                          className="flex items-center gap-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-colors border border-white/10"
+                        >
+                          <User size={16} /> Profile
+                        </Link>
+                      )}
                       <button
                         onClick={() => {
                           import("../firebase").then(({ logOut }) => logOut());
@@ -367,18 +385,22 @@ export default function SmartNavbar() {
                     </>
                   ) : (
                     <>
-                      <Link
-                        to="/login"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                      >
-                        Log in
-                      </Link>
-                      <Link
-                        to="/signup"
-                        className="text-sm font-medium bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 py-2 rounded-full transition-colors shadow-[0_0_10px_rgba(0,82,255,0.3)]"
-                      >
-                        Create Account
-                      </Link>
+                      {location.pathname !== '/login' && (
+                        <Link
+                          to="/login"
+                          className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                          Log in
+                        </Link>
+                      )}
+                      {location.pathname !== '/signup' && (
+                        <Link
+                          to="/signup"
+                          className="text-sm font-medium bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 py-2 rounded-full transition-colors shadow-[0_0_10px_rgba(0,82,255,0.3)]"
+                        >
+                          Create Account
+                        </Link>
+                      )}
                     </>
                   )}
                 </div>

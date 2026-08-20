@@ -11,6 +11,7 @@ import ScrollDots from './ScrollDots';
 import ScrollToTopButton from './ScrollToTopButton';
 import PWAInstallPrompt from './PWAInstallPrompt';
 import OnboardingModal from './OnboardingModal';
+import ConnectionStatusNotifier from './ConnectionStatusNotifier';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +21,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-surface text-primary flex flex-col items-center">
+      <ConnectionStatusNotifier />
       <LoadingScreen />
       <MouseTracker />
       <ScrollDots />
