@@ -15,13 +15,14 @@ export default function Deposit() {
   const [currency, setCurrency] = useState('BTC');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const walletAddresses: any = {
+  const walletAddresses: Record<string, string> = {
     BTC: 'bc1qftqgamhv7hgs6msxfpwc0aawj5kn0mrjl3j4u7',
     ETH: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
     SOL: 'CS5onmGF5eUUCzLU4UJAqiBHh9ZP7KTpk5rgfVqXQy4A',
     LTC: 'LVRXy4jvsBK2rLLerjEohrKK1Pkem9nFzq',
     BCH: 'qrhe43zzq5rdn4wvgsre0j09j3phhj7zxsl4nq9p3p',
-    USDT: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525' // Defaulting to the Ethereum network
+    USDT: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525', // Defaulting to the Ethereum network
+    XRP: 'rHxfaFeS2TTX5e4bp3dsvWa7kTaAaREg7e'
   };
   
   const walletAddress = walletAddresses[currency];
@@ -106,6 +107,7 @@ export default function Deposit() {
                 <option value="ETH">Ethereum (ETH)</option>
                 <option value="USDT">Tether (USDT ERC-20)</option>
                 <option value="SOL">Solana (SOL)</option>
+                <option value="XRP">Ripple (XRP)</option>
                 <option value="LTC">Litecoin (LTC)</option>
                 <option value="BCH">Bitcoin Cash (BCH)</option>
               </select>
