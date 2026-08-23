@@ -216,6 +216,9 @@ export default function Withdraw() {
                 <option value="ETH">Ethereum (ETH)</option>
                 <option value="USDT">Tether (USDT ERC-20)</option>
                 <option value="SOL">Solana (SOL)</option>
+                <option value="XRP">Ripple (XRP)</option>
+                <option value="LTC">Litecoin (LTC)</option>
+                <option value="BCH">Bitcoin Cash (BCH)</option>
               </select>
             </div>
 
