@@ -69,6 +69,7 @@ service cloud.firestore {
              (!('verification_status' in data) || data.verification_status in ['pending', 'verified', 'rejected']) &&
              (!('referral_code' in data) || (data.referral_code is string && data.referral_code.size() < 50)) &&
              (!('referred_by' in data) || (data.referred_by is string && data.referred_by.size() < 50)) &&
+             (!('referred_by_uid' in data) || (data.referred_by_uid is string && data.referred_by_uid.size() < 50)) &&
              (!('referral_count' in data) || (data.referral_count is number && data.referral_count >= 0)) &&
              (!('referral_earnings' in data) || (data.referral_earnings is number && data.referral_earnings >= 0)) &&
              (!('level' in data) || (data.level is number && data.level >= 0)) &&
@@ -135,7 +136,7 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && 
                     (request.resource.data.role == 'user' || isAdmin());
       allow update: if isAuthenticated() && isValidUser(request.resource.data) && (
@@ -145,11 +146,27 @@ service cloud.firestore {
          request.resource.data.balance <= resource.data.balance &&
          (!('balances' in request.resource.data) || request.resource.data.balances == resource.data.balances) &&
          (!('verification_status' in request.resource.data) || request.resource.data.verification_status == resource.data.verification_status) &&
-         (!('referral_count' in request.resource.data) || request.resource.data.referral_count == resource.data.referral_count) &&
          (!('level' in request.resource.data) || request.resource.data.level == resource.data.level) &&
          (!('is_blocked' in request.resource.data) || request.resource.data.is_blocked == resource.data.is_blocked) &&
          (!('trade_enabled' in request.resource.data) || request.resource.data.trade_enabled == resource.data.trade_enabled)
-        )
+        ) ||
+        // Allow updating referral stats for the referrer
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['referral_count', 'referral_earnings']))
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /referrals/{referralId} {
+      allow read: if isAuthenticated() && (
+        resource.data.referrer_uid == request.auth.uid || 
+        resource.data.referred_uid == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isAdmin() || 
+        resource.data.referrer_uid == request.auth.uid ||
+        resource.data.referred_uid == request.auth.uid
       );
       allow delete: if isAdmin();
     }

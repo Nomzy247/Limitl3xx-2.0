@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hexagon, Mail, Lock, User, AlertCircle, Phone, Key, Zap, TrendingUp, Activity, ArrowLeft } from 'lucide-react';
+import { Hexagon, Mail, Lock, User, AlertCircle, Phone, Key, Zap, TrendingUp, Activity, ArrowLeft, Gift, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 import { auth, signInWithGoogle } from '../firebase';
@@ -11,16 +11,30 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 
 export default function Signup() {
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [searchParams] = useSearchParams();
   const [signupMethod, setSignupMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const [showReferralInput, setShowReferralInput] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const queryRef = searchParams.get('ref') || searchParams.get('code');
+    const storedRef = localStorage.getItem('poolmining_referral_code') || sessionStorage.getItem('poolmining_referral_code');
+    const activeRef = (queryRef || storedRef || '').trim().toUpperCase();
+    if (activeRef) {
+      setReferralCode(activeRef);
+      setShowReferralInput(true);
+      localStorage.setItem('poolmining_referral_code', activeRef);
+    }
+  }, [searchParams]);
 
   const getPasswordStrength = (pass: string) => {
     let score = 0;
@@ -58,6 +72,10 @@ export default function Signup() {
         }
 
         const normalizedEmail = (email || '').trim().toLowerCase();
+        if (referralCode.trim()) {
+          localStorage.setItem('poolmining_referral_code', referralCode.trim().toUpperCase());
+          sessionStorage.setItem('poolmining_referral_code', referralCode.trim().toUpperCase());
+        }
         const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
         await auth.signOut();
         
@@ -82,6 +100,10 @@ export default function Signup() {
 
   const handleGoogleSignup = async () => {
     try {
+      if (referralCode.trim()) {
+        localStorage.setItem('poolmining_referral_code', referralCode.trim().toUpperCase());
+        sessionStorage.setItem('poolmining_referral_code', referralCode.trim().toUpperCase());
+      }
       await signInWithGoogle();
       navigate('/dashboard');
     } catch (err: any) {
@@ -279,6 +301,48 @@ export default function Signup() {
                       )}
                     </div>
                   )}
+                  {/* Referral Code Field */}
+                  <div className="pt-2">
+                    {!showReferralInput ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowReferralInput(true)}
+                        className="text-xs text-[#0052ff] hover:text-[#00f0ff] flex items-center gap-1.5 font-medium transition-colors"
+                      >
+                        <Gift size={14} /> Have a referral or invite code?
+                      </button>
+                    ) : (
+                      <div className="p-3.5 rounded-2xl bg-surface/80 border border-border space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold text-secondary flex items-center gap-1.5">
+                            <Gift size={14} className="text-[#00f0ff]" /> Referral Code (Optional)
+                          </label>
+                          {referralCode && (
+                            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <CheckCircle2 size={11} /> 5% Commission Bonus Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={referralCode}
+                            onChange={(e) => {
+                              const val = e.target.value.toUpperCase();
+                              setReferralCode(val);
+                              if (val) {
+                                localStorage.setItem('poolmining_referral_code', val);
+                              } else {
+                                localStorage.removeItem('poolmining_referral_code');
+                              }
+                            }}
+                            placeholder="e.g. MINER88"
+                            className="block w-full px-3 py-2 text-sm uppercase tracking-wider font-mono border border-border/70 rounded-xl bg-background text-primary placeholder-muted focus:outline-none focus:ring-2 focus:ring-[#0052ff]/50"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <button

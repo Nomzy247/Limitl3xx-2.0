@@ -35,6 +35,7 @@ const Wallet = lazy(() => import('./pages/Wallet'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Support = lazy(() => import('./pages/Support'));
 const Referrals = lazy(() => import('./pages/Referrals'));
+const ReferralRedirect = lazy(() => import('./pages/ReferralRedirect'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Hub = lazy(() => import('./pages/Hub'));
 const LiveTrading = lazy(() => import('./pages/LiveTrading'));
@@ -85,6 +86,8 @@ export default function App() {
                     <Route path="overview/wallet" element={<WalletOverview />} />
                     <Route path="login" element={<Login />} />
                     <Route path="signup" element={<Signup />} />
+                    <Route path="ref/:referralCode" element={<ReferralRedirect />} />
+                    <Route path="ref" element={<ReferralRedirect />} />
                     <Route path="dashboard" element={<ProtectedRoute><MobileRedirect><Dashboard /></MobileRedirect></ProtectedRoute>} />
                     <Route path="deposit" element={<ProtectedRoute><Deposit /></ProtectedRoute>} />
                     <Route path="withdraw" element={<ProtectedRoute><Withdraw /></ProtectedRoute>} />

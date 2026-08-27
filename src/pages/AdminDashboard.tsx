@@ -970,7 +970,8 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-right">
                     <p className={`font-bold ${tx.type === 'deposit' ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {tx.type === 'deposit' ? '+' : '-'}{tx.amount.toFixed(8)} BTC
+                      {tx.type === 'deposit' ? '+' : '-'}${Number(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {tx.method || tx.currency ? <span className="text-xs font-mono text-muted ml-1">({tx.method || tx.currency})</span> : ''}
                     </p>
                     <p className="text-[10px] text-muted">
                       {formatFirebaseDate(tx.timestamp)}

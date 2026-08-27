@@ -17,6 +17,8 @@ const CRYPTO_ICONS: Record<string, string> = {
   BTC: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/btc.png',
   ETH: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/eth.png',
   USDT: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/usdt.png',
+  XRP: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/xrp.png',
+  SOL: 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/sol.png',
 };
 
 export default function WalletWidget() {
@@ -24,14 +26,16 @@ export default function WalletWidget() {
   const [marketData, setMarketData] = useState<Record<string, { price: number; change: number }>>({
     BTC: { price: 65000, change: 0 },
     ETH: { price: 3500, change: 0 },
-    USDT: { price: 1, change: 0 }
+    USDT: { price: 1, change: 0 },
+    XRP: { price: 0.58, change: 0 },
+    SOL: { price: 145, change: 0 }
   });
   const [isSyncing, setIsSyncing] = useState(false);
 
   const fetchPrices = async () => {
     setIsSyncing(true);
     try {
-      const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent('["BTCUSDT","ETHUSDT"]')}`);
+      const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent('["BTCUSDT","ETHUSDT","XRPUSDT","SOLUSDT"]')}`);
       if (!response.ok) throw new Error('Binance fetch failed');
       const data = await response.json();
       
@@ -47,7 +51,7 @@ export default function WalletWidget() {
     } catch (error) {
       try {
         console.warn('Binance API failed, falling back to CoinGecko', error);
-        const cgResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true');
+        const cgResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana&vs_currencies=usd&include_24hr_change=true');
         const cgData = await cgResponse.json();
         
         const newMarketData = { ...marketData };
@@ -63,10 +67,21 @@ export default function WalletWidget() {
             change: cgData.ethereum.usd_24h_change || 0
           };
         }
+        if (cgData.ripple) {
+          newMarketData['XRP'] = {
+            price: cgData.ripple.usd,
+            change: cgData.ripple.usd_24h_change || 0
+          };
+        }
+        if (cgData.solana) {
+          newMarketData['SOL'] = {
+            price: cgData.solana.usd,
+            change: cgData.solana.usd_24h_change || 0
+          };
+        }
         setMarketData(newMarketData);
       } catch (fallbackError) {
-        // Suppress console error to avoid cluttering or alarming user on network block
-        // console.warn('Market data APIs currently unreachable.');
+        // Suppress console error to avoid cluttering
       }
     } finally {
       setTimeout(() => setIsSyncing(false), 800);
@@ -95,6 +110,22 @@ export default function WalletWidget() {
       price: marketData.ETH.price, 
       change: marketData.ETH.change, 
       data: generateSparklineData(marketData.ETH.change >= 0, marketData.ETH.price) 
+    },
+    { 
+      coin: 'XRP', 
+      name: 'Ripple', 
+      amount: userData?.balances?.XRP || 0, 
+      price: marketData.XRP.price, 
+      change: marketData.XRP.change, 
+      data: generateSparklineData(marketData.XRP.change >= 0, marketData.XRP.price) 
+    },
+    { 
+      coin: 'SOL', 
+      name: 'Solana', 
+      amount: userData?.balances?.SOL || 0, 
+      price: marketData.SOL.price, 
+      change: marketData.SOL.change, 
+      data: generateSparklineData(marketData.SOL.change >= 0, marketData.SOL.price) 
     },
     { 
       coin: 'USDT', 

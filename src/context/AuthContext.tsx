@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
-import { auth, db, doc, getDoc, setDoc, updateDoc, onSnapshot, handleFirestoreError, OperationType, addDoc, collection, serverTimestamp, withFirestoreRetry } from '../firebase';
+import { auth, db, doc, getDoc, setDoc, updateDoc, onSnapshot, handleFirestoreError, OperationType, addDoc, collection, serverTimestamp, withFirestoreRetry, query, where, getDocs, limit } from '../firebase';
 
 interface UserData {
   name: string;
@@ -18,6 +18,7 @@ interface UserData {
   verification_status: 'pending' | 'verified' | 'rejected';
   referral_code: string;
   referred_by?: string;
+  referred_by_uid?: string;
   referral_count: number;
   referral_earnings: number;
   manual_profits?: number;
@@ -89,11 +90,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               
               setUserData(data);
             } else {
-              // If user doc doesn't exist, create a default one
+              // If user doc doesn't exist, create a default one with referral linking
+              let referredBy = '';
+              let referrerUid = '';
+              const storedRefCode = (
+                localStorage.getItem('poolmining_referral_code') || 
+                sessionStorage.getItem('poolmining_referral_code') || 
+                ''
+              ).trim().toUpperCase();
+
+              if (storedRefCode) {
+                try {
+                  const refQuery = query(collection(db, 'users'), where('referral_code', '==', storedRefCode), limit(1));
+                  const refSnap = await getDocs(refQuery);
+                  if (!refSnap.empty) {
+                    const referrerDoc = refSnap.docs[0];
+                    if (referrerDoc.id !== firebaseUser.uid) {
+                      referredBy = storedRefCode;
+                      referrerUid = referrerDoc.id;
+                    }
+                  }
+                } catch (lookupErr) {
+                  console.warn("Referral code lookup on user creation error:", lookupErr);
+                }
+              }
+
               const newData: UserData = {
-                name: '',
+                name: firebaseUser.displayName || '',
                 email: firebaseUser.email || '',
-                phone: '',
+                phone: firebaseUser.phoneNumber || '',
                 role: (firebaseUser.email === 'why.wd.ww.do@gmail.com' || firebaseUser.email === 'limitl3xx.007@gmail.com') ? 'admin' : 'user',
                 balance: 0,
                 balances: {
@@ -105,6 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 joined_date: new Date().toISOString(),
                 verification_status: 'pending',
                 referral_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                referred_by: referredBy || undefined,
+                referred_by_uid: referrerUid || undefined,
                 referral_count: 0,
                 referral_earnings: 0,
                 level: 1,
@@ -113,9 +140,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 trade_enabled: false,
                 last_login: new Date().toISOString()
               };
+
               try {
                 await withFirestoreRetry(() => setDoc(userDocRef, newData), 3, 500);
                 setUserData(newData);
+
+                // If referred, log referral entry & notification
+                if (referredBy && referrerUid) {
+                  try {
+                    await addDoc(collection(db, 'referrals'), {
+                      referrer_uid: referrerUid,
+                      referrer_code: referredBy,
+                      referred_uid: firebaseUser.uid,
+                      referred_email: firebaseUser.email || '',
+                      referred_name: firebaseUser.displayName || 'New Miner',
+                      status: 'active',
+                      commission_earned: 0,
+                      total_spent: 0,
+                      timestamp: serverTimestamp(),
+                      created_at: new Date().toISOString()
+                    });
+
+                    // Increment referrer count
+                    const referrerRef = doc(db, 'users', referrerUid);
+                    const referrerSnap = await getDoc(referrerRef);
+                    if (referrerSnap.exists()) {
+                      const currentCount = referrerSnap.data().referral_count || 0;
+                      await updateDoc(referrerRef, { referral_count: currentCount + 1 });
+                    }
+
+                    // Send notification to referrer
+                    await addDoc(collection(db, 'notifications'), {
+                      type: 'referral',
+                      userId: referrerUid,
+                      message: `🎉 New Referral: User (${firebaseUser.email || 'Miner'}) joined using your referral link!`,
+                      timestamp: serverTimestamp(),
+                      read: false
+                    });
+
+                    // Clear used referral code from local storage
+                    localStorage.removeItem('poolmining_referral_code');
+                    sessionStorage.removeItem('poolmining_referral_code');
+                  } catch (refLogErr) {
+                    console.warn("Failed to complete referral logging:", refLogErr);
+                  }
+                }
               } catch (error) {
                 console.error("Error creating user doc", error);
                 handleFirestoreError(error, OperationType.WRITE, `users/${firebaseUser.uid}`);

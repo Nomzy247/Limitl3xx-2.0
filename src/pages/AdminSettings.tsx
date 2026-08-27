@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bot, Sliders, Save, ArrowLeft, TrendingUp, RefreshCw, CheckCircle2, Sparkles } from 'lucide-react';
+import { Bot, Sliders, Save, ArrowLeft, TrendingUp, RefreshCw, CheckCircle2, Sparkles, Wallet, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { db, doc, onSnapshot, setDoc, updateDoc, addDoc, collection, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
 import { useNavigate } from 'react-router';
@@ -12,12 +12,23 @@ interface UserListItem {
   balance?: number;
 }
 
+const DEFAULT_WALLETS = {
+  BTC: 'bc1qftqgamhv7hgs6msxfpwc0aawj5kn0mrjl3j4u7',
+  ETH: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
+  SOL: 'CS5onmGF5eUUCzLU4UJAqiBHh9ZP7KTpk5rgfVqXQy4A',
+  XRP: 'rHxfaFeS2TTX5e4bp3dsvWa7kTaAaREg7e',
+  LTC: 'LVRXy4jvsBK2rLLerjEohrKK1Pkem9nFzq',
+  BCH: 'qrhe43zzq5rdn4wvgsre0j09j3phhj7zxsl4nq9p3p',
+  USDT: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
+};
+
 export default function AdminSettings() {
   const navigate = useNavigate();
   const [aiEnabled, setAiEnabled] = useState(true);
   const [costings, setCostings] = useState({ pool: 150, cloud: 100, crypto: 200 });
   const [globalProfitMargin, setGlobalProfitMargin] = useState(15);
   const [defaultManualProfit, setDefaultManualProfit] = useState(0);
+  const [walletAddresses, setWalletAddresses] = useState<Record<string, string>>(DEFAULT_WALLETS);
   const [isLoading, setIsLoading] = useState(true);
 
   // Users list & manual profit entry state
@@ -36,6 +47,9 @@ export default function AdminSettings() {
         setCostings(data.costings ?? { pool: 150, cloud: 100, crypto: 200 });
         setGlobalProfitMargin(data.global_profit_margin ?? 15);
         setDefaultManualProfit(data.default_manual_profit ?? 0);
+        if (data.wallet_addresses) {
+          setWalletAddresses({ ...DEFAULT_WALLETS, ...data.wallet_addresses });
+        }
 
         if (selectedUserId === 'global') {
           setManualProfitInput(String(data.default_manual_profit ?? 0));
@@ -125,12 +139,13 @@ export default function AdminSettings() {
         costings: costings,
         global_profit_margin: globalProfitMargin,
         default_manual_profit: parseFloat(manualProfitInput) || defaultManualProfit,
+        wallet_addresses: walletAddresses,
         updated_at: serverTimestamp()
       }, { merge: true });
-      toast.success('Global settings updated successfully!');
+      toast.success('Global settings and wallet addresses updated successfully!');
       await addDoc(collection(db, 'logs'), {
         type: 'admin',
-        action: `Updated global settings: AI=${aiEnabled}, Margin=${globalProfitMargin}%`,
+        action: `Updated global settings and deposit wallet addresses`,
         timestamp: serverTimestamp()
       });
     } catch (error: any) {
@@ -321,7 +336,52 @@ export default function AdminSettings() {
           ))}
         </div>
 
-        <button onClick={handleSaveSettings} className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium transition-colors flex items-center justify-center gap-2">
+        {/* Deposit Wallet Addresses */}
+        <div className="pt-6 border-t border-border space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-500/10 rounded-xl"><Wallet className="text-blue-500" size={24} /></div>
+            <div>
+              <h3 className="text-xl font-bold">Client Deposit Wallet Addresses</h3>
+              <p className="text-sm text-secondary">Configure official receiving addresses & QR codes shown on the deposit page</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { coin: 'XRP', label: 'Ripple (XRP) Address', badge: 'Featured' },
+              { coin: 'BTC', label: 'Bitcoin (BTC) Address' },
+              { coin: 'ETH', label: 'Ethereum (ETH) Address' },
+              { coin: 'USDT', label: 'Tether (USDT ERC-20) Address' },
+              { coin: 'SOL', label: 'Solana (SOL) Address' },
+              { coin: 'LTC', label: 'Litecoin (LTC) Address' },
+              { coin: 'BCH', label: 'Bitcoin Cash (BCH) Address' }
+            ].map(({ coin, label, badge }) => (
+              <div key={coin} className="p-3.5 bg-background border border-border rounded-2xl space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor={`wallet-${coin}`} className="text-xs font-bold text-primary flex items-center gap-2">
+                    {label}
+                    {badge && (
+                      <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-mono uppercase">
+                        {badge}
+                      </span>
+                    )}
+                  </label>
+                  <span className="text-[10px] font-mono text-muted uppercase">{coin}</span>
+                </div>
+                <input
+                  id={`wallet-${coin}`}
+                  type="text"
+                  value={walletAddresses[coin] || ''}
+                  onChange={(e) => setWalletAddresses({ ...walletAddresses, [coin]: e.target.value.trim() })}
+                  placeholder={`Enter official ${coin} receiving address`}
+                  className="w-full bg-surface border border-border/80 rounded-xl px-3.5 py-2 text-xs font-mono text-primary focus:outline-none focus:border-[#0052ff] transition-all"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <button onClick={handleSaveSettings} className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-full font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#0052ff]/20">
           <Save size={18} /> Save All Changes
         </button>
       </div>

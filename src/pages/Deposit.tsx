@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Copy, CheckCircle2, Send } from 'lucide-react';
+import { ArrowLeft, Copy, CheckCircle2, Send, ShieldCheck, QrCode } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { db, collection, addDoc, serverTimestamp } from '../firebase';
+import { db, collection, addDoc, doc, onSnapshot, serverTimestamp } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
+
+const DEFAULT_WALLET_ADDRESSES: Record<string, string> = {
+  BTC: 'bc1qftqgamhv7hgs6msxfpwc0aawj5kn0mrjl3j4u7',
+  ETH: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
+  SOL: 'CS5onmGF5eUUCzLU4UJAqiBHh9ZP7KTpk5rgfVqXQy4A',
+  LTC: 'LVRXy4jvsBK2rLLerjEohrKK1Pkem9nFzq',
+  BCH: 'qrhe43zzq5rdn4wvgsre0j09j3phhj7zxsl4nq9p3p',
+  USDT: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525', // Defaulting to the Ethereum network
+  XRP: 'rHxfaFeS2TTX5e4bp3dsvWa7kTaAaREg7e'
+};
 
 export default function Deposit() {
   const { user } = useAuth();
@@ -14,18 +24,23 @@ export default function Deposit() {
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('BTC');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [walletAddresses, setWalletAddresses] = useState<Record<string, string>>(DEFAULT_WALLET_ADDRESSES);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'global'), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.wallet_addresses) {
+          setWalletAddresses({ ...DEFAULT_WALLET_ADDRESSES, ...data.wallet_addresses });
+        }
+      }
+    }, (err) => {
+      console.warn("Global settings snapshot fallback:", err);
+    });
+    return () => unsub();
+  }, []);
   
-  const walletAddresses: Record<string, string> = {
-    BTC: 'bc1qftqgamhv7hgs6msxfpwc0aawj5kn0mrjl3j4u7',
-    ETH: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
-    SOL: 'CS5onmGF5eUUCzLU4UJAqiBHh9ZP7KTpk5rgfVqXQy4A',
-    LTC: 'LVRXy4jvsBK2rLLerjEohrKK1Pkem9nFzq',
-    BCH: 'qrhe43zzq5rdn4wvgsre0j09j3phhj7zxsl4nq9p3p',
-    USDT: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525', // Defaulting to the Ethereum network
-    XRP: 'rHxfaFeS2TTX5e4bp3dsvWa7kTaAaREg7e'
-  };
-  
-  const walletAddress = walletAddresses[currency];
+  const walletAddress = walletAddresses[currency] || DEFAULT_WALLET_ADDRESSES[currency] || '';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(walletAddress);
