@@ -1,0 +1,231 @@
+export interface GiftCardBrand {
+  id: string;
+  name: string;
+  category: 'digital' | 'gaming' | 'retail' | 'prepaid' | 'general';
+  iconColor: string;
+  badgeBg: string;
+  badgeText: string;
+  placeholderCode: string;
+  pinRequired: boolean;
+  pinLabel?: string;
+  pinPlaceholder?: string;
+  description: string;
+  popularAmounts: number[];
+  supportedCurrencies: string[];
+}
+
+export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
+  {
+    id: 'apple',
+    name: 'Apple / iTunes',
+    category: 'digital',
+    iconColor: '#999999',
+    badgeBg: 'bg-zinc-800 text-white',
+    badgeText: 'Apple',
+    placeholderCode: 'X16-DIGIT-ALPHANUMERIC',
+    pinRequired: false,
+    description: 'App Store, iTunes, Apple Store & iCloud Gift Cards',
+    popularAmounts: [50, 100, 200, 500, 1000],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+  },
+  {
+    id: 'steam',
+    name: 'Steam Wallet',
+    category: 'gaming',
+    iconColor: '#171a21',
+    badgeBg: 'bg-sky-950 text-sky-400',
+    badgeText: 'Steam',
+    placeholderCode: 'XXXXX-XXXXX-XXXXX',
+    pinRequired: false,
+    description: 'Steam Wallet Digital & Physical Redemption Cards',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+  },
+  {
+    id: 'amazon',
+    name: 'Amazon',
+    category: 'retail',
+    iconColor: '#ff9900',
+    badgeBg: 'bg-amber-950 text-amber-400',
+    badgeText: 'Amazon',
+    placeholderCode: 'XXXX-XXXXXX-XXXXX',
+    pinRequired: false,
+    description: 'Amazon eGift Cards & Physical Claim Codes',
+    popularAmounts: [50, 100, 250, 500, 1000],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY']
+  },
+  {
+    id: 'google_play',
+    name: 'Google Play',
+    category: 'digital',
+    iconColor: '#01875f',
+    badgeBg: 'bg-emerald-950 text-emerald-400',
+    badgeText: 'Google Play',
+    placeholderCode: 'XXXX-XXXX-XXXX-XXXX',
+    pinRequired: false,
+    description: 'Google Play Store Digital Voucher Codes',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+  },
+  {
+    id: 'razer_gold',
+    name: 'Razer Gold',
+    category: 'gaming',
+    iconColor: '#00ff00',
+    badgeBg: 'bg-green-950 text-green-400',
+    badgeText: 'Razer Gold',
+    placeholderCode: 'Serial / Card ID (14 digits)',
+    pinRequired: true,
+    pinLabel: 'Razer Gold PIN (14 digits)',
+    pinPlaceholder: 'Enter 14-digit PIN',
+    description: 'Razer Gold Global & Regional PINs',
+    popularAmounts: [50, 100, 250, 500, 1000],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SGD']
+  },
+  {
+    id: 'vanilla_visa',
+    name: 'Vanilla Visa / Mastercard',
+    category: 'prepaid',
+    iconColor: '#1a1f71',
+    badgeBg: 'bg-blue-950 text-blue-400',
+    badgeText: 'Prepaid Visa/MC',
+    placeholderCode: '4000 1234 5678 9010 (16 digits)',
+    pinRequired: true,
+    pinLabel: 'CVV / Expiry (MM/YY & 3-digit CVV)',
+    pinPlaceholder: 'MM/YY - 123',
+    description: 'Vanilla, OneVanilla, Visa & Mastercard Prepaid Cards',
+    popularAmounts: [100, 200, 500, 1000, 2000],
+    supportedCurrencies: ['USD', 'CAD', 'EUR', 'GBP']
+  },
+  {
+    id: 'playstation',
+    name: 'PlayStation (PSN)',
+    category: 'gaming',
+    iconColor: '#003791',
+    badgeBg: 'bg-indigo-950 text-indigo-400',
+    badgeText: 'PlayStation',
+    placeholderCode: 'XXXX-XXXX-XXXX (12 digits)',
+    pinRequired: false,
+    description: 'PlayStation Network Store Gift Cards',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+  },
+  {
+    id: 'xbox',
+    name: 'Xbox / Microsoft',
+    category: 'gaming',
+    iconColor: '#107c10',
+    badgeBg: 'bg-emerald-950 text-emerald-300',
+    badgeText: 'Xbox',
+    placeholderCode: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+    pinRequired: false,
+    description: 'Xbox Live & Microsoft Store Gift Cards',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+  },
+  {
+    id: 'ebay',
+    name: 'eBay Gift Card',
+    category: 'retail',
+    iconColor: '#e53238',
+    badgeBg: 'bg-rose-950 text-rose-400',
+    badgeText: 'eBay',
+    placeholderCode: '13-digit redemption code',
+    pinRequired: true,
+    pinLabel: 'PIN / Security Code',
+    pinPlaceholder: '6-digit PIN',
+    description: 'eBay Digital & Physical Shopping Cards',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+  },
+  {
+    id: 'sephora',
+    name: 'Sephora',
+    category: 'retail',
+    iconColor: '#000000',
+    badgeBg: 'bg-zinc-800 text-pink-400',
+    badgeText: 'Sephora',
+    placeholderCode: '16-digit Card Number',
+    pinRequired: true,
+    pinLabel: '8-digit PIN',
+    pinPlaceholder: '8-digit PIN',
+    description: 'Sephora eGift & Physical Gift Cards',
+    popularAmounts: [50, 100, 250, 500],
+    supportedCurrencies: ['USD', 'CAD', 'EUR', 'GBP']
+  },
+  {
+    id: 'nike',
+    name: 'Nike',
+    category: 'retail',
+    iconColor: '#fa5400',
+    badgeBg: 'bg-orange-950 text-orange-400',
+    badgeText: 'Nike',
+    placeholderCode: '16-digit Card Number',
+    pinRequired: true,
+    pinLabel: '6-digit PIN',
+    pinPlaceholder: '6-digit PIN',
+    description: 'Nike & Converse Gift Cards',
+    popularAmounts: [50, 100, 200, 500, 1000],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD']
+  },
+  {
+    id: 'walmart',
+    name: 'Walmart',
+    category: 'retail',
+    iconColor: '#0071ce',
+    badgeBg: 'bg-sky-950 text-sky-400',
+    badgeText: 'Walmart',
+    placeholderCode: '16-digit Card Number',
+    pinRequired: true,
+    pinLabel: '4-digit PIN',
+    pinPlaceholder: '4-digit PIN',
+    description: 'Walmart eGift & Physical Cards',
+    popularAmounts: [50, 100, 200, 500, 1000],
+    supportedCurrencies: ['USD', 'CAD']
+  },
+  {
+    id: 'target',
+    name: 'Target',
+    category: 'retail',
+    iconColor: '#cc0000',
+    badgeBg: 'bg-red-950 text-red-400',
+    badgeText: 'Target',
+    placeholderCode: '15-digit Card Number',
+    pinRequired: true,
+    pinLabel: '8-digit Access Number',
+    pinPlaceholder: '8-digit Access Number',
+    description: 'Target eGift & Physical Cards',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD']
+  },
+  {
+    id: 'amex_prepaid',
+    name: 'American Express Prepaid',
+    category: 'prepaid',
+    iconColor: '#006fcf',
+    badgeBg: 'bg-cyan-950 text-cyan-400',
+    badgeText: 'Amex Prepaid',
+    placeholderCode: '15-digit Card Number',
+    pinRequired: true,
+    pinLabel: '4-digit CID / Expiry',
+    pinPlaceholder: 'MM/YY - 4-digit CID',
+    description: 'American Express Gift & Prepaid Cards',
+    popularAmounts: [100, 250, 500, 1000],
+    supportedCurrencies: ['USD', 'CAD']
+  },
+  {
+    id: 'other',
+    name: 'Other Gift Card / Voucher',
+    category: 'general',
+    iconColor: '#8b5cf6',
+    badgeBg: 'bg-purple-950 text-purple-400',
+    badgeText: 'Custom Card',
+    placeholderCode: 'Card Number or Redemption Code',
+    pinRequired: true,
+    pinLabel: 'PIN / Security Code / Notes',
+    pinPlaceholder: 'Enter PIN or access code',
+    description: 'Any unlisted digital voucher or physical gift card',
+    popularAmounts: [50, 100, 250, 500, 1000],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'OTHER']
+  }
+];

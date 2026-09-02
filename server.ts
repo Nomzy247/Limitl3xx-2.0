@@ -99,6 +99,19 @@ async function startServer() {
     });
   });
 
+  // Deploy ZIP download endpoint
+  app.get('/api/download-deploy-zip', (req, res) => {
+    const zipPath = path.resolve(process.cwd(), 'public/hostinger-deploy.zip');
+    if (fs.existsSync(zipPath)) {
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="hostinger-deploy.zip"');
+      const fileStream = fs.createReadStream(zipPath);
+      fileStream.pipe(res);
+    } else {
+      res.status(404).json({ error: 'Deploy zip not generated yet. Build the project first.' });
+    }
+  });
+
   // General Health API
   app.get('/api/health', (req, res) => {
     res.json({ status: 'active', timestamp: new Date().toISOString() });

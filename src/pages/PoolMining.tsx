@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Server, CheckCircle2, Zap } from 'lucide-react';
+import { Server, CheckCircle2, Zap, Gift, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { db, doc, collection, query, where, orderBy, onSnapshot, runTransaction, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
@@ -9,6 +9,7 @@ import { fluidSpring } from '../components/SystemManager';
 import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
 import BatteryStatus from '../components/BatteryStatus';
 import MiningProfitabilityCalculator from '../components/MiningProfitabilityCalculator';
+import GiftCardPaymentModal from '../components/GiftCardPaymentModal';
 
 export default function PoolMining() {
   const { user, userData } = useAuth();
@@ -16,6 +17,8 @@ export default function PoolMining() {
   const [settings, setSettings] = useState({ global_profit_margin: 15, costings: { pool: 150 } });
   const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<any>(null);
+  const [isGiftCardModalOpen, setIsGiftCardModalOpen] = useState(false);
+  const [giftCardTargetPlan, setGiftCardTargetPlan] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -238,23 +241,47 @@ export default function PoolMining() {
                   </div>
                 </div>
               </div>
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handlePurchase(plan)}
-                disabled={isPurchasing === plan.id}
-                className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isPurchasing === plan.id ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  'Buy Now'
-                )}
-              </motion.button>
+              <div className="space-y-2">
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handlePurchase(plan)}
+                  disabled={isPurchasing === plan.id}
+                  className="w-full bg-[#0052ff] hover:bg-[#0052ff]/90 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#0052ff]/20"
+                >
+                  {isPurchasing === plan.id ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Wallet size={16} /> Buy with Balance
+                    </>
+                  )}
+                </motion.button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGiftCardTargetPlan(plan);
+                    setIsGiftCardModalOpen(true);
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Gift size={14} /> Pay with Gift Card
+                </button>
+              </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      <GiftCardPaymentModal
+        isOpen={isGiftCardModalOpen}
+        onClose={() => setIsGiftCardModalOpen(false)}
+        planId={giftCardTargetPlan?.id}
+        planName={giftCardTargetPlan?.name}
+        planType="pool"
+        requiredAmount={giftCardTargetPlan?.price}
+        onSuccess={() => navigate('/transactions')}
+      />
 
       {confirmPlan && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -265,7 +292,7 @@ export default function PoolMining() {
           >
             <h2 className="text-2xl font-bold mb-6">Confirm Purchase</h2>
             
-            <div className="space-y-4 mb-8">
+            <div className="space-y-4 mb-6">
               <div className="flex justify-between items-center pb-4 border-b border-border/50">
                 <span className="text-secondary">Plan</span>
                 <span className="font-bold text-primary">{confirmPlan.name}</span>
@@ -286,28 +313,42 @@ export default function PoolMining() {
               </div>
             </div>
 
-            <p className="text-sm text-secondary mb-8 text-center pb-4 border-b border-border/10">
+            <p className="text-sm text-secondary mb-6 text-center pb-4 border-b border-border/10">
               The amount will be deducted from your current dashboard balance.
             </p>
 
-            <div className="flex gap-4">
-              <button 
-                onClick={() => setConfirmPlan(null)}
-                disabled={isPurchasing !== null}
-                className="flex-1 py-3 px-4 rounded-xl border border-border text-primary hover:bg-subtle transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
+            <div className="space-y-3">
               <button 
                 onClick={executePurchase}
                 disabled={isPurchasing !== null}
-                className="flex-1 py-3 px-4 rounded-xl bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold transition-colors disabled:opacity-50 flex justify-center items-center"
+                className="w-full py-3.5 px-4 rounded-xl bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold transition-colors disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-[#0052ff]/20"
               >
                 {isPurchasing !== null ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  'Confirm Order'
+                  'Confirm Order with Balance'
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const p = confirmPlan;
+                  setConfirmPlan(null);
+                  setGiftCardTargetPlan(p);
+                  setIsGiftCardModalOpen(true);
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30 text-amber-300 font-bold text-sm flex items-center justify-center gap-2 transition-all"
+              >
+                <Gift size={16} /> Pay with Gift Card Instead
+              </button>
+
+              <button 
+                onClick={() => setConfirmPlan(null)}
+                disabled={isPurchasing !== null}
+                className="w-full py-2 px-4 rounded-xl text-muted hover:text-primary transition-colors disabled:opacity-50 text-xs"
+              >
+                Cancel
               </button>
             </div>
           </motion.div>

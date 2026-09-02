@@ -29,7 +29,7 @@ export default function Referrals() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [useDomainLink, setUseDomainLink] = useState(true);
+  const [linkType, setLinkType] = useState<'signup' | 'gateway' | 'preview'>('signup');
   const [referralsList, setReferralsList] = useState<ReferralRecord[]>([]);
   const [isLoadingReferrals, setIsLoadingReferrals] = useState(true);
 
@@ -38,9 +38,15 @@ export default function Referrals() {
   const [calcAvgInvestment, setCalcAvgInvestment] = useState(500);
 
   const refCode = userData?.referral_code || 'MINER';
-  const domainUrl = `https://poolmining.cloud/ref/${refCode}`;
-  const originUrl = typeof window !== 'undefined' ? `${window.location.origin}/ref/${refCode}` : domainUrl;
-  const activeReferralLink = useDomainLink ? domainUrl : originUrl;
+  const directSignupUrl = `https://poolmining.cloud/signup?ref=${refCode}`;
+  const gatewayUrl = `https://poolmining.cloud/ref/${refCode}`;
+  const originUrl = typeof window !== 'undefined' ? `${window.location.origin}/signup?ref=${refCode}` : directSignupUrl;
+
+  const activeReferralLink = linkType === 'signup' 
+    ? directSignupUrl 
+    : linkType === 'gateway' 
+      ? gatewayUrl 
+      : originUrl;
 
   // Real-time listener for referred users from Firestore
   useEffect(() => {
@@ -208,18 +214,18 @@ export default function Referrals() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-surface p-1 rounded-full border border-border self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 bg-surface p-1 rounded-2xl border border-border self-start sm:self-auto">
                   <button
-                    onClick={() => setUseDomainLink(true)}
-                    className={`px-3 py-1 text-xs rounded-full font-medium transition-all ${useDomainLink ? 'bg-[#0052ff] text-white shadow-sm' : 'text-muted hover:text-primary'}`}
+                    onClick={() => setLinkType('signup')}
+                    className={`px-3 py-1 text-xs rounded-xl font-medium transition-all ${linkType === 'signup' ? 'bg-[#0052ff] text-white shadow-sm' : 'text-muted hover:text-primary'}`}
                   >
-                    poolmining.cloud
+                    Direct Signup (Recommended)
                   </button>
                   <button
-                    onClick={() => setUseDomainLink(false)}
-                    className={`px-3 py-1 text-xs rounded-full font-medium transition-all ${!useDomainLink ? 'bg-[#0052ff] text-white shadow-sm' : 'text-muted hover:text-primary'}`}
+                    onClick={() => setLinkType('gateway')}
+                    className={`px-3 py-1 text-xs rounded-xl font-medium transition-all ${linkType === 'gateway' ? 'bg-[#0052ff] text-white shadow-sm' : 'text-muted hover:text-primary'}`}
                   >
-                    Live App URL
+                    Short Link (/ref/)
                   </button>
                 </div>
               </div>

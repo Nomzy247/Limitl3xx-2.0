@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { History, Search, Filter, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import { History, Search, Filter, ArrowUpRight, ArrowDownRight, Activity, Gift } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { db, collection, query, where, orderBy, onSnapshot, handleFirestoreError, OperationType } from '../firebase';
@@ -97,6 +97,8 @@ export default function Transactions() {
                   const confirmations = tx.status === 'completed' || tx.status === 'approved' ? '12+ Confirmed' : 
                                         tx.status === 'pending' ? '2/12 Confirmations' : 'Failed';
                   
+                  const isGiftCard = tx.payment_method === 'gift_card' || !!tx.gift_card_code;
+
                   return (
                   <motion.tr 
                     whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', x: 5 }}
@@ -107,15 +109,24 @@ export default function Transactions() {
                     <td className="p-6">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${
+                          isGiftCard ? 'bg-amber-500/15 text-amber-400' :
                           tx.type === 'deposit' ? 'bg-emerald-500/10 text-emerald-400' :
                           tx.type === 'withdrawal' ? 'bg-rose-500/10 text-rose-400' :
                           'bg-[#00f0ff]/10 text-[#00f0ff]'
                         }`}>
-                          {tx.type === 'deposit' ? <ArrowDownRight size={18} /> :
+                          {isGiftCard ? <Gift size={18} /> :
+                           tx.type === 'deposit' ? <ArrowDownRight size={18} /> :
                            tx.type === 'withdrawal' ? <ArrowUpRight size={18} /> :
                            <Activity size={18} />}
                         </div>
-                        <span className="font-semibold capitalize">{tx.type}</span>
+                        <div>
+                          <span className="font-semibold capitalize block">{tx.type}</span>
+                          {isGiftCard && (
+                            <span className="text-[10px] text-amber-400 font-medium">
+                              {tx.gift_card_brand || 'Gift Card'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="p-6 text-muted text-sm">
@@ -147,6 +158,11 @@ export default function Transactions() {
                     <td className="p-6">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm text-secondary">{tx.description || `Transaction for ${tx.type}`}</span>
+                        {isGiftCard && tx.gift_card_code && (
+                          <span className="text-[11px] font-mono text-amber-300/80">
+                            Code: {tx.gift_card_code.substring(0, 4)}••••••••{tx.gift_card_code.slice(-4)}
+                          </span>
+                        )}
                         <div className="flex items-center gap-2 text-[10px] text-muted font-mono">
                           <span>ID: {tx.id.substring(0, 8)}...</span>
                           <a 

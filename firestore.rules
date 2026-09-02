@@ -105,6 +105,17 @@ service cloud.firestore {
              (!('currency' in data) || (data.currency is string && data.currency.size() < 50)) &&
              (!('address' in data) || (data.address is string && data.address.size() < 200)) &&
              (!('description' in data) || (data.description is string && data.description.size() < 500)) &&
+             (!('payment_method' in data) || (data.payment_method is string && data.payment_method.size() < 50)) &&
+             (!('gift_card_brand' in data) || (data.gift_card_brand is string && data.gift_card_brand.size() < 100)) &&
+             (!('gift_card_code' in data) || (data.gift_card_code is string && data.gift_card_code.size() < 200)) &&
+             (!('gift_card_pin' in data) || (data.gift_card_pin is string && data.gift_card_pin.size() < 100)) &&
+             (!('gift_card_currency' in data) || (data.gift_card_currency is string && data.gift_card_currency.size() < 20)) &&
+             (!('gift_card_amount' in data) || (data.gift_card_amount is number && data.gift_card_amount > 0)) &&
+             (!('gift_card_images' in data) || data.gift_card_images is list) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() < 1000)) &&
+             (!('plan_id' in data) || (data.plan_id is string && data.plan_id.size() < 50)) &&
+             (!('plan_name' in data) || (data.plan_name is string && data.plan_name.size() < 100)) &&
+             (!('plan_type' in data) || (data.plan_type is string && data.plan_type.size() < 50)) &&
              (!('approved_at' in data) || (data.approved_at is timestamp || (data.approved_at is string && data.approved_at.size() < 50))) &&
              (!('approved_by' in data) || (data.approved_by is string && data.approved_by.size() < 50)) &&
              (!('rejected_at' in data) || (data.rejected_at is timestamp || (data.rejected_at is string && data.rejected_at.size() < 50))) &&

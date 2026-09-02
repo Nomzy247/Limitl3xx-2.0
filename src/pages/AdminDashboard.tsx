@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Server, Activity, DollarSign, AlertCircle, CheckCircle2, ArrowUpRight, ArrowDownRight, Bot, Settings, Sliders, ShieldAlert, ShieldCheck, ShieldX, Search, Power } from 'lucide-react';
+import { Users, Server, Activity, DollarSign, AlertCircle, CheckCircle2, ArrowUpRight, ArrowDownRight, Bot, Settings, Sliders, ShieldAlert, ShieldCheck, ShieldX, Search, Power, Gift, Copy, Check, Eye, X, Image as ImageIcon } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { db, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, runTransaction, serverTimestamp, handleFirestoreError, OperationType } from '../firebase';
@@ -56,6 +56,8 @@ export default function AdminDashboard() {
   const [selectedUserForAction, setSelectedUserForAction] = useState<any>(null);
   const [txFilterType, setTxFilterType] = useState('all');
   const [txFilterStatus, setTxFilterStatus] = useState('pending');
+  const [selectedImagePreview, setSelectedImagePreview] = useState<{ url: string; title: string } | null>(null);
+  const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
 
   const logAdminAction = async (action: string) => {
     await addDoc(collection(db, 'logs'), {
@@ -959,41 +961,153 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-            {transactions.map((tx) => (
-              <div key={tx.id} className="p-4 bg-background border border-border/50 rounded-2xl hover:border-border transition-all">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="font-semibold text-primary capitalize">{tx.type}</p>
-                    <p className="text-[10px] text-muted font-mono mt-1">{tx.user_id}</p>
-                    {tx.address && <p className="text-[10px] text-secondary font-mono mt-0.5">{tx.address}</p>}
+          <div className="space-y-4 max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+            {transactions.map((tx) => {
+              const isGiftCard = tx.payment_method === 'gift_card' || !!tx.gift_card_code;
+
+              return (
+                <div key={tx.id} className="p-4 bg-background border border-border/50 rounded-2xl hover:border-border transition-all">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-primary capitalize">{tx.type}</p>
+                        {isGiftCard && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                            <Gift size={10} /> {tx.gift_card_brand || 'Gift Card'}
+                          </span>
+                        )}
+                        {tx.plan_name && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#0052ff]/15 text-[#0052ff]">
+                            Plan: {tx.plan_name}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted font-mono mt-1">User: {tx.user_id}</p>
+                      {tx.address && <p className="text-[10px] text-secondary font-mono mt-0.5">{tx.address}</p>}
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-bold ${tx.type === 'deposit' ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {tx.type === 'deposit' ? '+' : '-'}${Number(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {tx.method || tx.currency ? <span className="text-xs font-mono text-muted ml-1">({tx.method || tx.currency})</span> : ''}
+                      </p>
+                      <p className="text-[10px] text-muted">
+                        {formatFirebaseDate(tx.timestamp)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`font-bold ${tx.type === 'deposit' ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {tx.type === 'deposit' ? '+' : '-'}${Number(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      {tx.method || tx.currency ? <span className="text-xs font-mono text-muted ml-1">({tx.method || tx.currency})</span> : ''}
-                    </p>
-                    <p className="text-[10px] text-muted">
-                      {formatFirebaseDate(tx.timestamp)}
-                    </p>
+
+                  {/* Gift Card Details Box */}
+                  {isGiftCard && (
+                    <div className="mb-3 p-3 bg-card/60 border border-amber-500/20 rounded-xl space-y-2 text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted text-[11px]">Card Code:</span>
+                          <span className="font-mono font-bold text-amber-300 tracking-wider select-all bg-background/80 px-2 py-0.5 rounded border border-border/50">
+                            {tx.gift_card_code || 'N/A'}
+                          </span>
+                          {tx.gift_card_code && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(tx.gift_card_code);
+                                setCopiedCodeId(`code-${tx.id}`);
+                                toast.success('Gift card code copied!');
+                                setTimeout(() => setCopiedCodeId(null), 2000);
+                              }}
+                              className="p-1 hover:bg-subtle rounded text-muted hover:text-primary transition-colors"
+                              title="Copy Code"
+                            >
+                              {copiedCodeId === `code-${tx.id}` ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                            </button>
+                          )}
+                        </div>
+
+                        {tx.gift_card_pin && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted text-[11px]">PIN / CVV:</span>
+                            <span className="font-mono font-bold text-primary select-all bg-background/80 px-2 py-0.5 rounded border border-border/50">
+                              {tx.gift_card_pin}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(tx.gift_card_pin);
+                                setCopiedCodeId(`pin-${tx.id}`);
+                                toast.success('PIN copied!');
+                                setTimeout(() => setCopiedCodeId(null), 2000);
+                              }}
+                              className="p-1 hover:bg-subtle rounded text-muted hover:text-primary transition-colors"
+                              title="Copy PIN"
+                            >
+                              {copiedCodeId === `pin-${tx.id}` ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {tx.notes && (
+                        <div className="text-[11px] text-muted italic bg-background/40 p-1.5 rounded">
+                          " {tx.notes} "
+                        </div>
+                      )}
+
+                      {/* Image Thumbnails with Lightbox Preview */}
+                      {tx.gift_card_images && tx.gift_card_images.length > 0 && (
+                        <div>
+                          <p className="text-[10px] text-muted mb-1 flex items-center gap-1 font-medium">
+                            <ImageIcon size={11} /> Attached Photos ({tx.gift_card_images.length}):
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {tx.gift_card_images.map((img: any, idx: number) => {
+                              const imgUrl = typeof img === 'string' ? img : img.data;
+                              const label = typeof img === 'string' ? `Photo #${idx + 1}` : img.label;
+                              if (!imgUrl) return null;
+
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => setSelectedImagePreview({ url: imgUrl, title: `${tx.gift_card_brand || 'Gift Card'} - ${label}` })}
+                                  className="group relative w-16 h-12 rounded-lg overflow-hidden border border-border hover:border-amber-400/60 transition-all cursor-zoom-in"
+                                >
+                                  <img 
+                                    src={imgUrl} 
+                                    alt={label} 
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <Eye size={14} className="text-white" />
+                                  </div>
+                                  <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[8px] text-center text-muted group-hover:text-white truncate px-0.5">
+                                    {label}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleApproveTransaction(tx)}
+                      className="flex-1 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-full text-xs font-bold transition-colors"
+                    >
+                      Approve
+                    </button>
+                    <button 
+                      onClick={() => handleRejectTransaction(tx)}
+                      className="flex-1 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-full text-xs font-bold transition-colors"
+                    >
+                      Reject
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleApproveTransaction(tx)}
-                    className="flex-1 py-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-full text-xs font-bold transition-colors"
-                  >
-                    Approve
-                  </button>
-                  <button 
-                    onClick={() => handleRejectTransaction(tx)}
-                    className="flex-1 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-full text-xs font-bold transition-colors"
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {transactions.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-secondary text-sm">No pending transactions</p>
@@ -1021,6 +1135,58 @@ export default function AdminDashboard() {
               });
             }}
           />
+        )}
+
+        {/* Gift Card Photo Lightbox Preview */}
+        {selectedImagePreview && (
+          <div 
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+            onClick={() => setSelectedImagePreview(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative max-w-4xl w-full bg-card border border-border rounded-3xl p-4 shadow-2xl flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 mb-2 border-b border-border/50">
+                <div className="flex items-center gap-2">
+                  <Gift size={18} className="text-amber-400" />
+                  <h4 className="font-bold text-sm text-primary">{selectedImagePreview.title}</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedImagePreview(null)}
+                  className="p-1.5 rounded-full hover:bg-subtle text-muted hover:text-primary transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-auto flex items-center justify-center p-2 rounded-2xl bg-black/40 min-h-[300px]">
+                <img
+                  src={selectedImagePreview.url}
+                  alt={selectedImagePreview.title}
+                  className="max-h-[70vh] w-auto object-contain rounded-xl shadow-lg select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+
+              <div className="flex justify-between items-center pt-3 mt-2 border-t border-border/50 text-xs text-muted">
+                <span>Click outside or press close to exit</span>
+                <a
+                  href={selectedImagePreview.url}
+                  download="gift_card_proof.jpg"
+                  className="px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open Full Image
+                </a>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router';
 
@@ -128,6 +128,20 @@ export default function RouteMetaHandler() {
   const location = useLocation();
   const pathname = location.pathname.toLowerCase().replace(/\/$/, '') || '/';
   
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(location.search);
+      const refParam = searchParams.get('ref') || searchParams.get('code');
+      if (refParam) {
+        const cleanCode = refParam.trim().toUpperCase();
+        localStorage.setItem('poolmining_referral_code', cleanCode);
+        sessionStorage.setItem('poolmining_referral_code', cleanCode);
+      }
+    } catch (e) {
+      // Ignore URL parsing errors
+    }
+  }, [location.search]);
+
   const currentMeta = routeMetadataMap[pathname] || defaultMeta;
   const canonicalUrl = `https://poolmining.cloud${pathname === '/' ? '' : pathname}`;
   const ogImage = 'https://poolmining.cloud/logo.png';

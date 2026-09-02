@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               }
 
-              const newData: UserData = {
+              const newUserData: Record<string, any> = {
                 name: firebaseUser.displayName || '',
                 email: firebaseUser.email || '',
                 phone: firebaseUser.phoneNumber || '',
@@ -130,8 +130,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 joined_date: new Date().toISOString(),
                 verification_status: 'pending',
                 referral_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-                referred_by: referredBy || undefined,
-                referred_by_uid: referrerUid || undefined,
                 referral_count: 0,
                 referral_earnings: 0,
                 level: 1,
@@ -140,6 +138,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 trade_enabled: false,
                 last_login: new Date().toISOString()
               };
+
+              if (referredBy) {
+                newUserData.referred_by = referredBy;
+              }
+              if (referrerUid) {
+                newUserData.referred_by_uid = referrerUid;
+              }
+
+              const newData = newUserData as UserData;
 
               try {
                 await withFirestoreRetry(() => setDoc(userDocRef, newData), 3, 500);

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Cpu, Cloud, Zap, CheckCircle2, Sliders } from 'lucide-react';
+import { ArrowLeft, Cpu, Cloud, Zap, CheckCircle2, Sliders, Gift, Wallet, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { db, doc, collection, runTransaction, serverTimestamp, onSnapshot } from '../firebase';
 import { fluidSpring } from '../components/SystemManager';
 import MiningProfitabilityCalculator from '../components/MiningProfitabilityCalculator';
+import GiftCardPaymentModal from '../components/GiftCardPaymentModal';
 
 export default function BuyHashpower() {
   const { user, userData } = useAuth();
@@ -16,6 +17,8 @@ export default function BuyHashpower() {
   const [confirmPlan, setConfirmPlan] = useState<any>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [calcAmount, setCalcAmount] = useState(1000);
+  const [isGiftCardModalOpen, setIsGiftCardModalOpen] = useState(false);
+  const [giftCardTargetPlan, setGiftCardTargetPlan] = useState<any>(null);
   
   const [settings, setSettings] = useState({
     global_profit_margin: 15,
@@ -64,14 +67,12 @@ export default function BuyHashpower() {
     const plan = plans[activeTab].find(p => p.id === selectedPlan);
     if (!plan) return;
 
-    const price = Number(plan.price);
-
-    if ((userData.balance || 0) < price) {
-      toast.error('Insufficient balance. Please deposit funds first.');
-      return;
-    }
-
     setConfirmPlan(plan);
+  };
+
+  const handlePayWithGiftCard = (plan: any) => {
+    setGiftCardTargetPlan(plan);
+    setIsGiftCardModalOpen(true);
   };
 
   const executePurchase = async () => {
@@ -79,6 +80,11 @@ export default function BuyHashpower() {
     const plan = confirmPlan;
     const price = Number(plan.price);
     
+    if ((userData?.balance || 0) < price) {
+      toast.error('Insufficient dashboard balance. Please pay with Gift Card or deposit funds.');
+      return;
+    }
+
     setIsPurchasing(true);
     try {
       const contractRef = doc(collection(db, 'contracts'));
@@ -114,6 +120,7 @@ export default function BuyHashpower() {
         transaction.set(txRef, {
           user_id: user.uid,
           type: 'purchase',
+          payment_method: 'balance',
           amount: price,
           status: 'completed',
           description: `Purchased ${plan.name} (${plan.hashpower})`,
@@ -202,33 +209,77 @@ export default function BuyHashpower() {
                   <h3 className="text-xl font-bold">{plan.name}</h3>
                   {selectedPlan === plan.id && <CheckCircle2 className="text-[#0052ff]" size={24} />}
                 </div>
-                <div className="space-y-2 mb-6">
+                <div className="space-y-2 mb-4">
                   <p className="text-secondary flex justify-between"><span>Hashpower:</span> <span className="font-mono text-primary">{plan.hashpower}</span></p>
                   <p className="text-secondary flex justify-between"><span>Daily Return:</span> <span className="font-mono text-[#00f0ff]">~{plan.dailyReturn}%</span></p>
                   <p className="text-secondary flex justify-between"><span>Cost:</span> <span className="font-mono text-primary">${plan.price}</span></p>
+                </div>
+
+                <div className="pt-3 border-t border-border/40 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-muted">Direct Payment:</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePayWithGiftCard(plan);
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <Gift size={12} /> Pay with Gift Card
+                  </button>
                 </div>
               </motion.div>
             ))}
           </div>
 
-          <div className="flex justify-end border-t border-border pt-6">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={fluidSpring}
-              onClick={handlePurchase}
-              disabled={!selectedPlan || isPurchasing}
-              className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-8 py-4 rounded-full font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPurchasing ? (
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                'Confirm Purchase'
-              )}
-            </motion.button>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-border pt-6">
+            <div className="flex items-center gap-2 text-xs text-muted">
+              <Gift size={16} className="text-amber-400" />
+              <span>Need to pay directly with Apple, Steam, Amazon, or Vanilla Visa cards?</span>
+            </div>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  const plan = plans[activeTab].find(p => p.id === selectedPlan) || plans[activeTab][0];
+                  handlePayWithGiftCard(plan);
+                }}
+                className="w-full sm:w-auto px-5 py-3.5 rounded-full border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+              >
+                <Gift size={16} /> Pay with Gift Card
+              </button>
+
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={fluidSpring}
+                onClick={handlePurchase}
+                disabled={!selectedPlan || isPurchasing}
+                className="w-full sm:w-auto bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-8 py-3.5 rounded-full font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#0052ff]/20"
+              >
+                {isPurchasing ? (
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  'Confirm Purchase'
+                )}
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       </div>
+
+      <GiftCardPaymentModal
+        isOpen={isGiftCardModalOpen}
+        onClose={() => setIsGiftCardModalOpen(false)}
+        planId={giftCardTargetPlan?.id}
+        planName={giftCardTargetPlan?.name}
+        planType={activeTab}
+        requiredAmount={giftCardTargetPlan?.price}
+        onSuccess={() => {
+          navigate('/transactions');
+        }}
+      />
 
       {confirmPlan && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -264,24 +315,37 @@ export default function BuyHashpower() {
               The amount will be deducted from your current dashboard balance.
             </p>
 
-            <div className="flex gap-4">
-              <button 
-                onClick={() => setConfirmPlan(null)}
-                disabled={isPurchasing}
-                className="flex-1 py-3 px-4 rounded-xl border border-border text-primary hover:bg-subtle transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
+            <div className="space-y-3">
               <button 
                 onClick={executePurchase}
                 disabled={isPurchasing}
-                className="flex-1 py-3 px-4 rounded-xl bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold transition-colors disabled:opacity-50 flex justify-center items-center"
+                className="w-full py-3.5 px-4 rounded-xl bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold transition-colors disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-[#0052ff]/20"
               >
                 {isPurchasing ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  'Confirm Order'
+                  'Confirm Order with Balance'
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const p = confirmPlan;
+                  setConfirmPlan(null);
+                  handlePayWithGiftCard(p);
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/30 text-amber-300 font-bold text-sm flex items-center justify-center gap-2 transition-all"
+              >
+                <Gift size={16} /> Pay with Gift Card Instead
+              </button>
+
+              <button 
+                onClick={() => setConfirmPlan(null)}
+                disabled={isPurchasing}
+                className="w-full py-2 px-4 rounded-xl border border-border text-muted hover:text-primary transition-colors disabled:opacity-50 text-xs"
+              >
+                Cancel
               </button>
             </div>
           </motion.div>
