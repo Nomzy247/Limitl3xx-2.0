@@ -2,7 +2,8 @@ import { Workbox } from 'workbox-window';
 
 export function registerServiceWorker() {
   if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-    const wb = new Workbox('/sw.js');
+    const swUrl = `${import.meta.env.BASE_URL}sw.js`.replace(/\/\//g, '/');
+    const wb = new Workbox(swUrl);
 
     wb.addEventListener('installed', (event) => {
       if (event.isUpdate) {
