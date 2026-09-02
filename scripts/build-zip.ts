@@ -1,66 +1,102 @@
 import fs from 'fs';
 import path from 'path';
-import { createRequire } from 'module';
+import JSZip from 'jszip';
 
-const require = createRequire(import.meta.url);
-const { ZipArchive } = require('archiver');
+function addFolderToZip(zip: JSZip, folderPath: string, relativePath = '') {
+  const items = fs.readdirSync(folderPath);
 
-async function createDeployZip() {
+  for (const item of items) {
+    if (item === 'hostinger-deploy.zip' || item.endsWith('.map')) continue;
+
+    const fullPath = path.join(folderPath, item);
+    const zipItemPath = relativePath ? `${relativePath}/${item}` : item;
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      const subFolder = zip.folder(zipItemPath);
+      if (subFolder) {
+        addFolderToZip(zip, fullPath, zipItemPath);
+      }
+    } else {
+      const data = fs.readFileSync(fullPath);
+      zip.file(zipItemPath, data);
+    }
+  }
+}
+
+async function createDeployArtifacts() {
   const distDir = path.resolve(process.cwd(), 'dist');
   const publicDir = path.resolve(process.cwd(), 'public');
-  const outputZipPath = path.resolve(process.cwd(), 'public/hostinger-deploy.zip');
-  const outputDistZipPath = path.resolve(distDir, 'hostinger-deploy.zip');
 
   if (!fs.existsSync(distDir)) {
     console.error('[Deploy] dist directory does not exist. Run npm run build first.');
     return;
   }
 
-  // Ensure .htaccess exists in dist
-  const srcHtaccess = path.resolve(publicDir, '.htaccess');
-  const distHtaccess = path.resolve(distDir, '.htaccess');
-  if (fs.existsSync(srcHtaccess)) {
-    fs.copyFileSync(srcHtaccess, distHtaccess);
+  // 1. Ensure .htaccess exists in dist for Apache / Hostinger
+  const htaccessContent = `<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  DirectoryIndex index.html
+  RewriteRule ^index\\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteRule . /index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\\.html|sw\\.js)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+  <FilesMatch "\\.(js|css|webp|png|jpg|jpeg|svg|ico|woff|woff2|ttf)$">
+    Header set Cache-Control "max-age=31536000, public, immutable"
+  </FilesMatch>
+</IfModule>
+`;
+  fs.writeFileSync(path.resolve(distDir, '.htaccess'), htaccessContent);
+  fs.writeFileSync(path.resolve(publicDir, '.htaccess'), htaccessContent);
+
+  // 2. Ensure 404.html exists for GitHub Pages (exact copy of index.html)
+  const indexHtmlPath = path.resolve(distDir, 'index.html');
+  if (fs.existsSync(indexHtmlPath)) {
+    fs.copyFileSync(indexHtmlPath, path.resolve(distDir, '404.html'));
   }
 
-  return new Promise<void>((resolve, reject) => {
-    const output = fs.createWriteStream(outputZipPath);
-    const archive = new ZipArchive({ zlib: { level: 9 } });
+  // 3. Ensure _redirects exists for Netlify / Cloudflare Pages
+  fs.writeFileSync(path.resolve(distDir, '_redirects'), '/*    /index.html   200\n');
+  fs.writeFileSync(path.resolve(publicDir, '_redirects'), '/*    /index.html   200\n');
 
-    output.on('close', () => {
-      console.log(`[Deploy] Standard hostinger-deploy.zip created (${(archive.pointer() / 1024 / 1024).toFixed(2)} MB).`);
-      if (fs.existsSync(distDir)) {
-        try {
-          fs.copyFileSync(outputZipPath, outputDistZipPath);
-        } catch (e) {
-          // ignore
-        }
-      }
-      resolve();
-    });
+  // 4. Build hostinger-deploy.zip with JSZip
+  console.log('[Deploy] Bundling dist directory into hostinger-deploy.zip...');
+  const zip = new JSZip();
+  addFolderToZip(zip, distDir);
 
-    archive.on('error', (err: any) => {
-      reject(err);
-    });
-
-    archive.pipe(output);
-
-    // Append everything in dist EXCEPT hostinger-deploy.zip and .map files
-    archive.glob('**/*', {
-      cwd: distDir,
-      dot: true,
-      ignore: ['hostinger-deploy.zip', '*.map']
-    });
-
-    archive.finalize();
+  const content = await zip.generateAsync({
+    type: 'nodebuffer',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 9 },
   });
+
+  const rootZipPath = path.resolve(process.cwd(), 'hostinger-deploy.zip');
+  const distZipPath = path.resolve(distDir, 'hostinger-deploy.zip');
+  const publicZipPath = path.resolve(publicDir, 'hostinger-deploy.zip');
+
+  fs.writeFileSync(rootZipPath, content);
+  fs.writeFileSync(distZipPath, content);
+  fs.writeFileSync(publicZipPath, content);
+
+  console.log(`[Deploy] ✅ hostinger-deploy.zip generated successfully (${(content.length / 1024 / 1024).toFixed(2)} MB).`);
 }
 
-createDeployZip()
+createDeployArtifacts()
   .then(() => {
-    console.log('[Deploy] Build & zip packaging completed successfully.');
+    console.log('[Deploy] All production deployment artifacts verified and ready.');
   })
   .catch((err) => {
-    console.error('[Deploy] Zip packaging error:', err);
+    console.error('[Deploy] Deployment artifact creation error:', err);
     process.exit(1);
   });
+

@@ -1,13 +1,24 @@
-name: Deploy to Hostinger via FTP
+name: Production Build & Deploy
 
 on:
   push:
     branches:
       - main
       - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "deploy"
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  build:
+    name: 🔨 Build Production Artifacts
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repository
@@ -16,16 +27,35 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: 🔨 Build production app
+      - name: 🔨 Build application
         run: npm run build
 
-      - name: 🚀 Deploy to Hostinger via FTP
+      - name: 📤 Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-dist
+          path: dist/
+          retention-days: 7
+
+  deploy-ftp:
+    name: 🚀 Deploy to Hostinger via FTP
+    needs: build
+    runs-on: ubuntu-latest
+    if: "${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}"
+    steps:
+      - name: ⬇️ Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: production-dist
+          path: dist/
+
+      - name: 🚀 Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -33,3 +63,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: ./public_html/
+          dangerous-clean-slate: false
+
