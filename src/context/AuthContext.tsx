@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
 import { auth, db, doc, getDoc, setDoc, updateDoc, onSnapshot, handleFirestoreError, OperationType, addDoc, collection, serverTimestamp, withFirestoreRetry, query, where, getDocs, limit } from '../firebase';
+import PageSuspenseFallback from '../components/PageSuspenseFallback';
 
 interface UserData {
   name: string;
@@ -233,7 +234,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? <PageSuspenseFallback /> : children}
     </AuthContext.Provider>
   );
 };

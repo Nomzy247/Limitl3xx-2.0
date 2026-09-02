@@ -72,32 +72,44 @@ export default function GiftCardDepositSection({
     setIsProcessingImages(true);
     try {
       const newImages: { id: string; name: string; dataUrl: string }[] = [];
+      let successCount = 0;
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (!file.type.startsWith('image/')) {
-          toast.error(`${file.name} is not a valid image file.`);
+        if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp|heic|heif|bmp)$/i)) {
+          toast.error(`${file.name} is not a supported image file.`);
           continue;
         }
         
-        // Max 10MB raw file size guard
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error(`${file.name} is larger than 10MB. Please select a smaller photo.`);
+        // Max 15MB raw file size guard
+        if (file.size > 15 * 1024 * 1024) {
+          toast.error(`${file.name} is larger than 15MB. Please select a smaller photo.`);
           continue;
         }
 
-        const compressed = await compressImage(file, 1200, 1200, 0.75);
-        newImages.push({
-          id: Math.random().toString(36).substring(2, 9),
-          name: file.name,
-          dataUrl: compressed
-        });
+        try {
+          const compressed = await compressImage(file, 1200, 1200, 0.75);
+          if (compressed) {
+            newImages.push({
+              id: Math.random().toString(36).substring(2, 9),
+              name: file.name,
+              dataUrl: compressed
+            });
+            successCount++;
+          }
+        } catch (fileErr: any) {
+          console.warn(`Could not process ${file.name}:`, fileErr?.message || fileErr);
+          toast.error(`Could not process ${file.name}. Please select a JPG or PNG.`);
+        }
       }
 
-      setUploadedImages(prev => [...prev, ...newImages]);
-      toast.success('Gift card photo attached!');
+      if (newImages.length > 0) {
+        setUploadedImages(prev => [...prev, ...newImages]);
+        toast.success(`${successCount} photo${successCount > 1 ? 's' : ''} attached successfully!`);
+      }
     } catch (err: any) {
-      console.error('Image compression error:', err);
-      toast.error('Failed to process card photo.');
+      console.warn('Image upload error:', err?.message || err);
+      toast.error('Failed to attach card photos.');
     } finally {
       setIsProcessingImages(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
