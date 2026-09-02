@@ -19,12 +19,17 @@ export default function CloudMining() {
     const contractsQuery = query(
       collection(db, 'contracts'),
       where('user_id', '==', user.uid),
-      where('type', '==', 'cloud'),
-      orderBy('start_date', 'desc')
+      where('type', '==', 'cloud')
     );
 
     const unsubscribe = onSnapshot(contractsQuery, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .sort((a: any, b: any) => {
+          const aTime = a.start_date?.toMillis ? a.start_date.toMillis() : (a.start_date?.seconds ? a.start_date.seconds * 1000 : 0);
+          const bTime = b.start_date?.toMillis ? b.start_date.toMillis() : (b.start_date?.seconds ? b.start_date.seconds * 1000 : 0);
+          return bTime - aTime;
+        });
       setContracts(data);
     }, (error) => handleFirestoreError(error, OperationType.LIST, 'contracts'));
     return () => unsubscribe();
