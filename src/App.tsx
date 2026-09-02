@@ -66,7 +66,7 @@ export default function App() {
       <PowerSaveProvider>
         <SystemManager>
           <AuthProvider>
-            <Router>
+            <Router basename={import.meta.env.BASE_URL}>
               <RouteMetaHandler />
               <ScrollToTop />
               <Toaster 
