@@ -53,8 +53,8 @@ export default function Stats() {
           {stats.map((stat, index) => (
             <motion.div 
               key={stat.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 1 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ ...fluidSpring, delay: index * 0.1 }}
               whileHover={{ 

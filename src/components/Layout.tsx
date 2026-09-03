@@ -29,15 +29,15 @@ export default function Layout() {
       <div className="w-full flex justify-center">
         <div className="flex w-full max-w-[1920px] relative">
           {user && <Sidebar />}
-          <div className="flex-1 flex flex-col min-h-screen w-full relative overflow-hidden">
+          <div className="flex-1 flex flex-col min-h-screen w-full relative overflow-x-clip">
             <SmartNavbar />
             <AnimatePresence mode="wait">
               <motion.main 
                 key={location.pathname}
-                initial={{ opacity: 0, scale: 0.99, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, scale: 1.01, filter: 'blur(4px)' }}
-                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0.9 }}
+                transition={{ duration: 0.15 }}
                 className={`flex-1 w-full mx-auto pt-24 ${user ? 'pb-24 md:pb-0' : ''}`}
               >
                 <Outlet />

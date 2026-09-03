@@ -63,8 +63,8 @@ export default function MarketOpportunities() {
           {marketData.map((category, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 1 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ ...fluidSpring, delay: idx * 0.1 }}
               className="bg-card border border-border/50 rounded-2xl p-6 hover:border-border transition-colors"

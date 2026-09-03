@@ -33,10 +33,10 @@ export default function Portfolio() {
           {assets.map((asset, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ ...fluidSpring, delay: index * 0.1 }}
+              initial={{ opacity: 1 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ ...fluidSpring, delay: index * 0.05 }}
               whileHover={{ 
                 y: -10,
                 scale: 1.02,

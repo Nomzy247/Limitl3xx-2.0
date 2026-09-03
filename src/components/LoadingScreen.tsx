@@ -3,31 +3,63 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('pm_splash_shown');
+    }
+    return false;
+  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => setIsLoading(false), 800); // short delay after 100%
-          return 100;
-        }
-        return prev + Math.floor(Math.random() * 3) + 1;
-      });
-    }, 30);
+    if (!isLoading) return;
 
-    return () => clearInterval(interval);
-  }, []);
+    const startTime = Date.now();
+    const duration = 350; // fast 350ms loading duration
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(100, Math.floor((elapsed / duration) * 100));
+      setProgress(pct);
+
+      if (pct >= 100) {
+        clearInterval(interval);
+        try {
+          sessionStorage.setItem('pm_splash_shown', 'true');
+        } catch {
+          // ignore
+        }
+        setTimeout(() => setIsLoading(false), 100);
+      }
+    }, 20);
+
+    // Hard fallback safety: never block screen for more than 500ms
+    const safety = setTimeout(() => {
+      clearInterval(interval);
+      try {
+        sessionStorage.setItem('pm_splash_shown', 'true');
+      } catch {
+        // ignore
+      }
+      setIsLoading(false);
+    }, 500);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(safety);
+    };
+  }, [isLoading]);
+
+  if (!isLoading) return null;
 
   return (
     <AnimatePresence>
       {isLoading && (
         <motion.div
+          onClick={() => setIsLoading(false)}
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }} // smooth fade/scale out
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0B0F19] overflow-hidden font-sans"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0B0F19] overflow-hidden font-sans cursor-pointer"
         >
           {/* Main Content Container */}
           <div className="relative z-10 flex flex-col items-center w-full max-w-lg px-6">

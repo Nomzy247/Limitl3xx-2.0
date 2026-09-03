@@ -47,10 +47,10 @@ export default function Processes() {
           {steps.map((step, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ ...fluidSpring, delay: index * 0.2 }}
+              initial={{ opacity: 1 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ ...fluidSpring, delay: index * 0.1 }}
               whileHover={{ 
                 scale: 1.05,
               }}

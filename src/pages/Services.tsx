@@ -85,9 +85,9 @@ export default function Services() {
         {services.map((service, index) => (
           <motion.div 
             key={service.id}
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0.9, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, margin: "0px", amount: 0.01 }}
             transition={fluidSpring}
             className={`flex flex-col ${index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-12 items-center`}
           >
