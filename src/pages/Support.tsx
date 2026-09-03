@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router';
 import { fluidSpring } from '../components/SystemManager';
 import DiscordIcon from '../components/DiscordIcon';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
@@ -81,20 +82,20 @@ export default function Support() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-16">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.02 }}
           transition={fluidSpring}
-          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
+          className="bg-card rounded-3xl p-5 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
         >
           <div className="flex flex-col items-center">
-            <div className="p-4 bg-[#0052ff]/10 rounded-2xl mb-4">
-              <MessageCircle className="text-[#0052ff]" size={28} />
+            <div className="p-3.5 bg-[#0052ff]/10 rounded-2xl mb-3">
+              <MessageCircle className="text-[#0052ff]" size={26} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Live Chat</h3>
-            <p className="text-secondary text-xs mb-6 leading-relaxed">Speak directly with our support agents in real-time.</p>
+            <h3 className="text-base font-bold mb-1">Live Chat</h3>
+            <p className="text-secondary text-xs mb-4 leading-relaxed">Speak directly with our support agents in real-time.</p>
           </div>
           <motion.button 
             onClick={() => window.dispatchEvent(new Event('open-chat'))}
@@ -111,15 +112,42 @@ export default function Support() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.02 }}
-          transition={{ ...fluidSpring, delay: 0.08 }}
-          className="bg-card rounded-3xl p-6 border border-[#5865F2]/30 shadow-xl text-center flex flex-col items-center justify-between relative overflow-hidden"
+          transition={{ ...fluidSpring, delay: 0.06 }}
+          className="bg-card rounded-3xl p-5 border border-[#25D366]/30 shadow-xl text-center flex flex-col items-center justify-between relative overflow-hidden"
         >
           <div className="flex flex-col items-center">
-            <div className="p-4 bg-[#5865F2]/10 rounded-2xl mb-4 text-[#5865F2]">
-              <DiscordIcon size={28} />
+            <div className="p-3.5 bg-[#25D366]/10 rounded-2xl mb-3 text-[#25D366]">
+              <WhatsAppIcon size={26} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Discord Group</h3>
-            <p className="text-secondary text-xs mb-6 leading-relaxed">Join 14,000+ miners for live discussions and community help.</p>
+            <h3 className="text-base font-bold mb-1">WhatsApp</h3>
+            <p className="text-secondary text-xs mb-4 leading-relaxed">+1 (236) 857-7040 instant messaging support.</p>
+          </div>
+          <motion.a 
+            href="https://wa.me/12368577040"
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={fluidSpring}
+            className="w-full py-2.5 bg-[#25D366] text-white rounded-full font-bold text-xs hover:bg-[#1EBE5D] transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-[#25D366]/20"
+          >
+            <WhatsAppIcon size={14} /> WhatsApp
+          </motion.a>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={{ ...fluidSpring, delay: 0.12 }}
+          className="bg-card rounded-3xl p-5 border border-[#5865F2]/30 shadow-xl text-center flex flex-col items-center justify-between relative overflow-hidden"
+        >
+          <div className="flex flex-col items-center">
+            <div className="p-3.5 bg-[#5865F2]/10 rounded-2xl mb-3 text-[#5865F2]">
+              <DiscordIcon size={26} />
+            </div>
+            <h3 className="text-base font-bold mb-1">Discord Group</h3>
+            <p className="text-secondary text-xs mb-4 leading-relaxed">Join 14,000+ miners for live discussions.</p>
           </div>
           <motion.a 
             href="https://discord.gg/p5XRG4bG8"
@@ -138,15 +166,15 @@ export default function Support() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.02 }}
-          transition={{ ...fluidSpring, delay: 0.16 }}
-          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
+          transition={{ ...fluidSpring, delay: 0.18 }}
+          className="bg-card rounded-3xl p-5 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
         >
           <div className="flex flex-col items-center">
-            <div className="p-4 bg-emerald-500/10 rounded-2xl mb-4">
-              <Mail className="text-emerald-500" size={28} />
+            <div className="p-3.5 bg-emerald-500/10 rounded-2xl mb-3">
+              <Mail className="text-emerald-500" size={26} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Email Support</h3>
-            <p className="text-secondary text-xs mb-6 leading-relaxed">Send us a detailed message and we'll reply via email.</p>
+            <h3 className="text-base font-bold mb-1">Email Support</h3>
+            <p className="text-secondary text-xs mb-4 leading-relaxed">Send us a message at poolmining@poolmining.cloud</p>
           </div>
           <motion.a 
             href="mailto:poolmining@poolmining.cloud"
@@ -164,17 +192,17 @@ export default function Support() {
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -5, scale: 1.02 }}
           transition={{ ...fluidSpring, delay: 0.24 }}
-          className="bg-card rounded-3xl p-6 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
+          className="bg-card rounded-3xl p-5 border border-border/50 shadow-xl text-center flex flex-col items-center justify-between"
         >
           <div className="flex flex-col items-center">
-            <div className="p-4 bg-purple-500/10 rounded-2xl mb-4">
-              <Phone className="text-purple-500" size={28} />
+            <div className="p-3.5 bg-purple-500/10 rounded-2xl mb-3">
+              <Phone className="text-purple-500" size={26} />
             </div>
-            <h3 className="text-lg font-bold mb-2">Phone Support</h3>
-            <p className="text-secondary text-xs mb-6 leading-relaxed">Call our international support line for urgent matters.</p>
+            <h3 className="text-base font-bold mb-1">Phone Line</h3>
+            <p className="text-secondary text-xs mb-4 leading-relaxed">Direct line: +1 (236) 857-7040 (24/5 International)</p>
           </div>
           <motion.a 
-            href="tel:+18001234567"
+            href="tel:+12368577040"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={fluidSpring}

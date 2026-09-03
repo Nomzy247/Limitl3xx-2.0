@@ -1,9 +1,10 @@
 import { Link } from 'react-router';
-import { Hexagon, Twitter, Github, Linkedin, Mail } from 'lucide-react';
+import { Hexagon, Twitter, Github, Linkedin, Mail, Phone } from 'lucide-react';
 import { motion } from 'motion/react';
 import { fluidSpring } from './SystemManager';
 import Logo from './Logo';
 import DiscordIcon from './DiscordIcon';
+import WhatsAppIcon from './WhatsAppIcon';
 
 export default function Footer() {
   return (
@@ -28,6 +29,16 @@ export default function Footer() {
               >
                 <DiscordIcon size={20} />
               </a>
+              <a 
+                href="https://wa.me/12368577040" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                aria-label="WhatsApp Support +12368577040" 
+                className="text-secondary transition-colors hover:text-[#25D366] hover:scale-110 active:scale-95 inline-block transition-all"
+                title="WhatsApp Support: +1 (236) 857-7040"
+              >
+                <WhatsAppIcon size={20} />
+              </a>
               <a href="#" aria-label="Twitter" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Twitter size={20} />
               </a>
@@ -37,7 +48,7 @@ export default function Footer() {
               <a href="#" aria-label="LinkedIn" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
                 <Linkedin size={20} />
               </a>
-              <a href="mailto:poolmining@poolmining.cloud" aria-label="Email" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all">
+              <a href="mailto:poolmining@poolmining.cloud" aria-label="Email poolmining@poolmining.cloud" className="text-secondary transition-colors hover:text-[#00f0ff] hover:scale-110 active:scale-95 inline-block transition-all" title="Email: poolmining@poolmining.cloud">
                 <Mail size={20} />
               </a>
             </div>

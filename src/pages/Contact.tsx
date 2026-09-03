@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Phone, MapPin, Send, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, ExternalLink, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { fluidSpring } from '../components/SystemManager';
 import DiscordIcon from '../components/DiscordIcon';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,8 +78,38 @@ export default function Contact() {
                 >
                   Email Us
                 </motion.h4>
-                <p className="text-secondary">poolmining@poolmining.cloud</p>
-                <p className="text-secondary">sales@poolmining.cloud</p>
+                <a href="mailto:poolmining@poolmining.cloud" className="text-secondary hover:text-[#00f0ff] transition-colors block">
+                  poolmining@poolmining.cloud
+                </a>
+                <p className="text-xs text-muted mt-0.5">Average response time: &lt; 2 hours</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <motion.div 
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-12 h-12 bg-[#25D366]/15 text-[#25D366] rounded-xl flex items-center justify-center flex-shrink-0 cursor-default"
+              >
+                <WhatsAppIcon size={24} />
+              </motion.div>
+              <div>
+                <motion.h4 
+                  whileHover={{ color: ['#ffffff', '#25D366', '#ffffff'] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="font-semibold text-lg cursor-default"
+                >
+                  WhatsApp Business
+                </motion.h4>
+                <p className="text-secondary font-mono font-bold">+1 (236) 857-7040</p>
+                <a 
+                  href="https://wa.me/12368577040" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-xs font-bold text-[#25D366] hover:underline inline-flex items-center gap-1 mt-1"
+                >
+                  <span>Chat on WhatsApp</span>
+                  <ExternalLink size={12} />
+                </a>
               </div>
             </div>
 
@@ -95,10 +126,12 @@ export default function Contact() {
                   transition={{ duration: 1.5, repeat: Infinity }}
                   className="font-semibold text-lg cursor-default"
                 >
-                  Call Us
+                  Phone Support
                 </motion.h4>
-                <p className="text-secondary">+1 (800) 123-4567</p>
-                <p className="text-secondary">Mon-Fri from 8am to 5pm</p>
+                <a href="tel:+12368577040" className="text-secondary font-mono font-bold hover:text-[#00f0ff] transition-colors block">
+                  +1 (236) 857-7040
+                </a>
+                <p className="text-xs text-muted mt-0.5">Mon-Fri 24/5 International Desk</p>
               </div>
             </div>
 

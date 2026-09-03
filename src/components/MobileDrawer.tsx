@@ -35,6 +35,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import DiscordIcon from './DiscordIcon';
+import WhatsAppIcon from './WhatsAppIcon';
 import SmartBatteryEnergyHub from './SmartBatteryEnergyHub';
 import { toast } from 'sonner';
 
@@ -352,6 +353,18 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                     </>
                   )}
                 </button>
+
+                {/* WhatsApp Support Button */}
+                <a
+                  href="https://wa.me/12368577040"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] transition-colors"
+                  title="WhatsApp Support: +1 (236) 857-7040"
+                  aria-label="WhatsApp Support"
+                >
+                  <WhatsAppIcon size={16} />
+                </a>
 
                 {/* Discord Community Button */}
                 <a

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, X, Send, Headset, Mic, MicOff, Sparkles, Circle } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, addDoc, serverTimestamp, setDoc, increment } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
@@ -271,13 +272,25 @@ export default function Chatbot() {
                   <p className="text-[11px] text-white/80">Support Agents Online 24/7</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)} 
-                className="hover:bg-white/20 p-1.5 rounded-full transition-colors text-white"
-                aria-label="Close Chat"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-1">
+                <a
+                  href="https://wa.me/12368577040"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:bg-white/20 p-1.5 rounded-full transition-colors text-white"
+                  title="Chat on WhatsApp: +1 (236) 857-7040"
+                  aria-label="WhatsApp Support"
+                >
+                  <WhatsAppIcon size={18} />
+                </a>
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="hover:bg-white/20 p-1.5 rounded-full transition-colors text-white"
+                  aria-label="Close Chat"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Messages Container */}
@@ -289,7 +302,7 @@ export default function Chatbot() {
                   </div>
                   <h4 className="font-bold text-sm mb-1">Welcome to PoolMining Support</h4>
                   <p className="text-xs text-muted mb-4">
-                    Send us a message below or tap a quick topic to speak with a specialist.
+                    Send us a message below or reach out via WhatsApp at <strong className="text-primary">+1 (236) 857-7040</strong>.
                   </p>
                   <div className="space-y-2">
                     {quickPrompts.map((prompt, idx) => (
@@ -301,6 +314,14 @@ export default function Chatbot() {
                         💬 {prompt}
                       </button>
                     ))}
+                    <a
+                      href="https://wa.me/12368577040"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full text-left p-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 hover:border-[#25D366] text-xs text-[#25D366] font-semibold transition-all hover:bg-[#25D366]/20 flex items-center gap-2"
+                    >
+                      <WhatsAppIcon size={16} /> Open WhatsApp Support (+1 236 857 7040)
+                    </a>
                   </div>
                 </div>
               ) : (
