@@ -45,17 +45,17 @@ export default function Sidebar() {
 
     const renderNavGroup = (title: string, items: NavItem[]) => (
         <div className="mb-6">
-            <h3 className="text-xs font-bold text-secondary uppercase tracking-wider mb-2 px-3">{title}</h3>
+            <h3 className="text-xs font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2.5 px-3">{title}</h3>
             <div className="flex flex-col gap-1">
                 {items.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) => 
-                            `flex items-center gap-3 p-3 rounded-xl transition-all font-medium ${
+                            `flex items-center gap-3 p-3 rounded-xl transition-all font-bold text-sm ${
                                 isActive 
                                     ? 'bg-[#0052ff]/10 text-[#0052ff] shadow-[inset_4px_0_0_0_#0052ff] dark:shadow-[inset_4px_0_0_0_#00f0ff] dark:text-[#00f0ff] dark:bg-[#00f0ff]/10' 
-                                    : 'text-secondary hover:bg-subtle hover:text-primary'
+                                    : 'text-slate-600 dark:text-slate-300 hover:bg-subtle hover:text-primary'
                             }`
                         }
                     >
