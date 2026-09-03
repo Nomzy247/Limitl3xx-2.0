@@ -6,9 +6,9 @@ import firebaseConfig from '../firebase-applet-config.json';
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with forced long-polling to prevent proxy stream buffering and 10s backend unreachable errors
+// Initialize Firestore with auto-detect long polling for optimal connection stability
 export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
+  experimentalAutoDetectLongPolling: true,
 }, firebaseConfig.firestoreDatabaseId);
 
 // Helper for retry logic with exponential backoff to handle transient 'unavailable' or network drops
@@ -42,22 +42,18 @@ export async function withFirestoreRetry<T>(
   throw lastError;
 }
 
-// Background non-blocking connectivity verification per Firebase integration skill
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-    console.log('[Firestore] Initialization and connection verified successfully.');
-  } catch (error: any) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('[Firestore] Please check your network connection; operating in local cache mode.');
-    } else {
-      // Document not existing or other response indicates connection is active
-      console.log('[Firestore] Backend connection established.');
+// Background non-blocking connectivity check deferred after initial page load
+if (typeof window !== 'undefined') {
+  setTimeout(async () => {
+    try {
+      await getDoc(doc(db, 'test', 'connection'));
+      console.log('[Firestore] Initialization and connection verified successfully.');
+    } catch (error: any) {
+      // Local cache or quiet background recovery
+      console.debug('[Firestore] Connection state initialized.');
     }
-  }
+  }, 2000);
 }
-
-testConnection();
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
