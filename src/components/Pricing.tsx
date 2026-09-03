@@ -8,50 +8,66 @@ import { fluidSpring } from './SystemManager';
 const plans = [
   {
     id: 'starter',
-    name: 'Starter Node',
+    name: 'Starter Hashnode',
     price: '$500',
-    return: '1.2%',
+    return: '1.4%',
     duration: '30 Days',
-    features: ['Basic Analytics', 'Standard Support', 'Daily Payouts'],
+    features: ['Real-time Telemetry', 'Standard 24/7 Support', 'Daily Payouts', 'Zero Electricity Fee'],
     recommended: false,
     breakdown: {
-      hardware: { title: 'Shared ASIC Pool', detail: '10 TH/s allocated power', sub: '99.9% Uptime Guarantee' },
-      electricity: { title: 'Included (0% fee)', detail: 'Mixed Energy Grid', sub: '$0.06/kWh equivalent' },
-      risk: { title: 'Low Volatility', detail: 'Stable daily payouts', sub: 'Principal protected' },
-      maintenance: { title: '2% Daily Fee', detail: 'Automated optimization', sub: 'Hardware replacement covered' },
-      expectedYield: '$180 (30 Days)'
+      hardware: { title: 'Shared WhatsMiner M60S Array', detail: '35 TH/s allocated power', sub: '99.98% Uptime Guarantee' },
+      electricity: { title: '100% Green Hydro Power', detail: 'Zero carbon footprint', sub: 'Subsidized grid rate' },
+      risk: { title: 'Low Volatility', detail: 'Consistent daily distributions', sub: 'Principal protected' },
+      maintenance: { title: '1.5% Daily Fee', detail: 'Automated ASIC load balancing', sub: 'Instant hot-swap warranty' },
+      expectedYield: '$210 (30 Days)'
     }
   },
   {
     id: 'pro',
-    name: 'Pro Miner',
+    name: 'Pro ASIC Miner',
     price: '$5,000',
-    return: '1.8%',
+    return: '1.95%',
     duration: '60 Days',
-    features: ['Advanced Analytics', 'Priority Support', 'Hourly Payouts', 'Auto-Compound'],
+    features: ['Advanced Hashrate Analytics', 'Priority VIP Support', 'Hourly Payouts', 'Auto-Compound Engine'],
     recommended: true,
     breakdown: {
-      hardware: { title: 'Dedicated Antminer S19j Pro', detail: '100 TH/s dedicated power', sub: 'Direct pool connection' },
-      electricity: { title: 'Optimized ($0.04/kWh)', detail: '100% Renewable Energy', sub: 'Carbon neutral mining' },
-      risk: { title: 'Medium Volatility', detail: 'Market-adjusted payouts', sub: 'Partial downside protection' },
-      maintenance: { title: '1.5% Daily Fee', detail: 'Priority hardware support', sub: '24/7 active monitoring' },
-      expectedYield: '$5,400 (60 Days)'
+      hardware: { title: 'Dedicated Antminer S21 Pro', detail: '234 TH/s dedicated power (15 J/TH)', sub: 'Direct stratum pool connection' },
+      electricity: { title: 'Geothermal Optimized ($0.03/kWh)', detail: '100% Iceland/Norway Renewable', sub: 'Carbon-negative mining' },
+      risk: { title: 'Balanced Growth', detail: 'Algorithmic multi-coin switching', sub: 'Downside hedged' },
+      maintenance: { title: '1% Daily Fee', detail: '24/7 real-time telemetry monitoring', sub: 'Active cooling management' },
+      expectedYield: '$5,850 (60 Days)'
+    }
+  },
+  {
+    id: 'kaspa',
+    name: 'Kaspa KS5 & Doge Rig',
+    price: '$12,500',
+    return: '2.35%',
+    duration: '90 Days',
+    features: ['kHeavyHash & Scrypt Dual Mining', 'Dedicated Account Manager', 'Custom Payout Schedules', 'Zero Deposit Fees'],
+    recommended: false,
+    breakdown: {
+      hardware: { title: 'Kaspa KS5 Pro (21 TH/s) + L7 Rig', detail: 'High-speed DAG & Scrypt compute', sub: 'Sub-second block solving' },
+      electricity: { title: 'Nordic Hydro Wholesale ($0.025/kWh)', detail: 'Direct high-voltage feed', sub: 'Ultra-low PUE 1.04' },
+      risk: { title: 'High Yield', detail: 'Kaspa/DOGE/LTC combined rewards', sub: 'Automated profit auto-swap' },
+      maintenance: { title: '0.8% Daily Fee', detail: 'Immersion cooling tank hosted', sub: 'Overclocked firmware tuning' },
+      expectedYield: '$26,437 (90 Days)'
     }
   },
   {
     id: 'elite',
-    name: 'Elite Rig',
-    price: '$25,000',
-    return: '2.5%',
-    duration: '90 Days',
-    features: ['Institutional Analytics', '24/7 Dedicated Account Manager', 'Instant Payouts', 'Zero Fees'],
+    name: 'Elite S21 Hydro & H100 AI',
+    price: '$35,000',
+    return: '2.85%',
+    duration: '120 Days',
+    features: ['Institutional Grade SLA', '24/7 Dedicated Account Manager', 'Instant API Payouts', 'Zero Maintenance Fees'],
     recommended: false,
     breakdown: {
-      hardware: { title: '5x Antminer S19 XP Hydro', detail: '1275 TH/s massive power', sub: 'Liquid cooled efficiency' },
-      electricity: { title: 'Wholesale ($0.02/kWh)', detail: 'Direct grid access', sub: 'Lowest global rates' },
-      risk: { title: 'Medium-High Volatility', detail: 'Maximum yield strategy', sub: 'Institutional grade security' },
-      maintenance: { title: '0% Fee', detail: 'White-glove service', sub: 'Instant hardware swap' },
-      expectedYield: '$56,250 (90 Days)'
+      hardware: { title: '5x Antminer S21 Hydro + NVIDIA H100', detail: '1,675 TH/s BTC + AI Tensor Compute', sub: 'Liquid immersion pods' },
+      electricity: { title: 'Industrial Wholesale ($0.018/kWh)', detail: 'Direct hydro-dam connection', sub: 'Lowest global industrial rate' },
+      risk: { title: 'Institutional Yield', detail: 'AI inference + BTC hybrid yield', sub: 'Capital insurance guarantee' },
+      maintenance: { title: '0% Fee', detail: 'White-glove institutional service', sub: 'Zero downtime guarantee' },
+      expectedYield: '$119,700 (120 Days)'
     }
   }
 ];

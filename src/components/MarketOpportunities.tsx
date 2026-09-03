@@ -5,27 +5,27 @@ import { fluidSpring } from './SystemManager';
 
 const marketData = [
   {
-    category: 'Yield Pool',
+    category: 'Yield & Mining Pools',
     icon: <Activity size={20} className="text-[#00f0ff]" />,
     items: [
-      { name: 'USDT Liquidity', change: '+4.2%', value: '12.5% APY', positive: true },
-      { name: 'ETH Staking', change: '+2.8%', value: '4.8% APY', positive: true },
+      { name: 'BTC Hydro Stratum', change: '+5.4%', value: '18.4% APY', positive: true },
+      { name: 'Kaspa DAG Staking', change: '+7.8%', value: '24.2% APY', positive: true },
     ]
   },
   {
-    category: 'Crypto',
+    category: 'Layer-1 Crypto',
     icon: <Coins size={20} className="text-[#0052ff]" />,
     items: [
-      { name: 'Bitcoin (BTC)', change: '+1.5%', value: '$65,240', positive: true },
-      { name: 'Solana (SOL)', change: '+5.4%', value: '$145.20', positive: true },
+      { name: 'Bitcoin (BTC)', change: '+3.5%', value: '$97,840', positive: true },
+      { name: 'Solana (SOL)', change: '+6.4%', value: '$235.80', positive: true },
     ]
   },
   {
-    category: 'Stocks (Tokenized)',
+    category: 'AI & Compute Tokens',
     icon: <TrendingUp size={20} className="text-emerald-400" />,
     items: [
-      { name: 'NVIDIA (NVDA)', change: '+3.2%', value: '$850.10', positive: true },
-      { name: 'MicroStrategy', change: '+6.1%', value: '$1,240', positive: true },
+      { name: 'NVIDIA (Tokenized)', change: '+4.2%', value: '$138.50', positive: true },
+      { name: 'Render Network (RENDER)', change: '+9.1%', value: '$9.40', positive: true },
     ]
   }
 ];

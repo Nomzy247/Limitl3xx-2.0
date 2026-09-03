@@ -35,47 +35,47 @@ interface MiningProfitabilityCalculatorProps {
 
 const COIN_CONFIGS = {
   BTC: {
-    name: 'Bitcoin',
+    name: 'Bitcoin (BTC)',
     symbol: 'BTC',
-    algo: 'SHA-256',
+    algo: 'SHA-256 (S21 Pro & Hydro)',
     priceKey: 'btcusdt',
-    fallbackPrice: 96500,
+    fallbackPrice: 97840,
     unit: 'TH/s',
-    hashCostPerUnit: 22, // ~$22 per TH/s cloud allocation
-    dailyBaseRoi: 1.45, // Base 1.45% daily
+    hashCostPerUnit: 20, // ~$20 per TH/s cloud allocation
+    dailyBaseRoi: 1.55, // Base 1.55% daily
     color: 'from-amber-500 to-orange-600',
     iconColor: 'text-amber-500'
   },
   LTC: {
     name: 'Litecoin & Doge',
     symbol: 'LTC',
-    algo: 'Scrypt',
+    algo: 'Scrypt Dual Mining (L9)',
     priceKey: 'ltcusdt',
-    fallbackPrice: 115,
+    fallbackPrice: 118.40,
     unit: 'GH/s',
     hashCostPerUnit: 14,
-    dailyBaseRoi: 1.55,
+    dailyBaseRoi: 1.70,
     color: 'from-blue-500 to-cyan-600',
     iconColor: 'text-blue-400'
   },
   KAS: {
-    name: 'Kaspa',
+    name: 'Kaspa (KAS)',
     symbol: 'KAS',
-    algo: 'kHeavyHash',
+    algo: 'kHeavyHash (KS5 Pro)',
     priceKey: 'kasusdt',
-    fallbackPrice: 0.16,
+    fallbackPrice: 0.224,
     unit: 'TH/s',
-    hashCostPerUnit: 18,
-    dailyBaseRoi: 1.65,
+    hashCostPerUnit: 16,
+    dailyBaseRoi: 1.95,
     color: 'from-emerald-400 to-teal-600',
     iconColor: 'text-emerald-400'
   },
   ETC: {
     name: 'Ethereum Classic',
     symbol: 'ETC',
-    algo: 'Etchash',
+    algo: 'Etchash (GPU Array)',
     priceKey: 'etcusdt',
-    fallbackPrice: 28,
+    fallbackPrice: 34.80,
     unit: 'MH/s',
     hashCostPerUnit: 8,
     dailyBaseRoi: 1.50,

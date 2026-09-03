@@ -212,13 +212,16 @@ export default function Withdraw() {
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full bg-background border border-border rounded-full px-4 py-3 text-primary text-sm focus:outline-none mb-6"
               >
-                <option value="BTC">Bitcoin (BTC)</option>
-                <option value="ETH">Ethereum (ETH)</option>
-                <option value="USDT">Tether (USDT ERC-20)</option>
-                <option value="SOL">Solana (SOL)</option>
-                <option value="XRP">Ripple (XRP)</option>
+                <option value="BTC">Bitcoin (BTC - Native SegWit)</option>
+                <option value="USDT-TRC20">Tether USDT (TRC-20 Fast)</option>
+                <option value="USDT-ERC20">Tether USDT (ERC-20)</option>
+                <option value="ETH">Ethereum (ETH - ERC-20)</option>
+                <option value="SOL">Solana (SOL - SPL)</option>
+                <option value="TON">Toncoin (TON Network)</option>
+                <option value="KAS">Kaspa (KAS Network)</option>
                 <option value="LTC">Litecoin (LTC)</option>
                 <option value="BCH">Bitcoin Cash (BCH)</option>
+                <option value="XRP">Ripple (XRP)</option>
               </select>
             </div>
 

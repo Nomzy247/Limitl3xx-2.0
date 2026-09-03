@@ -243,8 +243,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 custom-scrollbar">
               {user ? (
                 navGroups.map((group, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted px-2 mb-1">
+                  <div key={idx} className="space-y-1">
+                    <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 px-3 mb-1.5">
                       {group.title}
                     </h4>
                     {group.items.map((item) => {
@@ -255,19 +255,19 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                           key={item.path}
                           to={item.path}
                           onClick={onClose}
-                          className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-xs transition-all ${
+                          className={`flex items-center justify-between px-3.5 py-3 rounded-xl font-bold text-sm transition-all ${
                             isActive
-                              ? 'bg-[#0052ff] text-white shadow-lg shadow-blue-500/25 font-semibold'
-                              : 'text-secondary hover:text-primary hover:bg-subtle'
+                              ? 'bg-[#0052ff] text-white shadow-lg shadow-blue-500/25 font-bold'
+                              : 'text-slate-700 dark:text-slate-200 hover:text-primary dark:hover:text-white hover:bg-subtle/80'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <Icon size={17} className={isActive ? 'text-white' : 'text-secondary'} />
-                            <span>{item.name}</span>
+                          <div className="flex items-center gap-3.5">
+                            <Icon size={18} strokeWidth={2.4} className={isActive ? 'text-white' : 'text-slate-500 dark:text-slate-400'} />
+                            <span className="font-semibold tracking-tight">{item.name}</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             {item.badge && (
-                              <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm tracking-wide ${
                                 item.badge === 'HOT'
                                   ? 'bg-rose-500 text-white'
                                   : item.badge === 'LIVE'
@@ -277,7 +277,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                                 {item.badge}
                               </span>
                             )}
-                            <ChevronRight size={14} className={isActive ? 'text-white/80' : 'text-muted/40'} />
+                            <ChevronRight size={15} strokeWidth={2.4} className={isActive ? 'text-white/90' : 'text-slate-400/60 dark:text-slate-500'} />
                           </div>
                         </NavLink>
                       );

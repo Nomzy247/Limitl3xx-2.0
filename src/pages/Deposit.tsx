@@ -11,10 +11,14 @@ import GiftCardDepositSection from '../components/GiftCardDepositSection';
 const DEFAULT_WALLET_ADDRESSES: Record<string, string> = {
   BTC: 'bc1qftqgamhv7hgs6msxfpwc0aawj5kn0mrjl3j4u7',
   ETH: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
+  'USDT-TRC20': 'TYDzsYUEpvnYmQk4zGP9sWWcTEd3ZiPUL4',
+  'USDT-ERC20': '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525',
   SOL: 'CS5onmGF5eUUCzLU4UJAqiBHh9ZP7KTpk5rgfVqXQy4A',
+  TON: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
+  KAS: 'kaspa:qpm2qsznhks23z7629mms6s4cwef74vcwpgmm4j89dnmrxw8n3p2qspv5k9',
   LTC: 'LVRXy4jvsBK2rLLerjEohrKK1Pkem9nFzq',
   BCH: 'qrhe43zzq5rdn4wvgsre0j09j3phhj7zxsl4nq9p3p',
-  USDT: '0xc64b82a830828A6b3AF1e71B40a0962A5FC07525', // Defaulting to the Ethereum network
+  USDT: 'TYDzsYUEpvnYmQk4zGP9sWWcTEd3ZiPUL4',
   XRP: 'rHxfaFeS2TTX5e4bp3dsvWa7kTaAaREg7e'
 };
 
@@ -167,13 +171,16 @@ export default function Deposit() {
                     onChange={(e) => setCurrency(e.target.value)}
                     className="w-full bg-background border border-border rounded-full px-4 py-3 text-primary text-sm focus:outline-none"
                   >
-                    <option value="BTC">Bitcoin (BTC)</option>
-                    <option value="ETH">Ethereum (ETH)</option>
-                    <option value="USDT">Tether (USDT ERC-20)</option>
-                    <option value="SOL">Solana (SOL)</option>
-                    <option value="XRP">Ripple (XRP)</option>
+                    <option value="BTC">Bitcoin (BTC - Native SegWit)</option>
+                    <option value="USDT-TRC20">Tether USDT (TRC-20 Fast)</option>
+                    <option value="USDT-ERC20">Tether USDT (ERC-20)</option>
+                    <option value="ETH">Ethereum (ETH - ERC-20)</option>
+                    <option value="SOL">Solana (SOL - SPL)</option>
+                    <option value="TON">Toncoin (TON)</option>
+                    <option value="KAS">Kaspa (KAS)</option>
                     <option value="LTC">Litecoin (LTC)</option>
                     <option value="BCH">Bitcoin Cash (BCH)</option>
+                    <option value="XRP">Ripple (XRP)</option>
                   </select>
                 </div>
 

@@ -7,29 +7,43 @@ const locations = [
     id: 'iceland',
     name: 'Reykjavík, Iceland',
     image: 'https://images.unsplash.com/photo-1520769945061-0a448c463865?auto=format&fit=crop&q=80',
-    description: 'Powered by 100% renewable geothermal and hydroelectric energy. Our flagship facility offers the lowest cooling costs globally.',
-    stats: { hashRate: '450 PH/s', uptime: '99.99%', power: 'Green' }
-  },
-  {
-    id: 'texas',
-    name: 'Texas, USA',
-    image: 'https://images.unsplash.com/photo-1542222024-c39e2281f121?auto=format&fit=crop&q=80',
-    description: 'Massive scale operations utilizing abundant wind and solar energy from the ERCOT grid. Designed for maximum throughput.',
-    stats: { hashRate: '800 PH/s', uptime: '99.95%', power: 'Mixed Renewable' }
+    description: 'Powered by 100% renewable geothermal and volcanic subterranean steam. Our premier Nordic facility provides direct arctic free-air cooling and zero carbon emissions.',
+    stats: { hashRate: '4.8 EH/s', uptime: '99.99%', power: '100% Geothermal' }
   },
   {
     id: 'norway',
-    name: 'Oslo, Norway',
+    name: 'Tromsø & Oslo, Norway',
     image: 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?auto=format&fit=crop&q=80',
-    description: 'Leveraging the cold Nordic climate for natural cooling and abundant hydroelectric power for sustainable, high-margin mining.',
-    stats: { hashRate: '320 PH/s', uptime: '99.99%', power: 'Hydroelectric' }
+    description: 'Connected directly to glacial fjord hydroelectric dams. Houses our high-density immersion pods with an industry-leading PUE of 1.04.',
+    stats: { hashRate: '5.6 EH/s', uptime: '99.99%', power: '100% Hydroelectric' }
   },
   {
-    id: 'kazakhstan',
-    name: 'Almaty, Kazakhstan',
+    id: 'sweden',
+    name: 'Boden, Sweden',
+    image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&q=80',
+    description: 'High-voltage hydro grid access on the Lule River. Hosts our specialized Kaspa KS5 Pro arrays and AI Tensor compute clusters.',
+    stats: { hashRate: '3.9 EH/s', uptime: '99.98%', power: 'Hydro & Wind Mix' }
+  },
+  {
+    id: 'canada',
+    name: 'Quebec, Canada',
+    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80',
+    description: 'Deep North American operations fed by Hydro-Québec. Features closed-loop dielectric liquid cooling for Bitmain S21 Hydro rigs.',
+    stats: { hashRate: '4.2 EH/s', uptime: '99.96%', power: 'Hydro-Québec Clean' }
+  },
+  {
+    id: 'texas',
+    name: 'West Texas, USA',
+    image: 'https://images.unsplash.com/photo-1542222024-c39e2281f121?auto=format&fit=crop&q=80',
+    description: 'Massive gigawatt-scale facility utilizing curtailed wind and utility solar across the ERCOT corridor for ultra-low daytime operational costs.',
+    stats: { hashRate: '7.2 EH/s', uptime: '99.95%', power: 'Solar & Wind Grid' }
+  },
+  {
+    id: 'finland',
+    name: 'Espoo, Finland',
     image: 'https://images.unsplash.com/photo-1558588942-930faae5a389?auto=format&fit=crop&q=80',
-    description: 'Strategic location with highly competitive energy rates and a crypto-friendly regulatory environment. High capacity expansion.',
-    stats: { hashRate: '600 PH/s', uptime: '99.90%', power: 'Mixed' }
+    description: 'District-heating integrated datacenter where waste heat from mining ASIC rigs is redirected to warm local municipal housing.',
+    stats: { hashRate: '2.5 EH/s', uptime: '99.99%', power: 'Carbon Negative' }
   }
 ];
 

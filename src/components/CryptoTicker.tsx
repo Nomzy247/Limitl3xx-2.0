@@ -4,16 +4,18 @@ import { TrendingUp, TrendingDown, Zap } from 'lucide-react';
 import { fluidSpring } from './SystemManager';
 
 const initialCryptos = [
-  { symbol: 'BTC', name: 'Bitcoin', price: 64230.00, change: 2.45 },
-  { symbol: 'ETH', name: 'Ethereum', price: 3450.75, change: -0.82 },
-  { symbol: 'SOL', name: 'Solana', price: 148.20, change: 5.12 },
-  { symbol: 'ADA', name: 'Cardano', price: 0.45, change: 1.15 },
-  { symbol: 'XRP', name: 'XRP', price: 0.58, change: -0.34 },
-  { symbol: 'LTC', name: 'Litecoin', price: 72.40, change: 0.92 },
-  { symbol: 'DOT', name: 'Polkadot', price: 6.80, change: -1.45 },
-  { symbol: 'AVAX', name: 'Avalanche', price: 28.50, change: 4.10 },
-  { symbol: 'LINK', name: 'Chainlink', price: 14.20, change: 2.30 },
-  { symbol: 'DOGE', name: 'Dogecoin', price: 0.125, change: 3.85 },
+  { symbol: 'BTC', name: 'Bitcoin', price: 97840.00, change: 3.45 },
+  { symbol: 'ETH', name: 'Ethereum', price: 3820.50, change: 2.15 },
+  { symbol: 'SOL', name: 'Solana', price: 235.80, change: 6.42 },
+  { symbol: 'KAS', name: 'Kaspa', price: 0.224, change: 8.75 },
+  { symbol: 'TON', name: 'Toncoin', price: 7.65, change: 4.30 },
+  { symbol: 'DOGE', name: 'Dogecoin', price: 0.245, change: 5.12 },
+  { symbol: 'LTC', name: 'Litecoin', price: 118.40, change: 2.90 },
+  { symbol: 'BNB', name: 'BNB', price: 685.20, change: 1.85 },
+  { symbol: 'XRP', name: 'XRP', price: 1.42, change: 3.20 },
+  { symbol: 'ETC', name: 'Ethereum Classic', price: 34.80, change: 4.10 },
+  { symbol: 'AVAX', name: 'Avalanche', price: 42.60, change: 3.75 },
+  { symbol: 'NEAR', name: 'NEAR Protocol', price: 8.90, change: 5.80 },
 ];
 
 export default function CryptoTicker() {

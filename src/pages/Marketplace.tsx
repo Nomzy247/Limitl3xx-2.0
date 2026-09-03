@@ -7,9 +7,12 @@ import { toast } from 'sonner';
 export default function Marketplace() {
   const navigate = useNavigate();
   const hardware = [
-    { id: 1, name: 'Antminer S19 Pro', algo: 'SHA-256', hashrate: '110 TH/s', power: '3250W', price: 4200 },
-    { id: 2, name: 'Whatsminer M30S++', algo: 'SHA-256', hashrate: '112 TH/s', power: '3472W', price: 3900 },
-    { id: 3, name: 'Innosilicon A10 Pro', algo: 'Ethash', hashrate: '500 MH/s', power: '950W', price: 2100 },
+    { id: 1, name: 'Antminer S21 Pro', algo: 'SHA-256', hashrate: '234 TH/s', power: '3510W', price: 6150, efficiency: '15.0 J/TH', badge: 'Best Seller' },
+    { id: 2, name: 'Whatsminer M60S', algo: 'SHA-256', hashrate: '186 TH/s', power: '3441W', price: 4950, efficiency: '18.5 J/TH', badge: 'High Durability' },
+    { id: 3, name: 'Kaspa KS5 Pro', algo: 'kHeavyHash', hashrate: '21 TH/s', power: '3150W', price: 8400, efficiency: '150 J/TH', badge: 'High Yield' },
+    { id: 4, name: 'Antminer L9 (Scrypt)', algo: 'Scrypt (LTC/DOGE)', hashrate: '16 GH/s', power: '3360W', price: 7200, efficiency: '0.21 J/MH', badge: 'Dual Mining' },
+    { id: 5, name: 'Antminer S21 Hydro', algo: 'SHA-256 Liquid', hashrate: '335 TH/s', power: '5360W', price: 9800, efficiency: '16.0 J/TH', badge: 'Hydro Immersion' },
+    { id: 6, name: 'NVIDIA HGX H100 Cluster', algo: 'AI Compute & PoW', hashrate: '8x H100 SXM5', power: '5600W', price: 34500, efficiency: 'Tensor Float FP8', badge: 'AI Institutional' },
   ];
 
   return (
@@ -37,14 +40,21 @@ export default function Marketplace() {
               </div>
               <img src={`https://picsum.photos/seed/${item.id}/400/300`} alt={item.name} className="w-full h-40 object-cover rounded-xl mb-4 opacity-80" />
               <div className="space-y-2 text-sm text-secondary mb-6">
-                <div className="flex justify-between"><span>Hashrate:</span> <span>{item.hashrate}</span></div>
-                <div className="flex justify-between"><span>Power Consumption:</span> <span>{item.power}</span></div>
+                <div className="flex justify-between"><span>Hashrate:</span> <span className="font-semibold text-primary">{item.hashrate}</span></div>
+                <div className="flex justify-between"><span>Power / Efficiency:</span> <span className="font-semibold text-primary">{item.power} ({item.efficiency})</span></div>
               </div>
             </div>
             <div>
-              <div className="flex justify-between items-end">
-                <div className="text-2xl font-bold mb-4">${item.price.toLocaleString()}</div>
-                {item.id === 1 && <span className="text-[10px] text-emerald-400 font-bold uppercase mb-4 px-2 py-1 bg-emerald-500/10 rounded">In Stock</span>}
+              <div className="flex justify-between items-end mb-4">
+                <div>
+                  <div className="text-2xl font-bold">${item.price.toLocaleString()}</div>
+                  <span className="text-xs text-secondary">Free Hosting & Setup</span>
+                </div>
+                {item.badge && (
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
               </div>
               <button 
                 onClick={() => {
