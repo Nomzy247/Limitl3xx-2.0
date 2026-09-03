@@ -22,15 +22,21 @@ export default function PoolMining() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setSettings({
-          global_profit_margin: data.global_profit_margin || 15,
-          costings: data.costings || { pool: 150 }
-        });
+    const unsubscribe = onSnapshot(
+      doc(db, 'settings', 'global'), 
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setSettings({
+            global_profit_margin: data.global_profit_margin || 15,
+            costings: data.costings || { pool: 150 }
+          });
+        }
+      },
+      (error) => {
+        console.warn('[PoolMining] Using default settings:', error.message);
       }
-    });
+    );
     return () => unsubscribe();
   }, []);
 

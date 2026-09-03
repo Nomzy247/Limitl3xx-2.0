@@ -200,9 +200,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             setLoading(false);
           }, (error) => {
-            console.error("Firebase onSnapshot error", error);
-            handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
+            console.warn("Firebase onSnapshot connection state:", error?.message || error);
             setLoading(false);
+            if (error?.code !== 'unavailable' && !error?.message?.includes('offline') && !error?.message?.includes('Failed to get document')) {
+              handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
+            }
           });
         } else {
           if (unsubscribeDoc) {

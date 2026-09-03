@@ -233,6 +233,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    match /test/{docId} {
+      allow read: if true;
+    }
     
     match /support_chats/{chatId} {
       allow read: if isOwner(chatId) || isAdmin();

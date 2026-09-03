@@ -6,10 +6,9 @@ import firebaseConfig from '../firebase-applet-config.json';
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with robust caching and auto-detect settings
+// Initialize Firestore with forced long-polling to prevent proxy stream buffering and 10s backend unreachable errors
 export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
-  experimentalForceLongPolling: false,
+  experimentalForceLongPolling: true,
 }, firebaseConfig.firestoreDatabaseId);
 
 // Helper for retry logic with exponential backoff to handle transient 'unavailable' or network drops
@@ -43,26 +42,22 @@ export async function withFirestoreRetry<T>(
   throw lastError;
 }
 
-// Background non-blocking connectivity verification
-async function verifyFirestoreConnection() {
+// Background non-blocking connectivity verification per Firebase integration skill
+async function testConnection() {
   try {
-    await withFirestoreRetry(() => getDoc(doc(db, 'system', 'health')), 2, 800);
+    await getDocFromServer(doc(db, 'test', 'connection'));
     console.log('[Firestore] Initialization and connection verified successfully.');
   } catch (error: any) {
-    if (
-      error?.code === 'permission-denied' || 
-      error?.code === 'not-found' || 
-      error?.message?.includes('not-found') || 
-      error?.message?.includes('permission')
-    ) {
-      console.log('[Firestore] Connection established to database cluster (europe-west2 proxy).');
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.warn('[Firestore] Please check your network connection; operating in local cache mode.');
     } else {
-      console.warn('[Firestore] Transient offline/unavailable status during initial probe; local offline cache and retry engine active.', error?.code || error?.message);
+      // Document not existing or other response indicates connection is active
+      console.log('[Firestore] Backend connection established.');
     }
   }
 }
 
-verifyFirestoreConnection();
+testConnection();
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
