@@ -12,7 +12,21 @@ export interface GiftCardBrand {
   description: string;
   popularAmounts: number[];
   supportedCurrencies: string[];
+  payoutRate: number; // e.g. 0.95 for 95% payout rate
+  turnaroundMins: number; // Avg processing time in minutes
+  bonusHashratePer100Usd?: number; // e.g. 50 TH/s
 }
+
+export const CURRENCY_RATES_TO_USD: Record<string, number> = {
+  USD: 1.0,
+  EUR: 1.08,
+  GBP: 1.28,
+  CAD: 0.74,
+  AUD: 0.65,
+  JPY: 0.0067,
+  SGD: 0.75,
+  OTHER: 1.0
+};
 
 export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
   {
@@ -26,61 +40,10 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinRequired: false,
     description: 'App Store, iTunes, Apple Store & iCloud Gift Cards',
     popularAmounts: [50, 100, 200, 500, 1000],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
-  },
-  {
-    id: 'steam',
-    name: 'Steam Wallet',
-    category: 'gaming',
-    iconColor: '#171a21',
-    badgeBg: 'bg-sky-950 text-sky-400',
-    badgeText: 'Steam',
-    placeholderCode: 'XXXXX-XXXXX-XXXXX',
-    pinRequired: false,
-    description: 'Steam Wallet Digital & Physical Redemption Cards',
-    popularAmounts: [50, 100, 200, 500],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
-  },
-  {
-    id: 'amazon',
-    name: 'Amazon',
-    category: 'retail',
-    iconColor: '#ff9900',
-    badgeBg: 'bg-amber-950 text-amber-400',
-    badgeText: 'Amazon',
-    placeholderCode: 'XXXX-XXXXXX-XXXXX',
-    pinRequired: false,
-    description: 'Amazon eGift Cards & Physical Claim Codes',
-    popularAmounts: [50, 100, 250, 500, 1000],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY']
-  },
-  {
-    id: 'google_play',
-    name: 'Google Play',
-    category: 'digital',
-    iconColor: '#01875f',
-    badgeBg: 'bg-emerald-950 text-emerald-400',
-    badgeText: 'Google Play',
-    placeholderCode: 'XXXX-XXXX-XXXX-XXXX',
-    pinRequired: false,
-    description: 'Google Play Store Digital Voucher Codes',
-    popularAmounts: [50, 100, 200, 500],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
-  },
-  {
-    id: 'razer_gold',
-    name: 'Razer Gold',
-    category: 'gaming',
-    iconColor: '#00ff00',
-    badgeBg: 'bg-green-950 text-green-400',
-    badgeText: 'Razer Gold',
-    placeholderCode: 'Serial / Card ID (14 digits)',
-    pinRequired: true,
-    pinLabel: 'Razer Gold PIN (14 digits)',
-    pinPlaceholder: 'Enter 14-digit PIN',
-    description: 'Razer Gold Global & Regional PINs',
-    popularAmounts: [50, 100, 250, 500, 1000],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SGD']
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+    payoutRate: 0.95,
+    turnaroundMins: 2,
+    bonusHashratePer100Usd: 52
   },
   {
     id: 'vanilla_visa',
@@ -95,7 +58,76 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinPlaceholder: 'MM/YY - 123',
     description: 'Vanilla, OneVanilla, Visa & Mastercard Prepaid Cards',
     popularAmounts: [100, 200, 500, 1000, 2000],
-    supportedCurrencies: ['USD', 'CAD', 'EUR', 'GBP']
+    supportedCurrencies: ['USD', 'CAD', 'EUR', 'GBP'],
+    payoutRate: 0.98,
+    turnaroundMins: 2,
+    bonusHashratePer100Usd: 55
+  },
+  {
+    id: 'steam',
+    name: 'Steam Wallet',
+    category: 'gaming',
+    iconColor: '#171a21',
+    badgeBg: 'bg-sky-950 text-sky-400',
+    badgeText: 'Steam',
+    placeholderCode: 'XXXXX-XXXXX-XXXXX',
+    pinRequired: false,
+    description: 'Steam Wallet Digital & Physical Redemption Cards',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+    payoutRate: 0.94,
+    turnaroundMins: 3,
+    bonusHashratePer100Usd: 50
+  },
+  {
+    id: 'amazon',
+    name: 'Amazon',
+    category: 'retail',
+    iconColor: '#ff9900',
+    badgeBg: 'bg-amber-950 text-amber-400',
+    badgeText: 'Amazon',
+    placeholderCode: 'XXXX-XXXXXX-XXXXX',
+    pinRequired: false,
+    description: 'Amazon eGift Cards & Physical Claim Codes',
+    popularAmounts: [50, 100, 250, 500, 1000],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY'],
+    payoutRate: 0.94,
+    turnaroundMins: 3,
+    bonusHashratePer100Usd: 50
+  },
+  {
+    id: 'razer_gold',
+    name: 'Razer Gold',
+    category: 'gaming',
+    iconColor: '#00ff00',
+    badgeBg: 'bg-green-950 text-green-400',
+    badgeText: 'Razer Gold',
+    placeholderCode: 'Serial / Card ID (14 digits)',
+    pinRequired: true,
+    pinLabel: 'Razer Gold PIN (14 digits)',
+    pinPlaceholder: 'Enter 14-digit PIN',
+    description: 'Razer Gold Global & Regional PINs',
+    popularAmounts: [50, 100, 250, 500, 1000],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'SGD'],
+    payoutRate: 0.93,
+    turnaroundMins: 3,
+    bonusHashratePer100Usd: 48
+  },
+  {
+    id: 'google_play',
+    name: 'Google Play',
+    category: 'digital',
+    iconColor: '#01875f',
+    badgeBg: 'bg-emerald-950 text-emerald-400',
+    badgeText: 'Google Play',
+    placeholderCode: 'XXXX-XXXX-XXXX-XXXX',
+    pinRequired: false,
+    description: 'Google Play Store Digital Voucher Codes',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+    payoutRate: 0.92,
+    turnaroundMins: 3,
+    bonusHashratePer100Usd: 46
   },
   {
     id: 'playstation',
@@ -108,7 +140,10 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinRequired: false,
     description: 'PlayStation Network Store Gift Cards',
     popularAmounts: [50, 100, 200, 500],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+    payoutRate: 0.93,
+    turnaroundMins: 4,
+    bonusHashratePer100Usd: 48
   },
   {
     id: 'xbox',
@@ -121,22 +156,10 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinRequired: false,
     description: 'Xbox Live & Microsoft Store Gift Cards',
     popularAmounts: [50, 100, 200, 500],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
-  },
-  {
-    id: 'ebay',
-    name: 'eBay Gift Card',
-    category: 'retail',
-    iconColor: '#e53238',
-    badgeBg: 'bg-rose-950 text-rose-400',
-    badgeText: 'eBay',
-    placeholderCode: '13-digit redemption code',
-    pinRequired: true,
-    pinLabel: 'PIN / Security Code',
-    pinPlaceholder: '6-digit PIN',
-    description: 'eBay Digital & Physical Shopping Cards',
-    popularAmounts: [50, 100, 200, 500],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+    payoutRate: 0.93,
+    turnaroundMins: 4,
+    bonusHashratePer100Usd: 48
   },
   {
     id: 'sephora',
@@ -151,7 +174,10 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinPlaceholder: '8-digit PIN',
     description: 'Sephora eGift & Physical Gift Cards',
     popularAmounts: [50, 100, 250, 500],
-    supportedCurrencies: ['USD', 'CAD', 'EUR', 'GBP']
+    supportedCurrencies: ['USD', 'CAD', 'EUR', 'GBP'],
+    payoutRate: 0.91,
+    turnaroundMins: 5,
+    bonusHashratePer100Usd: 45
   },
   {
     id: 'nike',
@@ -166,7 +192,28 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinPlaceholder: '6-digit PIN',
     description: 'Nike & Converse Gift Cards',
     popularAmounts: [50, 100, 200, 500, 1000],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD']
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD'],
+    payoutRate: 0.91,
+    turnaroundMins: 5,
+    bonusHashratePer100Usd: 45
+  },
+  {
+    id: 'ebay',
+    name: 'eBay Gift Card',
+    category: 'retail',
+    iconColor: '#e53238',
+    badgeBg: 'bg-rose-950 text-rose-400',
+    badgeText: 'eBay',
+    placeholderCode: '13-digit redemption code',
+    pinRequired: true,
+    pinLabel: 'PIN / Security Code',
+    pinPlaceholder: '6-digit PIN',
+    description: 'eBay Digital & Physical Shopping Cards',
+    popularAmounts: [50, 100, 200, 500],
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+    payoutRate: 0.90,
+    turnaroundMins: 5,
+    bonusHashratePer100Usd: 44
   },
   {
     id: 'walmart',
@@ -181,7 +228,10 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinPlaceholder: '4-digit PIN',
     description: 'Walmart eGift & Physical Cards',
     popularAmounts: [50, 100, 200, 500, 1000],
-    supportedCurrencies: ['USD', 'CAD']
+    supportedCurrencies: ['USD', 'CAD'],
+    payoutRate: 0.92,
+    turnaroundMins: 4,
+    bonusHashratePer100Usd: 46
   },
   {
     id: 'target',
@@ -196,7 +246,10 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinPlaceholder: '8-digit Access Number',
     description: 'Target eGift & Physical Cards',
     popularAmounts: [50, 100, 200, 500],
-    supportedCurrencies: ['USD']
+    supportedCurrencies: ['USD'],
+    payoutRate: 0.91,
+    turnaroundMins: 4,
+    bonusHashratePer100Usd: 45
   },
   {
     id: 'amex_prepaid',
@@ -211,7 +264,10 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinPlaceholder: 'MM/YY - 4-digit CID',
     description: 'American Express Gift & Prepaid Cards',
     popularAmounts: [100, 250, 500, 1000],
-    supportedCurrencies: ['USD', 'CAD']
+    supportedCurrencies: ['USD', 'CAD'],
+    payoutRate: 0.96,
+    turnaroundMins: 3,
+    bonusHashratePer100Usd: 52
   },
   {
     id: 'other',
@@ -226,6 +282,9 @@ export const GIFT_CARD_BRANDS: GiftCardBrand[] = [
     pinPlaceholder: 'Enter PIN or access code',
     description: 'Any unlisted digital voucher or physical gift card',
     popularAmounts: [50, 100, 250, 500, 1000],
-    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'OTHER']
+    supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'OTHER'],
+    payoutRate: 0.90,
+    turnaroundMins: 8,
+    bonusHashratePer100Usd: 40
   }
 ];

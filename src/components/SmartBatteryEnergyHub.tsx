@@ -30,20 +30,41 @@ import { trackClientActivity } from '../services/activityTracker';
 
 interface SmartBatteryProps {
   className?: string;
-  variant?: 'pill' | 'compact' | 'card' | 'floating';
+  variant?: 'pill' | 'compact' | 'card' | 'floating' | 'dashboard-card';
   showDetails?: boolean;
   hasActiveMining?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 export default function SmartBatteryEnergyHub({
   className = '',
   variant = 'pill',
   showDetails = true,
-  hasActiveMining = false
+  hasActiveMining = false,
+  isOpen: externalIsOpen,
+  onClose: externalOnClose
 }: SmartBatteryProps) {
   const battery = useBattery();
-  const { isEffectivePowerSaving, powerSaveMode, setPowerSaveMode, togglePowerSaveMode } = usePowerSave();
-  const [isOpen, setIsOpen] = useState(false);
+  const { 
+    isEffectivePowerSaving, 
+    powerSaveMode, 
+    setPowerSaveMode, 
+    togglePowerSaveMode,
+    batteryViewMode,
+    toggleBatteryViewMode,
+    chargingPulseEffect
+  } = usePowerSave();
+  
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = (open: boolean) => {
+    if (externalOnClose && !open) {
+      externalOnClose();
+    }
+    setInternalIsOpen(open);
+  };
+
   const [audioFeedback, setAudioFeedback] = useState(() => {
     return localStorage.getItem('pm_batt_sound') !== 'false';
   });
@@ -140,8 +161,153 @@ export default function SmartBatteryEnergyHub({
 
   return (
     <>
-      {/* 1. Main Interactive Pill / HUD Trigger */}
-      {variant === 'compact' ? (
+      {/* 1. Main Interactive Pill / Card / HUD Trigger */}
+      {variant === 'dashboard-card' ? (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`w-full bg-card rounded-2xl p-5 sm:p-6 border border-border/50 shadow-md relative overflow-hidden flex flex-col justify-between ${className}`}
+        >
+          {battery.charging && (
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[#00f0ff] rounded-full blur-[80px] opacity-15 pointer-events-none" />
+          )}
+
+          {/* Card Header */}
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2.5 rounded-xl border flex items-center justify-center ${
+                battery.charging 
+                  ? 'bg-[#00f0ff]/15 border-[#00f0ff]/30 text-[#00f0ff]' 
+                  : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+              }`}>
+                {renderIcon(20)}
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
+                  <span>Battery & Green Energy Hub</span>
+                  {battery.charging && (
+                    <span className="text-[10px] font-black uppercase text-[#00f0ff] bg-[#00f0ff]/15 px-2 py-0.5 rounded-full border border-[#00f0ff]/30 animate-pulse">
+                      ⚡ Fast Charging
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-secondary">
+                  Live hardware diagnostics & 0.0W zero-drain cloud verification
+                </p>
+              </div>
+            </div>
+
+            {/* View Mode Quick Switch & Details Trigger */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleBatteryViewMode}
+                title={`Switch to ${batteryViewMode === 'minimalist' ? 'Detailed' : 'Minimalist'} View`}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-subtle hover:bg-subtle-hover border border-border text-xs font-semibold text-secondary hover:text-primary transition-all active:scale-95"
+              >
+                <Layers size={13} />
+                <span>{batteryViewMode === 'minimalist' ? 'Show Detailed' : 'Minimalist'}</span>
+              </button>
+              
+              <button
+                onClick={() => setIsOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-[#0052ff]/10 hover:bg-[#0052ff]/20 border border-[#0052ff]/30 text-xs font-bold text-[#0052ff] hover:text-[#0052ff] transition-all flex items-center gap-1 active:scale-95"
+              >
+                <span>Diagnostics</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+
+          {/* Battery Level Progress Bar */}
+          <div className="space-y-2 mb-5">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-secondary font-semibold flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${dotColor} ${battery.charging ? 'animate-ping' : ''}`} />
+                <span>Device Battery Power</span>
+              </span>
+              <div className="flex items-center gap-2 font-mono">
+                <span className={`text-base sm:text-lg font-extrabold ${statusColor}`}>
+                  {percentage}%
+                </span>
+                <span className="text-secondary text-[11px]">
+                  ({battery.charging ? 'AC Adapter' : 'Discharging'})
+                </span>
+              </div>
+            </div>
+
+            <div className="w-full h-3 bg-background border border-border/60 rounded-full p-0.5 relative overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 0.6 }}
+                className={`h-full rounded-full ${
+                  battery.charging
+                    ? 'bg-gradient-to-r from-emerald-400 via-[#00f0ff] to-[#0052ff]'
+                    : isLow
+                    ? 'bg-amber-400'
+                    : 'bg-emerald-400'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Grid Stats / Minimalist vs Detailed */}
+          {batteryViewMode === 'detailed' ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div className="p-3 bg-background border border-border/50 rounded-xl">
+                <span className="text-[10px] uppercase font-bold text-secondary tracking-wider block">Health Score</span>
+                <p className="text-sm sm:text-base font-extrabold text-emerald-400 mt-0.5">
+                  {battery.batteryHealth || 99}% Optimal
+                </p>
+                <span className="text-[10px] text-secondary">Battery Cell Safe</span>
+              </div>
+
+              <div className="p-3 bg-background border border-border/50 rounded-xl">
+                <span className="text-[10px] uppercase font-bold text-secondary tracking-wider block">Device Temp</span>
+                <p className="text-sm sm:text-base font-extrabold text-cyan-300 mt-0.5 flex items-center gap-1">
+                  <Thermometer size={13} className="text-cyan-400" />
+                  <span>{battery.temperatureC || 28.5}°C</span>
+                </p>
+                <span className="text-[10px] text-emerald-400 font-medium">Cool & Quiet</span>
+              </div>
+
+              <div className="p-3 bg-background border border-border/50 rounded-xl">
+                <span className="text-[10px] uppercase font-bold text-secondary tracking-wider block">Hardware Load</span>
+                <p className="text-sm sm:text-base font-extrabold text-emerald-400 mt-0.5 flex items-center gap-1">
+                  <Leaf size={13} />
+                  <span>0.0 W (0% Drain)</span>
+                </p>
+                <span className="text-[10px] text-secondary">100% Cloud Hash</span>
+              </div>
+
+              <div className="p-3 bg-background border border-border/50 rounded-xl">
+                <span className="text-[10px] uppercase font-bold text-secondary tracking-wider block">Optimization</span>
+                <p className="text-sm sm:text-base font-extrabold text-[#0052ff] mt-0.5 truncate">
+                  {isEffectivePowerSaving ? 'Eco Throttle' : 'Real-Time Sync'}
+                </p>
+                <span className="text-[10px] text-secondary">
+                  {isEffectivePowerSaving ? '90s Battery Saver' : '15s High Speed'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3.5 bg-background border border-border/50 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                  <Leaf size={16} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-primary">0% Local Battery Consumption</p>
+                  <p className="text-[11px] text-secondary">All proof-of-work hashes computed on datacenter servers.</p>
+                </div>
+              </div>
+              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                0.0W Load
+              </span>
+            </div>
+          )}
+        </motion.div>
+      ) : variant === 'compact' ? (
         <button
           onClick={() => setIsOpen(true)}
           title={`Battery: ${percentage}% • ${battery.charging ? 'Charging (0% Mining Drain)' : 'Battery Power'}`}

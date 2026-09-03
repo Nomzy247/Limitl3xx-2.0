@@ -12,6 +12,9 @@ import ScrollToTopButton from './ScrollToTopButton';
 import PWAInstallPrompt from './PWAInstallPrompt';
 import OnboardingModal from './OnboardingModal';
 import ConnectionStatusNotifier from './ConnectionStatusNotifier';
+import FloatingBatteryIndicator from './FloatingBatteryIndicator';
+import WhatsAppChatLauncher from './WhatsAppChatLauncher';
+import PushNotificationManager from './PushNotificationManager';
 import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
 
@@ -49,6 +52,9 @@ export default function Layout() {
                 <BottomNav />
             </div>
             <ScrollToTopButton />
+            <FloatingBatteryIndicator />
+            <WhatsAppChatLauncher />
+            <PushNotificationManager />
             <PWAInstallPrompt />
           </div>
         </div>

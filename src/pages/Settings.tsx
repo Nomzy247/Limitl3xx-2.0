@@ -16,6 +16,19 @@ import { fluidSpring } from '../components/SystemManager';
 import { toast } from 'sonner';
 import { db, doc, updateDoc } from '../firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { 
+  isPushNotificationSupported, 
+  getNotificationPermission, 
+  requestPushPermission, 
+  isPushAlertsEnabled, 
+  setPushAlertsEnabled, 
+  isSoundAlertsEnabled, 
+  setSoundAlertsEnabled, 
+  playNotificationChime,
+  notifyMinedPayout, 
+  notifyGiftCardApproved 
+} from '../services/pushNotificationService';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 
 const ALL_COUNTRIES = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", 
@@ -45,7 +58,18 @@ const ALL_COUNTRIES = [
 export default function Settings() {
   const { user, userData } = useAuth();
   const { isDark, toggleTheme, setTheme } = useTheme();
-  const { powerSaveMode, isEffectivePowerSaving, togglePowerSaveMode, updateIntervalMs } = usePowerSave();
+  const { 
+    powerSaveMode, 
+    isEffectivePowerSaving, 
+    togglePowerSaveMode, 
+    updateIntervalMs,
+    batteryViewMode,
+    setBatteryViewMode,
+    showFloatingBattery,
+    setShowFloatingBattery,
+    chargingPulseEffect,
+    setChargingPulseEffect
+  } = usePowerSave();
   const battery = useBattery();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'preferences' | 'power'>('profile');
@@ -66,6 +90,11 @@ export default function Settings() {
   const [is2FAEnabled, setIs2FAEnabled] = useState(userData?.two_factor_enabled || false);
   const [faStep, setFaStep] = useState(1);
   const [faCode, setFaCode] = useState('');
+
+  // Push & Sound Alerts State
+  const [pushEnabled, setPushEnabled] = useState(isPushAlertsEnabled());
+  const [soundEnabled, setSoundEnabled] = useState(isSoundAlertsEnabled());
+  const [browserPermission, setBrowserPermission] = useState(getNotificationPermission());
 
   const tabs = [
     { id: 'profile', icon: User, label: 'Profile' },
@@ -377,25 +406,179 @@ export default function Settings() {
 
               {activeTab === 'notifications' && (
                 <div className="space-y-6 relative z-10">
-                  <div className="flex items-center gap-3 mb-6">
-                     <Bell size={20} className="text-[#00f0ff]" />
-                     <h3 className="text-xl font-bold tracking-tight">System Alerts</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-2xl bg-[#00f0ff]/10 text-[#00f0ff] border border-[#00f0ff]/20">
+                        <Bell size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold tracking-tight">Real-Time Push Alerts & Notifications</h3>
+                        <p className="text-xs text-secondary mt-0.5">
+                          Instant web push and audio alerts for cloud mining payouts and gift card approvals
+                        </p>
+                      </div>
+                    </div>
+
+                    {isPushNotificationSupported() && (
+                      <span className={`px-3 py-1 rounded-full text-xs font-black self-start sm:self-auto uppercase tracking-wider ${
+                        browserPermission === 'granted' 
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {browserPermission === 'granted' ? '● Browser Active' : '○ Permission Needed'}
+                      </span>
+                    )}
                   </div>
-                  <div className="space-y-3">
-                    {[
-                      { id: 'mining', label: 'Mining Rewards', desc: 'Get real-time alerts when daily mining payouts are processed.' },
-                      { id: 'deposits', label: 'Financial Transactions', desc: 'Confirmations for all deposits, withdrawals, and internal transfers.' },
-                      { id: 'security', label: 'Security Protocols', desc: 'Critical alerts about logins and credential modifications.' },
-                      { id: 'marketing', label: 'Network News', desc: 'Be the first to know about new mining plans and platform updates.' },
-                    ].map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-6 bg-surface-dark/30 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
-                        <div className="max-w-md">
-                          <p className="font-bold text-primary">{item.label}</p>
-                          <p className="text-[11px] text-secondary mt-1 leading-relaxed">{item.desc}</p>
+
+                  {/* Push Permission Master Card */}
+                  <div className="p-5 sm:p-6 bg-surface-dark/40 rounded-3xl border border-white/5 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-primary text-base">Web Push Notification Alerts</h4>
+                          <span className="text-[10px] font-black uppercase bg-[#0052ff]/20 text-[#0052ff] px-2 py-0.5 rounded-full">
+                            Desktop & Mobile PWA
+                          </span>
                         </div>
-                        <label className="relative inline-flex h-7 w-12 items-center cursor-pointer group">
-                          <input type="checkbox" className="sr-only peer" defaultChecked={item.id !== 'marketing'} />
-                          <div className="w-12 h-7 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00f0ff]/30 border border-white/5"></div>
+                        <p className="text-xs text-secondary mt-1 max-w-lg leading-relaxed">
+                          Receive live system notifications even when PoolMining is running in the background or when your phone is locked.
+                        </p>
+                      </div>
+
+                      {browserPermission !== 'granted' ? (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const granted = await requestPushPermission();
+                            setBrowserPermission(getNotificationPermission());
+                            if (granted) setPushEnabled(true);
+                          }}
+                          className="px-4 py-2.5 bg-[#0052ff] hover:bg-[#0052ff]/90 text-white font-bold rounded-xl text-xs shadow-lg shadow-[#0052ff]/20 active:scale-95 transition-all shrink-0"
+                        >
+                          Enable Web Push
+                        </button>
+                      ) : (
+                        <label className="relative inline-flex h-7 w-12 items-center cursor-pointer group shrink-0">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={pushEnabled}
+                            onChange={(e) => {
+                              setPushEnabled(e.target.checked);
+                              setPushAlertsEnabled(e.target.checked);
+                              toast.success(e.target.checked ? 'Push alerts enabled' : 'Push alerts paused');
+                            }}
+                          />
+                          <div className="w-12 h-7 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0052ff] border border-white/5"></div>
+                        </label>
+                      )}
+                    </div>
+
+                    {/* Audio Chime Toggle */}
+                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={16} className="text-amber-400" />
+                        <div>
+                          <p className="text-xs font-bold text-primary">Harmonic Payout Chime</p>
+                          <p className="text-[11px] text-muted">Plays an audio tone whenever a mining yield or gift card payout completes.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => playNotificationChime('payout')}
+                          className="px-2.5 py-1 text-[11px] font-bold bg-white/5 hover:bg-white/10 text-secondary rounded-lg border border-white/5 transition-colors"
+                        >
+                          Preview Tone
+                        </button>
+                        <label className="relative inline-flex h-6 w-10 items-center cursor-pointer group shrink-0">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={soundEnabled}
+                            onChange={(e) => {
+                              setSoundEnabled(e.target.checked);
+                              setSoundAlertsEnabled(e.target.checked);
+                            }}
+                          />
+                          <div className="w-10 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 border border-white/5"></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Interactive Test Trigger Center */}
+                  <div className="p-5 sm:p-6 bg-surface-dark/30 rounded-3xl border border-white/5 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-2">
+                      <span>Interactive Alert Simulator</span>
+                      <span className="text-[10px] bg-white/5 text-secondary px-2 py-0.5 rounded-full">Test Device Alerts</span>
+                    </h4>
+                    <p className="text-xs text-secondary leading-relaxed">
+                      Verify your notification delivery, vibration, and audio chimes on this device.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          notifyMinedPayout(142.50, 'USD', 'Antminer S21 Pro (200 TH/s)');
+                        }}
+                        className="p-3.5 rounded-2xl bg-surface border border-white/10 hover:border-amber-500/40 hover:bg-amber-500/5 transition-all text-left group flex items-start justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5 font-bold text-xs text-primary group-hover:text-amber-400 transition-colors">
+                            <span>⛏️ Test Mining Payout Alert</span>
+                          </div>
+                          <p className="text-[11px] text-muted mt-1">
+                            Simulate daily yield credit of $142.50 USD
+                          </p>
+                        </div>
+                        <span className="text-[10px] font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full shrink-0">
+                          Fire Alert
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          notifyGiftCardApproved(500.00, 'Apple Gift Card', 'USD');
+                        }}
+                        className="p-3.5 rounded-2xl bg-surface border border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all text-left group flex items-start justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5 font-bold text-xs text-primary group-hover:text-emerald-400 transition-colors">
+                            <span>🎁 Test Gift Card Trade Alert</span>
+                          </div>
+                          <p className="text-[11px] text-muted mt-1">
+                            Simulate trade approval for $500.00 Apple Card
+                          </p>
+                        </div>
+                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full shrink-0">
+                          Fire Alert
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Standard Category Subscriptions */}
+                  <div className="space-y-3 pt-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted">
+                      Notification Channels & Topics
+                    </h4>
+                    {[
+                      { id: 'mining', label: 'Cloud Mining Daily Yields', desc: 'Real-time push alert whenever an active ASIC contract delivers mined satoshis / USD.' },
+                      { id: 'giftcards', label: 'Gift Card Trade Settlements', desc: 'Instant status changes for card redemption verification and balance credits.' },
+                      { id: 'deposits', label: 'Crypto Deposits & External Withdrawals', desc: 'Confirmations for on-chain crypto deposits and external payout transfers.' },
+                      { id: 'security', label: 'Account Security & Login Alerts', desc: 'Security protocols, new IP logins, and credential update notifications.' }
+                    ].map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-4 bg-surface-dark/30 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+                        <div className="max-w-md pr-2">
+                          <p className="font-bold text-xs text-primary">{item.label}</p>
+                          <p className="text-[11px] text-secondary mt-0.5 leading-relaxed">{item.desc}</p>
+                        </div>
+                        <label className="relative inline-flex h-6 w-11 items-center cursor-pointer group shrink-0">
+                          <input type="checkbox" className="sr-only peer" defaultChecked />
+                          <div className="w-11 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00f0ff] border border-white/5"></div>
                         </label>
                       </div>
                     ))}
@@ -593,6 +776,90 @@ export default function Settings() {
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Battery HUD & UI Presentation Controls */}
+                  <div className="p-6 bg-surface-dark/40 rounded-3xl border border-white/5 space-y-6">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <Sliders size={16} className="text-[#00f0ff]" />
+                      <span>Battery Status Indicator Preferences</span>
+                    </h4>
+
+                    {/* View Mode Toggle (Minimalist vs Detailed) */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
+                      <div>
+                        <p className="text-sm font-bold text-primary">Display Mode</p>
+                        <p className="text-xs text-secondary mt-0.5">
+                          Switch between a compact minimalist percentage pill or an expanded technical metrics view.
+                        </p>
+                      </div>
+                      <div className="flex items-center p-1 bg-surface border border-border/60 rounded-xl">
+                        <button
+                          onClick={() => setBatteryViewMode('minimalist')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            batteryViewMode === 'minimalist'
+                              ? 'bg-[#0052ff] text-white shadow-md'
+                              : 'text-secondary hover:text-primary'
+                          }`}
+                        >
+                          Minimalist View
+                        </button>
+                        <button
+                          onClick={() => setBatteryViewMode('detailed')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            batteryViewMode === 'detailed'
+                              ? 'bg-[#0052ff] text-white shadow-md'
+                              : 'text-secondary hover:text-primary'
+                          }`}
+                        >
+                          Detailed View
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Floating HUD Indicator Toggle */}
+                    <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/5">
+                      <div>
+                        <p className="text-sm font-bold text-primary">Floating Battery Widget</p>
+                        <p className="text-xs text-secondary mt-0.5">
+                          Show an always-visible floating battery indicator on the bottom-left of all screens.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowFloatingBattery(!showFloatingBattery)}
+                        className={`relative inline-flex h-7 w-13 items-center rounded-full transition-colors shrink-0 ${
+                          showFloatingBattery ? 'bg-[#0052ff]' : 'bg-white/10'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-md ${
+                            showFloatingBattery ? 'translate-x-7' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Charging Pulse Glow Effect */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-bold text-primary">Charging Pulse Aura</p>
+                        <p className="text-xs text-secondary mt-0.5">
+                          Subtly pulse a luminous cyan glow when your device is connected to an AC fast charger.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setChargingPulseEffect(!chargingPulseEffect)}
+                        className={`relative inline-flex h-7 w-13 items-center rounded-full transition-colors shrink-0 ${
+                          chargingPulseEffect ? 'bg-[#00f0ff]' : 'bg-white/10'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-md ${
+                            chargingPulseEffect ? 'translate-x-7' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Feature Breakdown & Modes */}

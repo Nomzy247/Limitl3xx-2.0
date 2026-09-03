@@ -5,7 +5,7 @@ interface BatteryStatusProps {
   className?: string;
   showDetails?: boolean;
   hasActiveMining?: boolean;
-  variant?: 'pill' | 'compact' | 'card' | 'floating';
+  variant?: 'pill' | 'compact' | 'card' | 'floating' | 'dashboard-card';
 }
 
 export default function BatteryStatus({ 

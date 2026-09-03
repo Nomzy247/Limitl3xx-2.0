@@ -9,8 +9,10 @@ import { toast } from 'sonner';
 import { db, collection, addDoc, serverTimestamp } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from './SystemManager';
-import { GIFT_CARD_BRANDS, GiftCardBrand } from '../data/giftCards';
+import { GIFT_CARD_BRANDS, GiftCardBrand, CURRENCY_RATES_TO_USD } from '../data/giftCards';
 import { compressImage } from '../utils/imageCompressor';
+import { useMarketWatch } from '../hooks/useMarketWatch';
+import { Calculator, TrendingUp, Zap, Coins } from 'lucide-react';
 
 interface GiftCardDepositProps {
   initialAmount?: number;
@@ -56,9 +58,21 @@ export default function GiftCardDepositSection({
     return matchesCategory && matchesSearch;
   });
 
-  const parsedAmount = parseFloat(cardAmount) || 0;
-  // Valuation calculation (1:1 USD rate for supported cards, minimal network fee $0.00)
-  const creditedAmount = parsedAmount;
+  const [showEstimatorModal, setShowEstimatorModal] = useState(false);
+  const [selectedCryptoView, setSelectedCryptoView] = useState<'USD' | 'USDT' | 'BTC' | 'ETH'>('USD');
+  const { marketData } = useMarketWatch();
+
+  const btcPrice = marketData?.BTC?.price || 67850;
+  const ethPrice = marketData?.ETH?.price || 3540;
+
+  const parsedAmount = Math.max(0, parseFloat(cardAmount) || 0);
+  const currencyRate = CURRENCY_RATES_TO_USD[cardCurrency] || 1.0;
+  const baseUsdValue = parsedAmount * currencyRate;
+  // Real-time calculation based on brand payout rate
+  const creditedAmount = baseUsdValue * (selectedBrand.payoutRate || 0.95);
+  const estimatedBtc = creditedAmount > 0 ? (creditedAmount / btcPrice) : 0;
+  const estimatedEth = creditedAmount > 0 ? (creditedAmount / ethPrice) : 0;
+  const estimatedHashrate = Math.round((creditedAmount / 100) * (selectedBrand.bonusHashratePer100Usd || 50));
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -320,10 +334,21 @@ export default function GiftCardDepositSection({
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${brand.badgeBg}`}>
                       {brand.badgeText}
                     </span>
-                    {isSelected && <CheckCircle2 size={14} className="text-[#0052ff]" />}
+                    {isSelected ? (
+                      <CheckCircle2 size={14} className="text-[#0052ff]" />
+                    ) : (
+                      <span className="text-[10px] font-black text-emerald-400">
+                        {(brand.payoutRate * 100).toFixed(0)}%
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs font-bold text-primary truncate">{brand.name}</p>
-                  <p className="text-[10px] text-muted truncate mt-0.5">{brand.description}</p>
+                  <div className="flex items-center justify-between mt-1 text-[10px]">
+                    <span className="text-muted truncate">{brand.description.split('&')[0]}</span>
+                    <span className="text-emerald-400 font-bold ml-1 shrink-0">
+                      {(brand.payoutRate * 100).toFixed(0)}% Rate
+                    </span>
+                  </div>
                 </motion.div>
               );
             })}
@@ -344,12 +369,30 @@ export default function GiftCardDepositSection({
           )}
         </div>
 
-        {/* Step 2: Currency & Face Value */}
-        <div className="p-4 bg-surface rounded-2xl border border-border/50 space-y-4">
-          <label className="text-sm font-bold text-primary flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-[#0052ff] text-white text-[11px] flex items-center justify-center font-mono">2</span>
-            Card Face Value & Currency
-          </label>
+        {/* Step 2: Currency & Face Value + Real-Time Auto-Estimator */}
+        <div className="p-4 sm:p-5 bg-surface rounded-2xl border border-border/60 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-bold text-primary flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#0052ff] text-white text-[11px] flex items-center justify-center font-mono">2</span>
+              Card Face Value & Live Rate Calculator
+            </label>
+            <div className="flex items-center p-0.5 bg-background border border-border/70 rounded-xl">
+              {(['USD', 'USDT', 'BTC', 'ETH'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setSelectedCryptoView(mode)}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all ${
+                    selectedCryptoView === mode
+                      ? 'bg-[#0052ff] text-white'
+                      : 'text-secondary hover:text-primary'
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -357,7 +400,7 @@ export default function GiftCardDepositSection({
               <select
                 value={cardCurrency}
                 onChange={(e) => setCardCurrency(e.target.value)}
-                className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
+                className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm text-primary font-bold focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
               >
                 {selectedBrand.supportedCurrencies.map((cur) => (
                   <option key={cur} value={cur}>{cur} ({cur === 'USD' ? '$' : cur === 'EUR' ? '€' : cur === 'GBP' ? '£' : '$'})</option>
@@ -403,15 +446,65 @@ export default function GiftCardDepositSection({
             ))}
           </div>
 
-          {/* Real-Time Conversion Summary */}
-          <div className="p-3 bg-background/80 rounded-xl border border-border/40 flex items-center justify-between text-xs">
-            <span className="text-secondary flex items-center gap-1.5">
-              <Sparkles size={14} className="text-amber-400" />
-              Credited to Wallet Balance:
-            </span>
-            <span className="text-emerald-400 font-bold text-sm">
-              ${creditedAmount.toFixed(2)} USD
-            </span>
+          {/* Real-Time Rate Calculator & Estimated Payout Card */}
+          <div className="p-4 bg-background/90 rounded-2xl border border-border/70 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-border/40">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-amber-400" />
+                <span className="text-xs font-bold text-primary">Live Rate Auto-Estimator:</span>
+                <span className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
+                  {(selectedBrand.payoutRate * 100).toFixed(0)}% Spot Payout Rate
+                </span>
+              </div>
+              <span className="text-[11px] text-muted flex items-center gap-1">
+                <Clock size={12} className="text-[#0052ff]" />
+                Audit: ~{selectedBrand.turnaroundMins} mins
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              {/* Credited Balance in selected crypto mode */}
+              <div className="p-3 bg-surface rounded-xl border border-border/40">
+                <span className="text-[10px] uppercase font-bold text-secondary block">
+                  Net Wallet Credit ({selectedCryptoView})
+                </span>
+                <p className="text-base font-black text-emerald-400 font-mono mt-0.5">
+                  {selectedCryptoView === 'USD' && `$${creditedAmount.toFixed(2)} USD`}
+                  {selectedCryptoView === 'USDT' && `${creditedAmount.toFixed(2)} USDT`}
+                  {selectedCryptoView === 'BTC' && `${estimatedBtc.toFixed(6)} BTC`}
+                  {selectedCryptoView === 'ETH' && `${estimatedEth.toFixed(4)} ETH`}
+                </p>
+                <span className="text-[10px] text-muted mt-0.5 block">
+                  Face value: {cardCurrency} {parsedAmount}
+                </span>
+              </div>
+
+              {/* Cloud Hashpower equivalent */}
+              <div className="p-3 bg-surface rounded-xl border border-border/40">
+                <span className="text-[10px] uppercase font-bold text-secondary flex items-center gap-1">
+                  <Zap size={11} className="text-amber-400" /> Mining Power
+                </span>
+                <p className="text-base font-black text-primary font-mono mt-0.5">
+                  +{estimatedHashrate} TH/s
+                </p>
+                <span className="text-[10px] text-muted mt-0.5 block">
+                  Instant cloud deployment
+                </span>
+              </div>
+
+              {/* Est. Daily Return */}
+              <div className="p-3 bg-surface rounded-xl border border-border/40">
+                <span className="text-[10px] uppercase font-bold text-secondary flex items-center gap-1">
+                  <TrendingUp size={11} className="text-emerald-400" /> Daily Yield
+                </span>
+                <p className="text-base font-black text-emerald-400 font-mono mt-0.5">
+                  +${(creditedAmount * 0.028).toFixed(2)}/day
+                </p>
+                <span className="text-[10px] text-muted mt-0.5 block">
+                  Automated 24h daily payout
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 

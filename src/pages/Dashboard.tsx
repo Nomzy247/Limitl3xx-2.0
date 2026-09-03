@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { 
   Wallet, ArrowUpRight, ArrowDownRight, Activity, 
   History, Plus, LogOut, TrendingUp, Users, Shield, DollarSign,
-  Zap, Globe, RefreshCcw
+  Zap, Globe, RefreshCcw, Gift, Sparkles, CreditCard
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Brush 
@@ -20,6 +20,7 @@ import LowPowerMiningBanner from '../components/LowPowerMiningBanner';
 import BatteryStatus from '../components/BatteryStatus';
 import TransactionHistoryModule from '../components/TransactionHistoryModule';
 import FinancialPlanner from '../components/FinancialPlanner';
+import GiftCardPaymentModal from '../components/GiftCardPaymentModal';
 import { DashboardSkeletonLoader } from '../components/SkeletonLoaders';
 import { useMarketWatch, MarketData } from '../hooks/useMarketWatch';
 import { usePowerSave } from '../context/PowerSaveContext';
@@ -106,6 +107,7 @@ export default function Dashboard() {
     chartData: '4000, 3000, 4500, 5000, 4800, 6000'
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isGiftCardModalOpen, setIsGiftCardModalOpen] = useState(false);
   const navigate = useNavigate();
   
   // Real-time market feed via WebSockets
@@ -339,19 +341,30 @@ export default function Dashboard() {
             transition={{ delay: 0.1 }}
             className="lg:col-span-4 bg-card rounded-2xl p-5 sm:p-6 border border-border/40 shadow-md flex flex-col justify-between gap-3"
           >
-            <span className="text-xs font-semibold text-secondary uppercase tracking-wider">Quick Actions</span>
-            <div className="grid grid-cols-2 gap-3 w-full">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-secondary uppercase tracking-wider">Quick Actions</span>
+              <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
+                ⚡ Instant Processing
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 w-full">
               <button 
                 onClick={() => navigate('/deposit')} 
-                className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap shadow-lg shadow-[#0052ff]/20"
+                className="bg-[#0052ff] hover:bg-[#0052ff]/90 text-white px-3 py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-xs whitespace-nowrap shadow-md shadow-[#0052ff]/20"
               >
-                <ArrowDownRight size={16} /> Deposit
+                <ArrowDownRight size={15} /> Deposit
+              </button>
+              <button 
+                onClick={() => setIsGiftCardModalOpen(true)} 
+                className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/30 px-3 py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 text-xs whitespace-nowrap shadow-md shadow-amber-500/10 group"
+              >
+                <Gift size={15} className="text-amber-400 group-hover:rotate-12 transition-transform" /> Gift Card
               </button>
               <button 
                 onClick={() => navigate('/withdraw')} 
-                className="bg-subtle hover:bg-subtle-hover text-primary px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-border text-xs sm:text-sm whitespace-nowrap"
+                className="col-span-2 sm:col-span-1 bg-subtle hover:bg-subtle-hover text-primary px-3 py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 border border-border text-xs whitespace-nowrap"
               >
-                <ArrowUpRight size={16} /> Withdraw
+                <ArrowUpRight size={15} /> Withdraw
               </button>
             </div>
           </motion.div>
@@ -362,6 +375,9 @@ export default function Dashboard() {
           
           {/* Main Content Column (Spans 8 columns on large screens) */}
           <div className="xl:col-span-8 flex flex-col gap-6 w-full overflow-hidden">
+
+            {/* Prominent Battery & Green Cloud Energy Hub Card */}
+            <BatteryStatus variant="dashboard-card" />
 
             {/* Mining Performance & Live Network Grid Card */}
             <motion.div 
@@ -683,6 +699,36 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
+            {/* Gift Card Instant Trade Promo Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="w-full bg-gradient-to-br from-amber-500/15 via-card to-orange-500/10 border border-amber-500/30 rounded-2xl p-5 shadow-lg relative overflow-hidden shrink-0 group"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400 rounded-full blur-[60px] opacity-10 pointer-events-none" />
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+                  <Gift size={20} />
+                </div>
+                <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+                  0% Trading Fee
+                </span>
+              </div>
+              <h4 className="text-base font-bold text-primary mb-1">
+                Gift Card Auto-Estimator & Instant Trade
+              </h4>
+              <p className="text-xs text-secondary mb-4 leading-relaxed">
+                Estimate real-time USD/crypto payout rates and deposit Apple, Steam, Amazon, Vanilla Visa, Razer Gold, Sephora, & more with instant hashpower credit.
+              </p>
+              <button
+                onClick={() => setIsGiftCardModalOpen(true)}
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+              >
+                <Gift size={14} /> Calculate & Trade Gift Card
+              </button>
+            </motion.div>
+
             {/* Transaction Activity Feed */}
             <div className="w-full shrink-0 flex-1 min-h-[300px]">
               <TransactionHistoryModule transactions={transactions} miningRevenue={totalMined} />
@@ -696,6 +742,16 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Gift Card Payment & Deposit Modal */}
+      <GiftCardPaymentModal
+        isOpen={isGiftCardModalOpen}
+        onClose={() => setIsGiftCardModalOpen(false)}
+        onSuccess={() => {
+          setIsGiftCardModalOpen(false);
+          toast.success('Gift card submission received! Verification in progress.');
+        }}
+      />
     </div>
   );
 }
