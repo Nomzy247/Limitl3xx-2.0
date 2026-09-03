@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { fluidSpring } from '../components/SystemManager';
 import { ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import SmartBatteryEnergyHub from '../components/SmartBatteryEnergyHub';
 import { toast } from 'sonner';
 
 // Lazy load the TradingView iframe block to improve initial paint performance
@@ -100,7 +101,8 @@ export default function LiveTrading() {
             <p className="text-primary font-medium">63,100.00</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2.5 text-xs">
+          <SmartBatteryEnergyHub variant="pill" showDetails={false} />
           <button className="bg-subtle hover:bg-subtle-hover px-3 py-1.5 rounded-lg border border-border transition-colors">
             Cross 3x
           </button>

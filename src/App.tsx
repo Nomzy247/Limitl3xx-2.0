@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SystemManager from './components/SystemManager';
 import RouteMetaHandler from './components/RouteMetaHandler';
 import PageSuspenseFallback from './components/PageSuspenseFallback';
+import GlobalActivityTracker from './components/GlobalActivityTracker';
 import { useMediaQuery } from './hooks/useMediaQuery';
 
 // Code-split dynamic page imports with React.lazy
@@ -67,6 +68,7 @@ export default function App() {
         <SystemManager>
           <AuthProvider>
             <Router basename={import.meta.env.BASE_URL}>
+              <GlobalActivityTracker />
               <RouteMetaHandler />
               <ScrollToTop />
               <Toaster 

@@ -3,8 +3,9 @@ import {
   Search, MessageSquare, Send, User as UserIcon, RefreshCw, CheckCircle2, 
   Lock, ShieldCheck, ShieldAlert, ShieldX, Wallet, Sparkles, Megaphone,
   Mail, Phone, Calendar, Award, DollarSign, ArrowUpRight, ArrowDownRight,
-  Zap, Info, Check, Copy, ExternalLink, ChevronRight, Ban, CheckCircle, AlertTriangle
+  Zap, Info, Check, Copy, ExternalLink, ChevronRight, Ban, CheckCircle, AlertTriangle, Radio
 } from 'lucide-react';
+import LiveActivityRadar from '../components/LiveActivityRadar';
 import { db } from '../firebase';
 import { 
   collection, query, orderBy, onSnapshot, updateDoc, doc, addDoc, 
@@ -77,6 +78,7 @@ export default function AdminSupport() {
   const [broadcastInput, setBroadcastInput] = useState('');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [showRadarModal, setShowRadarModal] = useState(false);
   const [showClientDrawer, setShowClientDrawer] = useState(true);
   const [isUpdatingBalance, setIsUpdatingBalance] = useState(false);
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
@@ -399,6 +401,12 @@ export default function AdminSupport() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowRadarModal(true)}
+            className="text-xs font-bold px-4 py-2.5 rounded-xl bg-card border border-border text-primary hover:border-[#0052ff] hover:bg-[#0052ff]/5 transition-all flex items-center gap-2"
+          >
+            <Radio size={15} className="text-emerald-500 animate-pulse" /> Live Activity Radar
+          </button>
+          <button
             onClick={() => setShowBroadcastModal(true)}
             className="text-xs font-bold px-4 py-2.5 rounded-xl bg-[#0052ff] text-white hover:bg-[#0052ff]/90 transition-all flex items-center gap-2 shadow-lg shadow-[#0052ff]/20"
           >
@@ -413,6 +421,28 @@ export default function AdminSupport() {
           </span>
         </div>
       </div>
+
+      {/* Live Activity Radar Modal */}
+      {showRadarModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-3xl max-w-5xl w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-card">
+              <h3 className="font-extrabold text-base flex items-center gap-2 text-primary">
+                <Radio className="text-emerald-500 animate-pulse" size={18} /> Live Visitor & Client Telemetry Radar
+              </h3>
+              <button
+                onClick={() => setShowRadarModal(false)}
+                className="text-muted hover:text-primary p-1.5 rounded-lg border border-border"
+              >
+                ✕ Close
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto">
+              <LiveActivityRadar />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Broadcast Modal */}
       {showBroadcastModal && (

@@ -7,6 +7,7 @@ import { fluidSpring } from './SystemManager';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import LanguageSelector from './LanguageSelector';
+import SmartBatteryEnergyHub from './SmartBatteryEnergyHub';
 import Logo from './Logo';
 
 export default function Navbar() {
@@ -143,8 +144,11 @@ export default function Navbar() {
       <motion.div 
         ref={profileMenuRef}
         style={{ y: bubbleY }}
-        className="fixed top-6 right-6 z-50 flex items-center justify-end pointer-events-auto"
+        className="fixed top-6 right-6 z-50 flex items-center justify-end pointer-events-auto gap-2.5"
       >
+        {/* Universal Top-Bar Smart Battery & Fast Charging HUD */}
+        <SmartBatteryEnergyHub variant="pill" showDetails={false} />
+
         <AnimatePresence>
           {isProfileMenuOpen && (
             <motion.div
@@ -152,7 +156,7 @@ export default function Navbar() {
               animate={{ opacity: 1, width: 'auto', scale: 1 }}
               exit={{ opacity: 0, width: 0, scale: 0.9 }}
               transition={fluidSpring}
-              className="overflow-hidden flex items-center mr-3 bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-full shadow-2xl"
+              className="overflow-hidden flex items-center mr-1 bg-white/[0.32] dark:bg-black/[0.32] backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-full shadow-2xl"
             >
               <div className="flex items-center gap-2 px-4 py-2 whitespace-nowrap">
                 {location.pathname !== '/dashboard' && (
@@ -281,10 +285,11 @@ export default function Navbar() {
                     </div>
                     
                     <motion.div 
-                      className="flex items-center gap-3"
+                      className="flex items-center gap-2 sm:gap-3"
                       exit={{ scale: 0.3, opacity: 0, borderRadius: '9999px' }}
                       transition={{ duration: 0.3 }}
                     >
+                      <SmartBatteryEnergyHub variant="compact" />
                       <LanguageSelector variant="dropdown" />
                       <button onClick={toggleTheme} className="p-1.5 text-muted hover:text-primary transition-colors rounded-full hover:bg-subtle">
                         {isDark ? <Sun size={16} /> : <Moon size={16} />}

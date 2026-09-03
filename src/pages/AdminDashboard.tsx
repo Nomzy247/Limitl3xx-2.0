@@ -9,6 +9,7 @@ import { fluidSpring } from '../components/SystemManager';
 import { formatFirebaseDate } from '../utils/date';
 import UserActionModal from '../components/UserActionModal';
 import TaskManager from '../components/TaskManager';
+import LiveActivityRadar from '../components/LiveActivityRadar';
 import { useNavigate } from 'react-router';
 
 const data = [
@@ -534,6 +535,16 @@ export default function AdminDashboard() {
           <p className="text-3xl font-bold">Optimal</p>
         </motion.div>
       </div>
+
+      {/* Live Visitor & Activity Geo-Radar Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...fluidSpring, delay: 0.35 }}
+        className="mb-8"
+      >
+        <LiveActivityRadar />
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Chart */}

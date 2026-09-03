@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { RefreshCw } from 'lucide-react';
 import { fluidSpring } from '../components/SystemManager';
+import SmartBatteryEnergyHub from '../components/SmartBatteryEnergyHub';
 
 export default function CryptoTrading() {
   const [fromAsset, setFromAsset] = useState('USDT');
@@ -15,9 +16,12 @@ export default function CryptoTrading() {
         transition={fluidSpring}
         className="w-full max-w-md bg-card border border-border/50 rounded-3xl p-6 shadow-2xl"
       >
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tighter">Spot Swap</h1>
-          <p className="text-secondary text-sm">Instantly convert between assets</p>
+        <header className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tighter">Spot Swap</h1>
+            <p className="text-secondary text-sm">Instantly convert between assets</p>
+          </div>
+          <SmartBatteryEnergyHub variant="compact" />
         </header>
 
         <div className="space-y-4">

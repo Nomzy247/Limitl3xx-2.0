@@ -35,6 +35,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import DiscordIcon from './DiscordIcon';
+import SmartBatteryEnergyHub from './SmartBatteryEnergyHub';
 import { toast } from 'sonner';
 
 interface MobileDrawerProps {
@@ -217,7 +218,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
             {/* Quick Financial Shortcuts (If Logged In) */}
             {user && (
-              <div className="p-3 bg-surface border-b border-border/60">
+              <div className="p-3 bg-surface border-b border-border/60 space-y-2.5">
                 <div className="grid grid-cols-2 gap-2">
                   <NavLink
                     to="/deposit"
@@ -235,6 +236,10 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                     <ArrowUpRight size={14} />
                     <span>WITHDRAW</span>
                   </NavLink>
+                </div>
+
+                <div className="pt-1 flex items-center justify-between">
+                  <SmartBatteryEnergyHub className="w-full justify-between" />
                 </div>
               </div>
             )}

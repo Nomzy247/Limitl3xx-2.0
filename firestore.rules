@@ -237,6 +237,13 @@ service cloud.firestore {
     match /test/{docId} {
       allow read: if true;
     }
+
+    match /live_activity/{activityId} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
     
     match /support_chats/{chatId} {
       allow read: if isOwner(chatId) || isAdmin();
