@@ -26,6 +26,8 @@ export default function Hub() {
       let sum = 0;
       snapshot.forEach(doc => { sum += (doc.data().mined || 0); });
       setTotalMined(sum);
+    }, (err) => {
+      console.warn('Hub contracts listener note:', err?.message);
     });
     return () => unsubscribe();
   }, [user]);

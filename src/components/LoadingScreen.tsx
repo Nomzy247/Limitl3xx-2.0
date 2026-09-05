@@ -4,8 +4,12 @@ import { motion, AnimatePresence } from 'motion/react';
 export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('pm_splash_shown');
+    try {
+      if (typeof window !== 'undefined') {
+        return !sessionStorage.getItem('pm_splash_shown');
+      }
+    } catch {
+      return false;
     }
     return false;
   });

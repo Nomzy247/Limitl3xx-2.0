@@ -56,8 +56,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let unsubscribeDoc: (() => void) | null = null;
 
+    // Safety timeout: Ensure loading never hangs if Firebase auth is slow or throttled
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('Auth state changed:', firebaseUser ? `User: ${firebaseUser.uid}` : 'Logged out');
+      clearTimeout(safetyTimer);
       try {
         if (firebaseUser) {
           setUser(firebaseUser);
@@ -222,6 +228,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
+      clearTimeout(safetyTimer);
       unsubscribeAuth();
       if (unsubscribeDoc) unsubscribeDoc();
     };
@@ -236,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? <PageSuspenseFallback /> : children}
+      {children}
     </AuthContext.Provider>
   );
 };

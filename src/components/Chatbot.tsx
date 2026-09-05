@@ -111,6 +111,8 @@ export default function Chatbot() {
           duration: 4000
         });
       }
+    }, (err) => {
+      console.warn('Chatbot message stream note:', err?.message);
     });
 
     return () => unsubscribe();
@@ -128,6 +130,8 @@ export default function Chatbot() {
                playNotificationChime();
              }
          }
+     }, (err) => {
+       console.warn('Chatbot unread counter note:', err?.message);
      });
      return () => unsub();
   }, [user]);

@@ -164,6 +164,8 @@ export default function LiveActivityRadar() {
       }
 
       isInitialLoadRef.current = false;
+    }, (err) => {
+      console.warn('LiveActivityRadar stream note:', err?.message);
     });
 
     return () => unsubscribe();

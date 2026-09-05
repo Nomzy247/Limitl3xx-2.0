@@ -165,6 +165,8 @@ export default function Dashboard() {
           });
         }
       });
+    }, (err) => {
+      console.warn("Live feed stream note:", err?.message);
     });
 
     // Background polling mechanism to automatically fetch latest account data (throttled in Power-Save mode)

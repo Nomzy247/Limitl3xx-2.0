@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router';
 
 interface RouteMeta {
@@ -146,29 +145,48 @@ export default function RouteMetaHandler() {
   const canonicalUrl = `https://poolmining.cloud${pathname === '/' ? '' : pathname}`;
   const ogImage = 'https://poolmining.cloud/logo.png';
 
-  return (
-    <Helmet>
-      {/* Basic Primary Meta Tags */}
-      <title>{currentMeta.title}</title>
-      <meta name="title" content={currentMeta.title} />
-      <meta name="description" content={currentMeta.description} />
-      {currentMeta.keywords && <meta name="keywords" content={currentMeta.keywords} />}
-      <link rel="canonical" href={canonicalUrl} />
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
 
-      {/* Open Graph / Facebook / Discord / LinkedIn */}
-      <meta property="og:type" content={currentMeta.ogType || 'website'} />
-      <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:title" content={currentMeta.title} />
-      <meta property="og:description" content={currentMeta.description} />
-      <meta property="og:image" content={ogImage} />
-      <meta property="og:site_name" content="PoolMining Cloud" />
+    document.title = currentMeta.title;
 
-      {/* Twitter Cards */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:url" content={canonicalUrl} />
-      <meta name="twitter:title" content={currentMeta.title} />
-      <meta name="twitter:description" content={currentMeta.description} />
-      <meta name="twitter:image" content={ogImage} />
-    </Helmet>
-  );
+    const setMetaTag = (attrName: 'name' | 'property', key: string, content: string) => {
+      let tag = document.querySelector(`meta[${attrName}="${key}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute(attrName, key);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+    };
+
+    setMetaTag('name', 'title', currentMeta.title);
+    setMetaTag('name', 'description', currentMeta.description);
+    if (currentMeta.keywords) {
+      setMetaTag('name', 'keywords', currentMeta.keywords);
+    }
+
+    setMetaTag('property', 'og:type', currentMeta.ogType || 'website');
+    setMetaTag('property', 'og:url', canonicalUrl);
+    setMetaTag('property', 'og:title', currentMeta.title);
+    setMetaTag('property', 'og:description', currentMeta.description);
+    setMetaTag('property', 'og:image', ogImage);
+    setMetaTag('property', 'og:site_name', 'PoolMining Cloud');
+
+    setMetaTag('name', 'twitter:card', 'summary_large_image');
+    setMetaTag('name', 'twitter:url', canonicalUrl);
+    setMetaTag('name', 'twitter:title', currentMeta.title);
+    setMetaTag('name', 'twitter:description', currentMeta.description);
+    setMetaTag('name', 'twitter:image', ogImage);
+
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute('href', canonicalUrl);
+  }, [currentMeta, canonicalUrl, ogImage]);
+
+  return null;
 }

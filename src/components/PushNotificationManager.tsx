@@ -27,7 +27,12 @@ export default function PushNotificationManager() {
     // Check permission after slight delay so UI isn't bombarded on load
     const timer = setTimeout(() => {
       if (isPushNotificationSupported() && getNotificationPermission() === 'default') {
-        const hasDismissed = sessionStorage.getItem('poolmining_push_prompt_dismissed');
+        let hasDismissed = false;
+        try {
+          hasDismissed = sessionStorage.getItem('poolmining_push_prompt_dismissed') === 'true';
+        } catch {
+          hasDismissed = false;
+        }
         if (!hasDismissed) {
           setShowPermissionPrompt(true);
         }
@@ -129,7 +134,11 @@ export default function PushNotificationManager() {
 
   const handleDismissPrompt = () => {
     setShowPermissionPrompt(false);
-    sessionStorage.setItem('poolmining_push_prompt_dismissed', 'true');
+    try {
+      sessionStorage.setItem('poolmining_push_prompt_dismissed', 'true');
+    } catch {
+      // ignore
+    }
   };
 
   return (
